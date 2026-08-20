@@ -305,13 +305,30 @@ def register_routes(app):
             lic = c.execute('SELECT * FROM keys WHERE uid=? ORDER BY id DESC LIMIT 1', (uid_hash,)).fetchone()
         c.close()
         subscription = None
+        hwid_display = 'Не привязан (автопривязка при запуске)'
         if lic:
-            subscription = {'duration': lic['duration'], 'expires_at': lic['expires_at'], 'hwid_bound': bool(lic['hwid'])}
+            if lic['hwid']:
+                raw_h = lic['hwid'].replace('-', '').upper()
+                hwid_display = f"HWID-{raw_h[:4]}-{raw_h[4:8]}-{raw_h[8:12]}"
+            subscription = {'duration': lic['duration'], 'expires_at': lic['expires_at'], 'hwid_bound': bool(lic['hwid']), 'key': lic['key']}
         return jsonify(ok=True, logged_in=True, player={
             'uid': row['uid'], 'username': row['username'], 'email': row['email'], 'role': row['role'],
             'created_at': row['created_at'],
-            'subscription': subscription, 'hwid_reset_price': 250,
+            'subscription': subscription,
+            'hwid': hwid_display,
+            'hwid_reset_price': 0,
         })
+
+    @app.post('/api/player/reset-hwid')
+    def player_reset_hwid():
+        player = player_session_user()
+        if not player:
+            return jsonify(ok=False, message='Войдите в аккаунт'), 401
+        c = get_db()
+        c.execute('UPDATE keys SET hwid=NULL, bound_at=NULL WHERE player_id=?', (player['id'],))
+        c.commit()
+        c.close()
+        return jsonify(ok=True, message='HWID успешно сброшен!')
 
     @app.post('/api/player/activate-key')
     def player_activate_key():
@@ -356,7 +373,7 @@ def register_routes(app):
 
         d = request.get_json(silent=True) or {}
         title = str(d.get('product', '')).strip()
-        method = str(d.get('method', '')).strip()
+        method = str(d.get('method', '')).strip().lower()
         promo_code = str(d.get('promo', '')).strip().upper()
 
         if not title:
@@ -387,29 +404,53 @@ def register_routes(app):
             price = round(price * (100 - discount) / 100, 2)
             c.execute('UPDATE promos SET uses = uses + 1 WHERE code=?', (promo_code,))
 
-        order_id = f"ORD-{secrets.token_hex(4).upper()}"
+        # FunPay handling
+        if method == 'funpay':
+            c.commit()
+            c.close()
+            return jsonify(
+                ok=True,
+                is_funpay=True,
+                url='https://funpay.com',
+                message='Перенаправление на FunPay... Завершите покупку у продавца.',
+            )
+
+        # Direct online payments (Card, ЮMoney, Visa, Mastercard) -> Automatic activation directly on account!
+        duration = title if title in config.KEY_DURATIONS else '30 Days'
+        key = make_key(c)
+        now = datetime.now(timezone.utc)
+        days = config.KEY_DURATIONS.get(duration)
+        expires_at = (now + timedelta(days=days)).isoformat() if days else None
+        uid_h = hash_device_id(player['uid'])
+
+        c.execute(
+            '''INSERT INTO keys
+               (key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id)
+               VALUES (?, ?, 1, 1, 1, ?, ?, ?, NULL, ?, ?)''',
+            (key, duration, now.isoformat(), expires_at, uid_h, now.isoformat(), player['id']),
+        )
         c.commit()
         c.close()
 
         method_names = {
-            'funpay': 'FunPay',
             'yumoney': 'ЮMoney',
             'card': 'Банковская карта',
             'visa': 'Visa',
             'mc': 'Mastercard',
             'mastercard': 'Mastercard',
         }
-        method_title = method_names.get(method.lower(), method)
+        method_title = method_names.get(method, method.title())
+        exp_text = (now + timedelta(days=days)).strftime('%d.%m.%Y') if days else 'Навсегда'
 
         return jsonify(
             ok=True,
-            order_id=order_id,
-            requires_payment=True,
+            auto_activated=True,
             product=title,
+            duration=duration,
+            expires_at=expires_at,
+            price_paid=price,
             method=method_title,
-            amount=price,
-            discount=discount,
-            message=f"Заказ #{order_id} создан на сумму {price} ₽ ({method_title}). Для завершения оплаты перейдите в платёжную систему или свяжитесь с поддержкой.",
+            message=f"✅ Оплата успешна! Тариф '{title}' ({price} ₽) автоматически активирован на ваш аккаунт! Срок: {exp_text}.",
         )
 
 

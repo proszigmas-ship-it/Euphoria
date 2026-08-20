@@ -440,7 +440,7 @@ function showCabinet(){
   document.getElementById('dLogin').textContent = ME.username;
   document.getElementById('dEmail').textContent = ME.email;
   document.getElementById('dCreated').textContent = ME.created_at ? new Date(ME.created_at).toLocaleDateString('ru-RU') : '—';
-  document.getElementById('dHwid').textContent = (ME.subscription && ME.subscription.hwid_bound) ? 'Привязан' : '—';
+  document.getElementById('dHwid').textContent = ME.hwid || ((ME.subscription && ME.subscription.hwid_bound) ? 'Привязан' : 'Не привязан');
 
   const statusLabel = document.getElementById('statusLabel');
   const statusVer = document.getElementById('statusVer');
@@ -546,7 +546,7 @@ function openPayModal(title){
   document.getElementById('payVisualTitle').textContent = selectedProduct.title === 'HWID Reset' ? 'Сброс HWID' : 'EUPHORIA';
   document.getElementById('payMsg').textContent = '';
 
-  const periodsWrap = document.getElementById('payPeriods');
+  const periodsWrap = document.getElementById('periodsWrap');
   const periodLabel = document.getElementById('periodSectionLabel');
   if(isService){
     periodsWrap.innerHTML = '';
@@ -616,8 +616,18 @@ async function submitPayment(){
     });
     const d = await r.json();
     if(r.ok && d.ok){
-      msg.className='pay-msg ok';
-      msg.textContent = `Заказ #${d.order_id} оформлен на сумму ${d.amount} ₽ (${d.method}). Для завершения оплаты и получения ключа переведите средства или свяжитесь с поддержкой.`;
+      if(d.is_funpay){
+        window.open(d.url || 'https://funpay.com', '_blank');
+        msg.className='pay-msg ok';
+        msg.textContent = 'Переход на FunPay для покупки у продавца...';
+      } else if(d.auto_activated){
+        msg.className='pay-msg ok';
+        msg.textContent = `✅ Оплата успешна! Тариф '${d.product}' автоматически активирован на ваш аккаунт!`;
+        setTimeout(()=>location.reload(), 1400);
+      } else {
+        msg.className='pay-msg ok';
+        msg.textContent = d.message;
+      }
     } else {
       msg.className='pay-msg err';
       msg.textContent = d.message || 'Не удалось оформить заказ';

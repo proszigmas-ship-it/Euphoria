@@ -204,10 +204,11 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
       <li><a href="#pricing">&#128142; Тарифы</a></li>
       <li><a href="#faq">&#10067; FAQ</a></li>
       <li><a href="#support">&#128233; Поддержка</a></li>
+      <li><a href="/cabinet" style="color:var(--cyan);font-weight:800">&#128100; Аккаунт</a></li>
     </ul></nav>
     <div class="hacts">
       <a href="/cabinet" class="hbtn hbtn-sec">&#8594; Войти</a>
-      <a href="/cabinet" class="hbtn hbtn-pri">&#128100; Регистрация</a>
+      <a href="/cabinet" class="hbtn hbtn-pri">&#128100; Аккаунт</a>
       <button class="burger" onclick="toggleMenu()">&#9776;</button>
     </div>
   </div>
@@ -218,7 +219,7 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
   <a href="#pricing" onclick="toggleMenu()">&#128142; Тарифы</a>
   <a href="#faq" onclick="toggleMenu()">&#10067; FAQ</a>
   <a href="#support" onclick="toggleMenu()">&#128233; Поддержка</a>
-  <a href="/cabinet" onclick="toggleMenu()">&#128100; Войти / Регистрация</a>
+  <a href="/cabinet" onclick="toggleMenu()" style="color:var(--cyan);font-weight:800">&#128100; Личный кабинет / Аккаунт</a>
 </div>
 <main id="top">
 <section class="hero">
@@ -435,11 +436,11 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
                 <div class="cc"><span class="cl">&#1051;&#1086;&#1075;&#1080;&#1085;</span><strong id="cabUser">&#8212;</strong></div>
                 <div class="cc"><span class="cl">&#1056;&#1086;&#1083;&#1100;</span><strong id="cabRole2">&#8212;</strong></div>
                 <div class="cc"><span class="cl">Email</span><strong id="cabEmail">&#8212;</strong></div>
-                <div class="cc wide"><span class="cl">HWID</span><strong id="cabHwid">Not bound</strong></div>
+                <div class="cc wide"><span class="cl">&#128187; HWID (Устройство)</span><strong id="cabHwid" style="color:#38bdf8;font-family:monospace">Не привязан</strong></div>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
-                <button class="btn" onclick="document.querySelector('[data-p=settings]').click()">&#128273; Activate Key</button>
-                <button class="btn ghost" onclick="alert('HWID Reset &#8212; 250\u20bd')">HWID Reset · 250₽</button>
+                <button class="btn" onclick="document.querySelector('[data-p=settings]').click()">&#128273; Активировать ключ</button>
+                <button class="btn ghost" onclick="resetMyHwid()">&#128260; Сбросить HWID</button>
                 <button class="btn ghost" onclick="cabLogout()">Выйти</button>
               </div>
             </div>
@@ -552,24 +553,37 @@ async function loadUser(){
       const p=d.player;
       const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v||'—';};
       s('cabUid',p.uid);s('cabUser',p.username);s('cabRole2',p.role);s('cabEmail',p.email);s('cabWelcome',p.username);s('cabUserMini',p.username);s('cabRoleMini',p.role);
+      s('cabHwid', p.hwid || 'Не привязан');
       const ab=document.getElementById('cabAdminBtn');
       if(ab)ab.style.display=(['Admin','Deputy Admin','Зам. админа','Администратор'].includes(p.role))?'block':'none';
       if(p.subscription){
         const sub=p.subscription;
         const exp=sub.expires_at?new Date(sub.expires_at).toLocaleDateString('ru-RU'):'∞';
         s('cabSub',sub.duration+' · до '+exp);s('subLabel','Активно');s('subVer',sub.duration);s('subNote','Подписка активна до '+exp);
+      } else {
+        s('cabSub','Нет подписки');s('subLabel','Неактивно');s('subVer','—');s('subNote','У вас нет активных подписок, приобрести можно ниже');
       }
       if(hacts){
-        hacts.innerHTML=`<a href="/cabinet" class="hbtn hbtn-pri">👤 ${p.username} (${p.role})</a><button class="hbtn hbtn-sec" onclick="cabLogout()">Выйти</button><button class="burger" onclick="toggleMenu()">☰</button>`;
+        hacts.innerHTML=`<a href="/cabinet" class="hbtn hbtn-pri">&#128100; ${p.username} (${p.role})</a><button class="hbtn hbtn-sec" onclick="cabLogout()">Выйти</button><button class="burger" onclick="toggleMenu()">&#9776;</button>`;
       }
     }else{
       if(auth){auth.style.display='block';cabAuthTab('login');}
       if(acc)acc.style.display='none';
       if(hacts){
-        hacts.innerHTML=`<a href="/cabinet" class="hbtn hbtn-sec">→ Войти</a><a href="/cabinet" class="hbtn hbtn-pri">👤 Регистрация</a><button class="burger" onclick="toggleMenu()">☰</button>`;
+        hacts.innerHTML=`<a href="/cabinet" class="hbtn hbtn-sec">&#8594; Войти</a><a href="/cabinet" class="hbtn hbtn-pri">&#128100; Аккаунт</a><button class="burger" onclick="toggleMenu()">&#9776;</button>`;
       }
     }
   }catch(e){}
+}
+async function resetMyHwid(){
+  try{
+    const r=await fetch('/api/player/reset-hwid',{method:'POST'});
+    const d=await r.json();
+    alert(d.message||'HWID успешно сброшен!');
+    loadUser();
+  }catch(e){
+    alert('Ошибка при сбросе HWID');
+  }
 }
 document.getElementById('cabRefresh')?.addEventListener('click',loadUser);
 // Modal
@@ -591,7 +605,7 @@ async function startPay(){
   if(!selPayM){alert('Пожалуйста, выберите способ оплаты (FunPay, ЮMoney, Карта и т.д.)');return;}
   const p=prods[selProd];
   const btn=document.getElementById('payBtn');
-  if(btn){btn.disabled=true;btn.textContent='Оформление...';}
+  if(btn){btn.disabled=true;btn.textContent='Обработка...';}
   try{
     const r=await fetch('/api/player/checkout',{
       method:'POST',
@@ -600,9 +614,18 @@ async function startPay(){
     });
     const d=await r.json();
     if(d.ok){
-      alert(`💳 Заказ #${d.order_id} оформлен!\nТариф: ${d.product}\nСумма: ${d.amount} ₽\nСпособ оплаты: ${d.method}\n\nДля завершения оплаты и получения ключа переведите средства или свяжитесь с поддержкой в Telegram: @euphoria_support`);
+      if(d.is_funpay){
+        window.open(d.url||'https://funpay.com','_blank');
+        alert('Переход на FunPay для покупки у продавца.');
+      }else if(d.auto_activated){
+        alert(`✅ Оплата прошла успешно!\nТариф: ${d.product}\nСумма: ${d.price_paid} ₽\nСпособ: ${d.method}\n\nПодписка АВТОМАТИЧЕСКИ активирована на ваш аккаунт (ключ вводить не нужно)!`);
+        await loadUser();
+        document.getElementById('cabinet')?.scrollIntoView({behavior:'smooth'});
+      }else{
+        alert(d.message||'Заказ оформлен');
+      }
     }else if(d.message?.includes('Войдите')||d.message?.includes('Login')){
-      alert('Войдите в аккаунт перед оформлением заказа');
+      alert('Войдите в аккаунт перед оплатой');
       openLogin();
     }else{
       alert(d.message||'Ошибка');
