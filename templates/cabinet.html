@@ -576,11 +576,11 @@ function currentPrice(){
 }
 function updatePayPrice(){
   const price = currentPrice();
-  const usd = (price / 92).toFixed(2);
+  const usd = Math.max(1, Math.ceil(price / 80));
   const btn = document.getElementById('payBtn');
   if(selectedMethod === 'cryptobot'){
-    document.getElementById('payPrice').innerHTML = '$' + usd + ' USD <span id="payPeriodLabel">/ ' + ruDuration(selectedProduct.title) + '</span>';
-    btn.textContent = 'Оплатить $' + usd + ' (CryptoBot) →';
+    document.getElementById('payPrice').innerHTML = '$' + usd + '.00 USD <span id="payPeriodLabel">/ ' + ruDuration(selectedProduct.title) + '</span>';
+    btn.textContent = 'Оплатить $' + usd + '.00 USD (' + fmt(price) + ' ₽) в CryptoBot →';
   } else {
     document.getElementById('payPrice').innerHTML = fmt(price) + ' ₽ <span id="payPeriodLabel">/ ' + ruDuration(selectedProduct.title) + '</span>';
     btn.textContent = 'Оплатить ' + fmt(price) + ' ₽ →';

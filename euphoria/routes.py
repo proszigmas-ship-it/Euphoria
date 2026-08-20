@@ -757,10 +757,21 @@ def register_routes(app):
 
     @app.get('/api/products')
     def products():
+        import math
         c = get_db()
         rows = c.execute('SELECT * FROM products ORDER BY id').fetchall()
         c.close()
-        return jsonify([dict(r) for r in rows])
+        out = []
+        for r in rows:
+            d = dict(r)
+            price_rub = float(d.get('price', 0))
+            # Rounding UP in dollars + commission:
+            usd_ceil = float(math.ceil(price_rub / 80.0))
+            if usd_ceil < 1:
+                usd_ceil = 1.0
+            d['price_usd'] = usd_ceil
+            out.append(d)
+        return jsonify(out)
 
     @app.post('/api/admin/products')
     @admin_required

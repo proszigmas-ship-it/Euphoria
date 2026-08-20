@@ -764,16 +764,15 @@ function upCo(){
   const p=prods[selProd];
   if(!p||!co)return;
   const dc=activePromo?activePromo.discount:0;
-  const f=dc?Math.round(p.price*(100-dc)/100):p.price;
-  const usd=(f/92).toFixed(2);
+  const usd=Math.max(1, Math.ceil(f / 80));
   co.classList.add('on');
   const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   se('coProd',p.title);
   if(selPayM==='cryptobot'){
-    se('coPrice', '$' + usd + ' USD (' + f + ' ₽)');
-    se('coTotal', '$' + usd + ' USD (' + f + ' ₽)');
+    se('coPrice', '$' + usd + '.00 USD (' + f + ' ₽)');
+    se('coTotal', '$' + usd + '.00 USD (' + f + ' ₽)');
     const pb=document.getElementById('payBtn');
-    if(pb)pb.textContent='Оплатить через CryptoBot ($' + usd + ') →';
+    if(pb)pb.textContent='Оплатить через CryptoBot: $' + usd + '.00 USD (' + f + ' ₽) →';
   } else {
     se('coPrice', f + ' ₽');
     se('coTotal', f + ' ₽');

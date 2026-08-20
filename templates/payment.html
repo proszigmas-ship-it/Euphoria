@@ -800,7 +800,7 @@ async function init() {
     if (prod) {
       currentPlan = prod.title;
       currentPriceRub = prod.price;
-      currentPriceUsd = prod.price_usd || Number((prod.price / 92).toFixed(2));
+      currentPriceUsd = prod.price_usd || Math.max(1, Math.ceil(prod.price / 80));
     }
   } catch(e) {}
 
@@ -811,7 +811,7 @@ async function init() {
       if (promos[promoParam.toUpperCase()]) {
         activePromo = { code: promoParam.toUpperCase(), discount: promos[promoParam.toUpperCase()] };
         currentPriceRub = Math.round(currentPriceRub * (100 - activePromo.discount) / 100);
-        currentPriceUsd = Number((currentPriceUsd * (100 - activePromo.discount) / 100).toFixed(2));
+        currentPriceUsd = Math.max(1, Math.ceil(currentPriceRub / 80));
         document.getElementById('promoRow').style.display = 'flex';
         document.getElementById('cryptoPromoRow').style.display = 'flex';
         document.getElementById('summaryPromo').textContent = '-' + activePromo.discount + '% (' + activePromo.code + ')';
@@ -820,17 +820,19 @@ async function init() {
     } catch(e) {}
   }
 
+  currentPriceUsd = Math.max(1, Math.ceil(currentPriceRub / 80));
+
   document.getElementById('summaryPlan').textContent = ruTitle(currentPlan);
   document.getElementById('cryptoSummaryPlan').textContent = ruTitle(currentPlan);
   document.getElementById('summaryTotal').textContent = fmt(currentPriceRub) + ' ₽';
   
   document.getElementById('cryptoSummaryRub').textContent = fmt(currentPriceRub) + ' ₽';
-  document.getElementById('cryptoSummaryUsd').textContent = '$' + currentPriceUsd.toFixed(2) + ' USD';
-  document.getElementById('cryptoSummaryTotal').textContent = '$' + currentPriceUsd.toFixed(2) + ' USD';
+  document.getElementById('cryptoSummaryUsd').textContent = '$' + currentPriceUsd + '.00 USD';
+  document.getElementById('cryptoSummaryTotal').textContent = '$' + currentPriceUsd + '.00 USD';
   document.getElementById('cryptoSummarySub').textContent = '(' + fmt(currentPriceRub) + ' ₽)';
   
   document.getElementById('submitBtnText').textContent = '🔒 Оплатить ' + fmt(currentPriceRub) + ' ₽ через СБП';
-  document.getElementById('cryptoBtnText').textContent = '🚀 Оплатить $' + currentPriceUsd.toFixed(2) + ' USD (' + fmt(currentPriceRub) + ' ₽) в @CryptoBot';
+  document.getElementById('cryptoBtnText').textContent = '🚀 Оплатить $' + currentPriceUsd + '.00 USD (' + fmt(currentPriceRub) + ' ₽) в @CryptoBot';
 
   if (methodParam === 'cryptobot' || methodParam === 'crypto') {
     switchMethod('cryptobot');
