@@ -1,720 +1,588 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EUPHORIA â€” Minecraft Client</title>
-<meta name="description" content="EUPHORIA â€” Ð»ÑƒÑ‡ÑˆÐ¸Ð¹ Minecraft Client. ÐœÐ¾Ñ‰Ð½Ñ‹Ð¹ Ñ„ÑƒÐ½ÐºÑ†Ð¸Ð¾Ð½Ð°Ð», ÐºÑ€Ð°ÑÐ¸Ð²Ð°Ñ Ð²Ð¸Ð·ÑƒÐ°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ñ Ð¸ Ð½Ð°Ð´Ñ‘Ð¶Ð½Ñ‹Ðµ Ð¾Ð±Ñ…Ð¾Ð´Ñ‹.">
+<title>EUPHORIA &mdash; Minecraft Client</title>
+<meta name="description" content="EUPHORIA &mdash; Minecraft Client">
 <link rel="icon" type="image/png" href="/static/images/logo.png">
 <style>
-:root{
-  --bg:#070812;--card:#111528;--card2:#171b31;
-  --primary:#8b5cf6;--primary2:#6d28d9;--cyan:#38bdf8;
-  --text:#f8fafc;--muted:#9ca3af;--line:rgba(255,255,255,.09);
-  --success:#34d399;--danger:#ef4444;--shadow:0 20px 60px rgba(0,0,0,.35);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+:root{--bg:#070812;--card:#111528;--primary:#8b5cf6;--primary2:#6d28d9;--cyan:#38bdf8;--text:#f8fafc;--muted:#9ca3af;--line:rgba(255,255,255,.09);--success:#34d399;--danger:#ef4444;--shadow:0 20px 60px rgba(0,0,0,.35)}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
 body{min-height:100vh;color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);overflow-x:hidden}
-a{text-decoration:none;color:inherit}
-button,input,select{font:inherit}
+a{text-decoration:none;color:inherit}button,input,select,textarea{font:inherit}
 .container{width:min(1120px,92%);margin:auto}
-#rays-background{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.55}
-body>*:not(#rays-background){position:relative;z-index:1}
-/* Header */
-header{position:sticky;top:0;z-index:50;background:rgba(7,8,18,.82);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+#rays-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.5}
+body>*:not(#rays-bg){position:relative;z-index:1}
+header{position:sticky;top:0;z-index:50;background:rgba(7,8,18,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
 .nav-inner{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.logo{font-weight:900;font-size:23px;display:inline-flex;align-items:center;gap:10px;transition:.2s transform}
+.logo{font-weight:900;font-size:22px;display:inline-flex;align-items:center;gap:10px;transition:.2s transform}
 .logo:hover{transform:translateY(-1px)}
-.logo img{height:38px;width:38px;object-fit:cover;border-radius:11px;box-shadow:0 0 0 1px rgba(139,92,246,.4),0 0 16px 1px rgba(139,92,246,.3);flex-shrink:0;transition:.2s}
-.logo:hover img{transform:scale(1.06)}
-.logo-word{letter-spacing:.12em;font-weight:900}
-.logo-word span{color:var(--primary)}
-.header-nav ul{list-style:none;display:flex;gap:4px}
-.header-nav ul li a{display:flex;align-items:center;gap:5px;padding:8px 13px;color:var(--muted);font-size:14px;border-radius:8px;transition:.15s}
-.header-nav ul li a:hover{color:#fff;background:rgba(255,255,255,.06)}
-.header-actions{display:flex;align-items:center;gap:8px}
-.header-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:0;transition:.2s}
-.header-btn-secondary{background:transparent;border:1px solid var(--line);color:var(--muted)}
-.header-btn-secondary:hover{color:#fff;border-color:rgba(255,255,255,.2)}
-.header-btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 6px 22px rgba(109,40,217,.28)}
-.header-btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(109,40,217,.42)}
-.open-ul{display:none;background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:#fff;cursor:pointer;font-size:18px}
-.mobile-menu{display:none;position:fixed;inset:0;top:76px;background:rgba(7,8,18,.97);z-index:49;padding:20px;flex-direction:column;gap:8px}
-.mobile-menu.open{display:flex}
-.mobile-menu a{padding:14px 18px;font-size:16px;color:var(--muted);border-radius:10px;border:1px solid transparent}
-.mobile-menu a:hover{color:#fff;border-color:var(--line)}
-/* Hero */
-.main-sect{padding:120px 0 80px;text-align:center}
-.hero-content{max-width:780px;margin:auto}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid rgba(139,92,246,.35);border-radius:999px;background:rgba(139,92,246,.08);color:#c4b5fd;font-size:13px;margin-bottom:28px}
-.hero-title{font-size:clamp(44px,8vw,82px);line-height:.95;letter-spacing:-3px;margin-bottom:22px;font-weight:900}
-.gradient{background:linear-gradient(90deg,#fff,#c4b5fd,#38bdf8);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero-description{max-width:640px;margin:0 auto 36px;color:var(--muted);font-size:18px;line-height:1.7}
-.hero-buttons{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-.hero-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 24px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;border:0;transition:.2s}
-.hero-btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 8px 28px rgba(109,40,217,.3)}
-.hero-btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(109,40,217,.45)}
-.hero-btn-secondary{background:transparent;border:1px solid var(--line);color:var(--muted)}
-.hero-btn-secondary:hover{color:#fff;border-color:rgba(255,255,255,.25)}
-/* Tabs Section */
-.info-tabs{padding:80px 0}
-.section-header{text-align:center;margin-bottom:52px}
-.section-header h2{font-size:38px;font-weight:900;margin-bottom:10px}
-.section-header p{color:var(--muted);font-size:16px}
-.info-tabs-container{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.logo img{height:38px;width:38px;object-fit:cover;border-radius:11px;box-shadow:0 0 0 1px rgba(139,92,246,.4),0 0 16px rgba(139,92,246,.3);transition:.2s}
+.logo-word{letter-spacing:.12em;font-weight:900}.logo-word span{color:var(--primary)}
+.hnav ul{list-style:none;display:flex;gap:4px}
+.hnav ul a{display:block;padding:8px 13px;color:var(--muted);font-size:14px;border-radius:8px;transition:.15s}
+.hnav ul a:hover{color:#fff;background:rgba(255,255,255,.06)}
+.hacts{display:flex;align-items:center;gap:8px}
+.hbtn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:0;transition:.2s}
+.hbtn-sec{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.hbtn-sec:hover{color:#fff;border-color:rgba(255,255,255,.2)}
+.hbtn-pri{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 6px 22px rgba(109,40,217,.28)}
+.hbtn-pri:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(109,40,217,.42)}
+.burger{display:none;background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:#fff;cursor:pointer;font-size:18px}
+.mmenu{display:none;position:fixed;inset:0;top:76px;background:rgba(7,8,18,.97);z-index:49;padding:20px;flex-direction:column;gap:8px}
+.mmenu.open{display:flex}
+.mmenu a{padding:14px 18px;font-size:16px;color:var(--muted);border-radius:10px;border:1px solid transparent}
+.mmenu a:hover{color:#fff;border-color:var(--line)}
+.hero{padding:120px 0 80px;text-align:center}
+.hero-inner{max-width:780px;margin:auto}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid rgba(139,92,246,.35);border-radius:999px;background:rgba(139,92,246,.08);color:#c4b5fd;font-size:13px;margin-bottom:28px}
+.htitle{font-size:clamp(44px,8vw,82px);line-height:.95;letter-spacing:-3px;margin-bottom:22px;font-weight:900}
+.gr{background:linear-gradient(90deg,#fff,#c4b5fd,#38bdf8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hdesc{max-width:640px;margin:0 auto 36px;color:var(--muted);font-size:18px;line-height:1.7}
+.hbtns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.hb{display:inline-flex;align-items:center;gap:8px;padding:14px 24px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;border:0;transition:.2s}
+.hb-pri{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 8px 28px rgba(109,40,217,.3)}
+.hb-pri:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(109,40,217,.45)}
+.hb-sec{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.hb-sec:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+.sec{padding:80px 0}
+.sh{text-align:center;margin-bottom:52px}
+.sh h2{font-size:38px;font-weight:900;margin-bottom:10px}
+.sh p{color:var(--muted);font-size:16px}
+.kicker{color:#a78bfa;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:900;margin-bottom:12px;display:block}
+.itabs-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
 .tabs-nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
-.tab-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;transition:.2s}
-.tab-btn:hover{color:#fff;border-color:rgba(255,255,255,.2)}
-.tab-btn.active{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(139,92,246,.06));border-color:rgba(139,92,246,.5);color:#fff}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.advantage-item{display:flex;gap:16px;padding:18px;background:linear-gradient(180deg,rgba(23,27,49,.9),rgba(13,16,32,.9));border:1px solid var(--line);border-radius:16px;margin-bottom:12px}
-.advantage-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(109,40,217,.1));border:1px solid rgba(139,92,246,.3);display:grid;place-items:center;flex-shrink:0;font-size:20px;color:var(--primary)}
-.advantage-text h3{font-size:16px;margin-bottom:4px}
-.advantage-text p{color:var(--muted);font-size:13.5px;line-height:1.55}
-/* FAQ tabs */
-.faq-list-tabs{display:grid;gap:8px}
-.faq-item-tab{background:linear-gradient(180deg,rgba(23,27,49,.9),rgba(13,16,32,.9));border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.faq-question-tab{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;background:transparent;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;border:0;text-align:left}
-.faq-question-tab .arrow{color:var(--muted);flex-shrink:0;transition:.3s transform;display:inline-block}
-.faq-answer-tab{max-height:0;overflow:hidden;transition:max-height .35s ease}
-.faq-answer-tab p{padding:0 18px 16px;color:var(--muted);font-size:13.5px;line-height:1.6}
-.faq-item-tab.active .faq-question-tab .arrow{transform:rotate(180deg)}
-.faq-item-tab.active .faq-answer-tab{max-height:200px}
-/* Stats */
-.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.stat-card{background:linear-gradient(180deg,rgba(23,27,49,.9),rgba(13,16,32,.9));border:1px solid var(--line);border-radius:16px;padding:22px;text-align:center}
-.stat-value{display:block;font-size:32px;font-weight:900;color:#fff;margin-bottom:4px}
-.stat-title{color:var(--muted);font-size:13px}
-/* Carousel */
-.carousel-slide{display:none}
-.carousel-slide.active{display:block}
-.feature-card-carousel{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:24px;overflow:hidden}
-.feature-graphic-carousel{height:220px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%,rgba(139,92,246,.12),transparent 65%);border-bottom:1px solid var(--line)}
-.feature-content-carousel{padding:24px}
-.feature-title-carousel{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.feature-title-carousel h2{font-size:22px;font-weight:800}
-.feature-content-carousel p{color:var(--muted);font-size:14px;line-height:1.6}
-.carousel-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:16px}
-.carousel-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(17,21,40,.8);color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:20px;transition:.2s}
-.carousel-btn:hover{color:#fff;border-color:rgba(255,255,255,.25)}
-.carousel-dots{display:flex;gap:8px}
-.carousel-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:.2s}
-.carousel-dot.active{background:var(--primary)}
-/* Graphic animations */
+.tbn{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;transition:.2s}
+.tbn:hover{color:#fff;border-color:rgba(255,255,255,.2)}
+.tbn.active{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(139,92,246,.06));border-color:rgba(139,92,246,.5);color:#fff}
+.tc{display:none}.tc.active{display:block}
+.adv-item{display:flex;gap:16px;padding:18px;background:linear-gradient(180deg,rgba(23,27,49,.9),rgba(13,16,32,.9));border:1px solid var(--line);border-radius:16px;margin-bottom:12px}
+.adv-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(109,40,217,.1));border:1px solid rgba(139,92,246,.3);display:grid;place-items:center;flex-shrink:0;font-size:20px}
+.adv-text h3{font-size:16px;margin-bottom:4px}
+.adv-text p{color:var(--muted);font-size:13.5px;line-height:1.55}
+.faq-tab-list{display:grid;gap:8px}
+.fti{background:linear-gradient(180deg,rgba(23,27,49,.9),rgba(13,16,32,.9));border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ftq{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;background:transparent;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;border:0;text-align:left}
+.ftq .arr{color:var(--muted);transition:.3s transform;flex-shrink:0}
+.fta{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.fta p{padding:0 18px 16px;color:var(--muted);font-size:13.5px;line-height:1.6}
+.fti.open .ftq .arr{transform:rotate(180deg)}.fti.open .fta{max-height:200px}
+.stats-g{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.sc{background:linear-gradient(180deg,rgba(23,27,49,.9),rgba(13,16,32,.9));border:1px solid var(--line);border-radius:16px;padding:22px;text-align:center}
+.sv{display:block;font-size:32px;font-weight:900;margin-bottom:4px}
+.st{color:var(--muted);font-size:13px}
+.cs{display:none}.cs.active{display:block}
+.fc{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:24px;overflow:hidden}
+.fg{height:220px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%,rgba(139,92,246,.12),transparent 65%);border-bottom:1px solid var(--line)}
+.fcont{padding:24px}
+.ft2{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ft2 h2{font-size:22px;font-weight:800}
+.fcont p{color:var(--muted);font-size:14px;line-height:1.6}
+.cn{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:16px}
+.cb{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(17,21,40,.8);color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:20px;transition:.2s}
+.cb:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+.cdots{display:flex;gap:8px}
+.cd{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:.2s}
+.cd.active{background:var(--primary)}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
-@keyframes scan{0%{top:10%}100%{top:90%}}
-.circle-inner{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(109,40,217,.15));border:2px solid rgba(139,92,246,.4);display:grid;place-items:center;font-size:40px;animation:float 3s ease-in-out infinite}
-.esp-visual{width:120px;height:120px;border:2px solid rgba(139,92,246,.4);border-radius:12px;position:relative;display:grid;place-items:center}
-.esp-corner{position:absolute;width:14px;height:14px;border-color:var(--cyan);border-style:solid}
-.esp-tl{top:-1px;left:-1px;border-width:2px 0 0 2px;border-top-left-radius:4px}
-.esp-tr{top:-1px;right:-1px;border-width:2px 2px 0 0;border-top-right-radius:4px}
-.esp-bl{bottom:-1px;left:-1px;border-width:0 0 2px 2px;border-bottom-left-radius:4px}
-.esp-br{bottom:-1px;right:-1px;border-width:0 2px 2px 0;border-bottom-right-radius:4px}
-.esp-scan-line{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.6),transparent);animation:scan 2s linear infinite}
-.shield-anim{font-size:42px;animation:pulse 2s ease-in-out infinite}
-/* Buttons */
+@keyframes pulse2{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes scan{0%{top:5%}100%{top:90%}}
+.ci{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(109,40,217,.15));border:2px solid rgba(139,92,246,.4);display:grid;place-items:center;font-size:40px;animation:float 3s ease-in-out infinite}
+.ev{width:110px;height:110px;border:2px solid rgba(139,92,246,.4);border-radius:12px;position:relative;display:grid;place-items:center}
+.ec{position:absolute;width:14px;height:14px;border-color:var(--cyan);border-style:solid}
+.etl{top:-1px;left:-1px;border-width:2px 0 0 2px;border-top-left-radius:4px}
+.etr{top:-1px;right:-1px;border-width:2px 2px 0 0;border-top-right-radius:4px}
+.ebl{bottom:-1px;left:-1px;border-width:0 0 2px 2px;border-bottom-left-radius:4px}
+.ebr{bottom:-1px;right:-1px;border-width:0 2px 2px 0;border-bottom-right-radius:4px}
+.esl{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.6),transparent);animation:scan 2s linear infinite}
+.sa{font-size:42px;animation:pulse2 2s ease-in-out infinite}
 .btn{border:0;border-radius:10px;padding:12px 20px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:800;cursor:pointer;box-shadow:0 8px 25px rgba(109,40,217,.25);display:inline-flex;align-items:center;gap:8px;transition:.2s;font-size:14px}
 .btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(109,40,217,.38)}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);box-shadow:none}
 .btn.ghost:hover{color:#fff;border-color:rgba(255,255,255,.25)}
 .btn-full{width:100%}
-/* Pricing */
-.pricing-section{padding:80px 0}
-.kicker{color:#a78bfa;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:900;margin-bottom:12px;display:block}
-.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.price-card{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:18px;padding:28px;position:relative;overflow:hidden}
-.price-card.popular{border-color:rgba(139,92,246,.65);box-shadow:var(--shadow)}
-.popular-tag{position:absolute;right:18px;top:18px;background:rgba(139,92,246,.15);color:#c4b5fd;border:1px solid rgba(139,92,246,.3);padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800}
-.price-card h3{font-size:20px;margin-bottom:4px}
-.price-big{font-size:42px;font-weight:900;margin:16px 0 6px}
-.price-big small{font-size:13px;color:var(--muted);font-weight:500}
-.features-list{list-style:none;margin:20px 0}
-.features-list li{padding:8px 0;color:#d1d5db}
-.features-list li::before{content:"âœ“";color:var(--success);font-weight:900;margin-right:9px}
-.promo-wrap{margin:28px auto 0;display:flex;max-width:520px;gap:9px}
-.promo-wrap input{flex:1;padding:12px 14px;background:#0a0d19;color:#fff;border:1px solid var(--line);border-radius:10px;outline:none}
-.promo-wrap input:focus{border-color:rgba(139,92,246,.5)}
-.payment-box{margin-top:24px;padding:22px;border:1px solid var(--line);border-radius:18px;background:rgba(17,21,40,.72)}
-.payment-box h3{margin-bottom:14px;font-size:17px}
-.payment-methods{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
-.pay-method{border:1px solid var(--line);background:#0a0d19;color:#d9dde5;border-radius:12px;padding:12px 8px;cursor:pointer;text-align:center;font-weight:800;transition:.2s}
-.pay-method:hover,.pay-method.selected{border-color:var(--primary);background:rgba(139,92,246,.12);transform:translateY(-1px)}
-.pay-method small{display:block;color:var(--muted);font-size:10px;margin-top:4px;font-weight:500}
-.checkout{display:none;margin-top:16px;padding:15px;border-radius:13px;background:#0a0d19;border:1px solid var(--line)}
-.checkout.active{display:block}
-.checkout-row{display:flex;justify-content:space-between;gap:15px;padding:7px 0;color:#cbd5e1}
-.checkout-row.total{border-top:1px solid var(--line);margin-top:5px;padding-top:12px;font-size:18px;color:#fff;font-weight:900}
-/* FAQ section */
-.faq-section{padding:80px 0}
-.faq-list{max-width:850px;margin:auto;display:grid;gap:10px}
-.faq-item-pub{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:transparent;color:var(--text);font-size:15px;font-weight:800;cursor:pointer;border:0;text-align:left;gap:12px}
-.faq-arrow{color:var(--muted);font-size:14px;transition:.3s transform;flex-shrink:0;display:inline-block}
-.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease}
-.faq-a p{padding:0 20px 16px;color:var(--muted);line-height:1.6;font-size:14px}
-.faq-item-pub.open .faq-arrow{transform:rotate(180deg)}
-.faq-item-pub.open .faq-a{max-height:300px}
-/* Support */
-.support-section{padding:80px 0}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.pc{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:18px;padding:28px;position:relative;overflow:hidden}
+.pc.pop{border-color:rgba(139,92,246,.65);box-shadow:var(--shadow)}
+.ptag{position:absolute;right:18px;top:18px;background:rgba(139,92,246,.15);color:#c4b5fd;border:1px solid rgba(139,92,246,.3);padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800}
+.pc h3{font-size:20px;margin-bottom:4px}
+.pb{font-size:42px;font-weight:900;margin:16px 0 6px}
+.pb small{font-size:13px;color:var(--muted);font-weight:500}
+.fl{list-style:none;margin:20px 0}
+.fl li{padding:8px 0;color:#d1d5db}
+.fl li::before{content:"\2713";color:var(--success);font-weight:900;margin-right:9px}
+.pw{margin:28px auto 0;display:flex;max-width:520px;gap:9px}
+.pw input{flex:1;padding:12px 14px;background:#0a0d19;color:#fff;border:1px solid var(--line);border-radius:10px;outline:none;font-family:inherit}
+.pw input:focus{border-color:rgba(139,92,246,.5)}
+.paybox{margin-top:24px;padding:22px;border:1px solid var(--line);border-radius:18px;background:rgba(17,21,40,.72)}
+.paybox h3{margin-bottom:14px;font-size:17px}
+.pms{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.pm{border:1px solid var(--line);background:#0a0d19;color:#d9dde5;border-radius:12px;padding:12px 8px;cursor:pointer;text-align:center;font-weight:800;transition:.2s}
+.pm:hover,.pm.sel{border-color:var(--primary);background:rgba(139,92,246,.12);transform:translateY(-1px)}
+.pm small{display:block;color:var(--muted);font-size:10px;margin-top:4px;font-weight:500}
+.co{display:none;margin-top:16px;padding:15px;border-radius:13px;background:#0a0d19;border:1px solid var(--line)}
+.co.on{display:block}
+.cr{display:flex;justify-content:space-between;gap:15px;padding:7px 0;color:#cbd5e1}
+.cr.tot{border-top:1px solid var(--line);margin-top:5px;padding-top:12px;font-size:18px;color:#fff;font-weight:900}
+.faq-pub-list{max-width:850px;margin:auto;display:grid;gap:10px}
+.fpi{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.fpq{width:100%;display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:transparent;color:var(--text);font-size:15px;font-weight:800;cursor:pointer;border:0;text-align:left;gap:12px}
+.fa2{color:var(--muted);transition:.3s transform;flex-shrink:0}
+.fpa{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.fpa p{padding:0 20px 16px;color:var(--muted);line-height:1.6;font-size:14px}
+.fpi.open .fa2{transform:rotate(180deg)}.fpi.open .fpa{max-height:300px}
 .cta-box{text-align:center;padding:60px 30px;border:1px solid var(--line);border-radius:24px;background:radial-gradient(circle at 50% 0,rgba(139,92,246,.22),transparent 60%),var(--card)}
 .cta-box h2{font-size:36px;font-weight:900;margin-bottom:14px}
 .cta-box p{color:var(--muted);margin:0 auto 28px;max-width:560px;font-size:16px;line-height:1.6}
-/* Footer */
 footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-size:13px}
-.footer-content{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:32px}
-.footer-section h3{font-size:15px;font-weight:800;margin-bottom:14px}
-.footer-section ul{list-style:none;display:grid;gap:8px}
-.footer-section ul a:hover{color:#fff}
-/* Admin */
-.admin{display:none;margin:25px auto;padding:25px;border:1px dashed var(--primary);border-radius:18px;background:#0c0f1d}
-.admin.active{display:block}
-.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.admin-box{background:#111528;border:1px solid var(--line);border-radius:16px;padding:20px}
-.admin-box h3{margin-bottom:12px}
-.admin-input{width:100%;padding:12px 14px;background:#0a0d19;color:#fff;border:1px solid var(--line);border-radius:10px;outline:none;margin-bottom:8px;font-family:inherit}
-.admin-input:focus{border-color:rgba(139,92,246,.5)}
-.promo-list{display:grid;gap:8px;margin-top:12px}
-.promo-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 13px;background:#0a0d19;border:1px solid var(--line);border-radius:10px}
-/* Player modal */
-.player-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:110;place-items:center;padding:20px}
-.player-modal.active{display:grid}
-.player-box{width:min(820px,100%);background:#0d101d;border:1px solid var(--line);border-radius:20px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;position:relative}
-.close-btn{position:absolute;top:16px;right:18px;z-index:5;cursor:pointer;color:#c7cbe0;font-size:20px;background:rgba(255,255,255,.06);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:0}
-@keyframes logoPulse{0%,100%{box-shadow:0 0 0 1px rgba(139,92,246,.4),0 0 18px 2px rgba(139,92,246,.35)}50%{box-shadow:0 0 0 1px rgba(139,92,246,.55),0 0 28px 6px rgba(139,92,246,.5)}}
-.player-visual{position:relative;overflow:hidden;background:radial-gradient(ellipse 80% 60% at 50% 35%,rgba(139,92,246,.22),transparent 55%),linear-gradient(165deg,#151a2e,#080a14);padding:36px 32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:420px;text-align:center}
-.player-glyph{width:88px;height:88px;border-radius:22px;background:linear-gradient(135deg,var(--primary),#5b4bd6);display:grid;place-items:center;font-size:22px;font-weight:900;color:#fff;animation:logoPulse 3s ease-in-out infinite;overflow:hidden}
-.player-glyph img{width:100%;height:100%;object-fit:cover;border-radius:22px;display:block}
-.player-visual::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:18px 18px;opacity:.5;pointer-events:none}
-.player-visual h3{font-size:24px;color:#fff;font-weight:800;position:relative;z-index:1}
-.player-visual p{color:#9398ad;font-size:13.5px;line-height:1.55;position:relative;z-index:1;max-width:240px}
-.player-form-side{padding:40px 36px}
-.player-form-side h2{font-size:26px;margin-bottom:6px}
-.player-switch-line{color:#9398ad;font-size:13.5px;margin-bottom:22px}
-.player-switch-line a{color:#a99cf5;cursor:pointer}
-.player-field-row{margin-bottom:14px}
-.player-field-row input{width:100%;background:#0a0d19;border:1px solid var(--line);color:#fff;border-radius:10px;padding:12px 14px;outline:none;font-family:inherit}
-.player-field-row input:focus{border-color:rgba(139,92,246,.5)}
-.player-submit-btn{width:100%;margin-top:8px}
-.player-msg{font-size:13px;margin-top:8px;min-height:18px}
-.player-msg.ok{color:var(--success)}.player-msg.err{color:var(--danger)}
-/* Cabinet */
-.cabinet-section{padding:75px 0}
-.cabinet-shell{display:grid;grid-template-columns:245px 1fr;gap:18px;background:#0c1020;border:1px solid var(--line);border-radius:24px;padding:16px}
-.cabinet-sidebar{background:#090d19;border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:7px}
-.cabinet-user-mini{display:flex;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--line);margin-bottom:4px}
-.cabinet-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:900;flex-shrink:0}
-.cabinet-user-mini strong{display:block}.cabinet-user-mini span{font-size:12px;color:var(--muted)}
-.cabinet-nav-btn{width:100%;border:1px solid transparent;background:transparent;color:#dce2f0;text-align:left;border-radius:10px;padding:11px 12px;cursor:pointer;font-size:14px;font-family:inherit}
-.cabinet-nav-btn:hover,.cabinet-nav-btn.active{background:#12182a;border-color:var(--line)}
-.cabinet-content{padding:8px 10px 10px}
-.cabinet-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
-.cab-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.cab-card{background:#11182a;border:1px solid var(--line);border-radius:16px;padding:18px}
-.cab-card.wide{grid-column:1/-1}
-.cab-label{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:#9aa5bf;margin-bottom:7px;display:block}
-.cab-card strong{font-size:16px;overflow-wrap:anywhere}
-.settings-sub-top{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
-.settings-status-box{background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.settings-key-form{background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:8px}
-/* Responsive */
-@media(max-width:900px){
-  .info-tabs-container{grid-template-columns:1fr}
-  .footer-content{grid-template-columns:1fr 1fr}
-  .pricing-grid{grid-template-columns:1fr}
-  .payment-methods{grid-template-columns:repeat(2,1fr)}
-  .header-nav{display:none}
-  .open-ul{display:flex;align-items:center}
-}
-@media(max-width:720px){
-  .player-box{grid-template-columns:1fr}.player-visual{display:none}
-  .cabinet-shell{grid-template-columns:1fr}
-  .cab-grid{grid-template-columns:1fr}
-  .stats-grid{grid-template-columns:1fr}
-  .admin-grid{grid-template-columns:1fr}
-  .settings-sub-top{grid-template-columns:1fr}
-}
-@media(max-width:520px){
-  .footer-content{grid-template-columns:1fr}
-  .hero-title{font-size:38px}
-  .promo-wrap{flex-direction:column}
-}
+.fc2{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:32px}
+.fs h3{font-size:15px;font-weight:800;margin-bottom:14px}
+.fs ul{list-style:none;display:grid;gap:8px}
+.fs ul a:hover{color:#fff}
+.admin-p{display:none;margin:25px auto;padding:25px;border:1px dashed var(--primary);border-radius:18px;background:#0c0f1d}
+.admin-p.on{display:block}
+.ag{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ab{background:#111528;border:1px solid var(--line);border-radius:16px;padding:20px}
+.ab h3{margin-bottom:12px}
+.ai{width:100%;padding:12px 14px;background:#0a0d19;color:#fff;border:1px solid var(--line);border-radius:10px;outline:none;margin-bottom:8px;font-family:inherit}
+.ai:focus{border-color:rgba(139,92,246,.5)}
+.pl{display:grid;gap:8px;margin-top:12px}
+.pr{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 13px;background:#0a0d19;border:1px solid var(--line);border-radius:10px}
+.pmod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:110;place-items:center;padding:20px}
+.pmod.on{display:grid}
+.pbox{width:min(820px,100%);background:#0d101d;border:1px solid var(--line);border-radius:20px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;position:relative}
+.closeb{position:absolute;top:16px;right:18px;z-index:5;cursor:pointer;color:#c7cbe0;font-size:20px;background:rgba(255,255,255,.06);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:0}
+@keyframes lp{0%,100%{box-shadow:0 0 0 1px rgba(139,92,246,.4),0 0 18px 2px rgba(139,92,246,.35)}50%{box-shadow:0 0 0 1px rgba(139,92,246,.55),0 0 28px 6px rgba(139,92,246,.5)}}
+.pvis{overflow:hidden;background:radial-gradient(ellipse 80% 60% at 50% 35%,rgba(139,92,246,.22),transparent 55%),linear-gradient(165deg,#151a2e,#080a14);padding:36px 32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:420px;text-align:center;position:relative}
+.pglyph{width:88px;height:88px;border-radius:22px;background:linear-gradient(135deg,var(--primary),#5b4bd6);display:grid;place-items:center;font-size:22px;font-weight:900;color:#fff;animation:lp 3s ease-in-out infinite;overflow:hidden}
+.pglyph img{width:100%;height:100%;object-fit:cover;border-radius:22px;display:block}
+.pvis::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:18px 18px;opacity:.5;pointer-events:none}
+.pvis h3{font-size:24px;color:#fff;font-weight:800;position:relative;z-index:1}
+.pvis p{color:#9398ad;font-size:13.5px;line-height:1.55;position:relative;z-index:1;max-width:240px}
+.pfs{padding:40px 36px}
+.pfs h2{font-size:26px;margin-bottom:6px}
+.psl{color:#9398ad;font-size:13.5px;margin-bottom:22px}
+.psl a{color:#a99cf5;cursor:pointer}
+.pfr{margin-bottom:14px}
+.pfr input{width:100%;background:#0a0d19;border:1px solid var(--line);color:#fff;border-radius:10px;padding:12px 14px;outline:none;font-family:inherit}
+.pfr input:focus{border-color:rgba(139,92,246,.5)}
+.psb{width:100%;margin-top:8px}
+.pmsg{font-size:13px;margin-top:8px;min-height:18px}
+.pmsg.ok{color:var(--success)}.pmsg.err{color:var(--danger)}
+.cab-sec{padding:75px 0}
+.cab-shell{display:grid;grid-template-columns:245px 1fr;gap:18px;background:#0c1020;border:1px solid var(--line);border-radius:24px;padding:16px}
+.cab-side{background:#090d19;border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:7px}
+.cum{display:flex;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.cav{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:900;flex-shrink:0}
+.cum strong{display:block}.cum span{font-size:12px;color:var(--muted)}
+.cnb{width:100%;border:1px solid transparent;background:transparent;color:#dce2f0;text-align:left;border-radius:10px;padding:11px 12px;cursor:pointer;font-size:14px;font-family:inherit}
+.cnb:hover,.cnb.act{background:#12182a;border-color:var(--line)}
+.cab-cont{padding:8px 10px 10px}
+.ctop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.cg{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.cc{background:#11182a;border:1px solid var(--line);border-radius:16px;padding:18px}
+.cc.wide{grid-column:1/-1}
+.cl{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:#9aa5bf;margin-bottom:7px;display:block}
+.cc strong{font-size:16px;overflow-wrap:anywhere}
+.sts-top{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.ssb{background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.skf{background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:8px}
+@media(max-width:900px){.itabs-wrap{grid-template-columns:1fr}.fc2{grid-template-columns:1fr 1fr}.pg{grid-template-columns:1fr}.pms{grid-template-columns:repeat(2,1fr)}.hnav{display:none}.burger{display:flex;align-items:center}}
+@media(max-width:720px){.pbox{grid-template-columns:1fr}.pvis{display:none}.cab-shell{grid-template-columns:1fr}.cg{grid-template-columns:1fr}.stats-g{grid-template-columns:1fr}.ag{grid-template-columns:1fr}.sts-top{grid-template-columns:1fr}}
+@media(max-width:520px){.fc2{grid-template-columns:1fr}.htitle{font-size:38px}.pw{flex-direction:column}}
 </style>
 </head>
 <body>
-<canvas id="rays-background"></canvas>
+<canvas id="rays-bg"></canvas>
 <header>
   <div class="container nav-inner">
-    <a href="#top" class="logo">
-      <img src="/static/images/logo.png" alt="EUPHORIA">
-      <span class="logo-word">EU<span>PHORIA</span></span>
-    </a>
-    <nav class="header-nav">
-      <ul>
-        <li><a href="#top">ðŸ  Ð“Ð»Ð°Ð²Ð½Ð°Ñ</a></li>
-        <li><a href="#pluses">âœ¨ ÐŸÑ€ÐµÐ¸Ð¼ÑƒÑ‰ÐµÑÑ‚Ð²Ð°</a></li>
-        <li><a href="#pricing">ðŸ’Ž Ð¢Ð°Ñ€Ð¸Ñ„Ñ‹</a></li>
-        <li><a href="#faq">â“ FAQ</a></li>
-        <li><a href="#support">ðŸ“© ÐŸÐ¾Ð´Ð´ÐµÑ€Ð¶ÐºÐ°</a></li>
-      </ul>
-    </nav>
-    <div class="header-actions">
-      <a href="/cabinet" class="header-btn header-btn-secondary">â†’ Ð’Ð¾Ð¹Ñ‚Ð¸</a>
-      <a href="/cabinet" class="header-btn header-btn-primary">ðŸ‘¤ Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ</a>
-      <button class="open-ul" onclick="toggleMobileMenu()">â˜°</button>
+    <a href="#top" class="logo"><img src="/static/images/logo.png" alt="EUPHORIA"><span class="logo-word">EU<span>PHORIA</span></span></a>
+    <nav class="hnav"><ul>
+      <li><a href="#top">&#127968; Главная</a></li>
+      <li><a href="#pluses">&#10024; Преимущества</a></li>
+      <li><a href="#pricing">&#128142; Тарифы</a></li>
+      <li><a href="#faq">&#10067; FAQ</a></li>
+      <li><a href="#support">&#128233; Поддержка</a></li>
+    </ul></nav>
+    <div class="hacts">
+      <a href="/cabinet" class="hbtn hbtn-sec">&#8594; Войти</a>
+      <a href="/cabinet" class="hbtn hbtn-pri">&#128100; Регистрация</a>
+      <button class="burger" onclick="toggleMenu()">&#9776;</button>
     </div>
   </div>
 </header>
-<div class="mobile-menu" id="mobileMenu">
-  <a href="#top" onclick="toggleMobileMenu()">ðŸ  Ð“Ð»Ð°Ð²Ð½Ð°Ñ</a>
-  <a href="#pluses" onclick="toggleMobileMenu()">âœ¨ ÐŸÑ€ÐµÐ¸Ð¼ÑƒÑ‰ÐµÑÑ‚Ð²Ð°</a>
-  <a href="#pricing" onclick="toggleMobileMenu()">ðŸ’Ž Ð¢Ð°Ñ€Ð¸Ñ„Ñ‹</a>
-  <a href="#faq" onclick="toggleMobileMenu()">â“ FAQ</a>
-  <a href="#support" onclick="toggleMobileMenu()">ðŸ“© ÐŸÐ¾Ð´Ð´ÐµÑ€Ð¶ÐºÐ°</a>
-  <a href="/cabinet" onclick="toggleMobileMenu()">ðŸ‘¤ Ð’Ð¾Ð¹Ñ‚Ð¸ / Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ</a>
+<div class="mmenu" id="mmenu">
+  <a href="#top" onclick="toggleMenu()">&#127968; Главная</a>
+  <a href="#pluses" onclick="toggleMenu()">&#10024; Преимущества</a>
+  <a href="#pricing" onclick="toggleMenu()">&#128142; Тарифы</a>
+  <a href="#faq" onclick="toggleMenu()">&#10067; FAQ</a>
+  <a href="#support" onclick="toggleMenu()">&#128233; Поддержка</a>
+  <a href="/cabinet" onclick="toggleMenu()">&#128100; Войти / Регистрация</a>
 </div>
 <main id="top">
-<section class="main-sect">
-  <div class="container">
-    <div class="hero-content">
-      <div class="hero-badge">ðŸ† <span>EUPHORIA â€” Ð’Ð°Ñˆ Ð»ÑƒÑ‡ÑˆÐ¸Ð¹ Ð²Ñ‹Ð±Ð¾Ñ€!</span></div>
-      <h1 class="hero-title"><span class="gradient">EUPHORIA</span><br>ÐœÐ¾Ñ‰Ð½Ð¾ÑÑ‚ÑŒ Ð¸ Ð¡Ñ‚Ð¸Ð»ÑŒ</h1>
-      <p class="hero-description">EUPHORIA Ð¿Ñ€ÐµÐ´Ð¾ÑÑ‚Ð°Ð²Ð»ÑÐµÑ‚ Ð·Ð°Ñ…Ð²Ð°Ñ‚Ñ‹Ð²Ð°ÑŽÑ‰Ð¸Ð¹ Ð³ÐµÐ¹Ð¼Ð¿Ð»ÐµÐ¹ Ñ Ð¸Ð·Ñ‹ÑÐºÐ°Ð½Ð½Ð¾Ð¹ Ð²Ð¸Ð·ÑƒÐ°Ð»ÑŒÐ½Ð¾Ð¹ ÑÑÑ‚ÐµÑ‚Ð¸ÐºÐ¾Ð¹, Ð½Ð°Ð´Ñ‘Ð¶Ð½Ñ‹Ð¼Ð¸ Ð¾Ð±Ñ…Ð¾Ð´Ð°Ð¼Ð¸ Ð¸ Ð¿Ñ€Ð¾Ð´Ð²Ð¸Ð½ÑƒÑ‚Ñ‹Ð¼Ð¸ Ð¼Ð¾Ð´ÑƒÐ»ÑÐ¼Ð¸, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ð¾Ñ‚ÐºÑ€Ñ‹Ð²Ð°ÑŽÑ‚ Ð½Ð¾Ð²Ñ‹Ðµ Ð³Ñ€Ð°Ð½Ð¸ Ð¸Ð³Ñ€Ñ‹.</p>
-      <div class="hero-buttons">
-        <a href="/cabinet" class="hero-btn hero-btn-primary">ðŸ‘¤ ÐÐ°Ñ‡Ð°Ñ‚ÑŒ</a>
-        <a href="#support" class="hero-btn hero-btn-secondary">ðŸ“© Ð¡Ð²ÑÐ·Ð°Ñ‚ÑŒÑÑ</a>
-      </div>
+<section class="hero">
+  <div class="container"><div class="hero-inner">
+    <div class="badge">&#127942; <span>EUPHORIA — Ваш лучший выбор!</span></div>
+    <h1 class="htitle"><span class="gr">EUPHORIA</span><br>Мощность и Стиль</h1>
+    <p class="hdesc">EUPHORIA предоставляет захватывающий геймплей с изысканной визуальной эстетикой, надёжными обходами и продвинутыми модулями.</p>
+    <div class="hbtns">
+      <a href="/cabinet" class="hb hb-pri">&#128100; Начать</a>
+      <a href="#support" class="hb hb-sec">&#128233; Связаться</a>
     </div>
-  </div>
+  </div></div>
 </section>
-<section class="info-tabs" id="pluses">
+<section class="sec" id="pluses">
   <div class="container">
-    <div class="section-header">
-      <h2>ÐŸÐ¾Ñ‡ÐµÐ¼Ñƒ Ð²Ñ‹Ð±Ð¸Ñ€Ð°ÑŽÑ‚ Ð½Ð°Ñ?</h2>
-      <p>Ð£Ð·Ð½Ð°Ð¹Ñ‚Ðµ Ð±Ð¾Ð»ÑŒÑˆÐµ Ð¾ EUPHORIA</p>
-    </div>
-    <div class="info-tabs-container">
+    <div class="sh"><h2>Почему выбирают нас?</h2><p>Узнайте больше о EUPHORIA</p></div>
+    <div class="itabs-wrap">
       <div>
         <div class="tabs-nav">
-          <button class="tab-btn active" data-tab="advantages">â­ ÐŸÑ€ÐµÐ¸Ð¼ÑƒÑ‰ÐµÑÑ‚Ð²Ð°</button>
-          <button class="tab-btn" data-tab="faq">â“ FAQ</button>
-          <button class="tab-btn" data-tab="statistics">ðŸ“Š Ð¡Ñ‚Ð°Ñ‚Ð¸ÑÑ‚Ð¸ÐºÐ°</button>
+          <button class="tbn active" data-tab="adv">&#11088; Преимущества</button>
+          <button class="tbn" data-tab="faq">&#10067; FAQ</button>
+          <button class="tbn" data-tab="stat">&#128202; Статистика</button>
         </div>
-        <div class="tab-content active" id="tab-advantages">
-          <div class="advantage-item"><div class="advantage-icon">ðŸŽ§</div><div class="advantage-text"><h3>ÐŸÐ¾Ð´Ð´ÐµÑ€Ð¶ÐºÐ° 24/7</h3><p>ÐÐ°ÑˆÐ° ÐºÐ¾Ð¼Ð°Ð½Ð´Ð° Ð´Ð¾ÑÑ‚ÑƒÐ¿Ð½Ð° Ð² Ð»ÑŽÐ±Ð¾Ðµ Ð²Ñ€ÐµÐ¼Ñ â€” Ð¾Ñ‚ Ð½Ð°Ñ‡Ð°Ð»ÑŒÐ½Ð¾Ð¹ Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ Ð´Ð¾ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½Ð¸Ñ… Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ð¹.</p></div></div>
-          <div class="advantage-item"><div class="advantage-icon">ðŸ›¡ï¸</div><div class="advantage-text"><h3>ÐÐ°Ð´Ñ‘Ð¶Ð½Ð°Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ð°</h3><p>EUPHORIA Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚ ÑÑ‚Ð°Ð±Ð¸Ð»ÑŒÐ½Ð¾. Ð Ð°Ð·Ñ€Ð°Ð±Ð¾Ñ‚Ñ‡Ð¸ÐºÐ¸ Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾ Ð¾Ð¿Ñ‚Ð¸Ð¼Ð¸Ð·Ð¸Ñ€ÑƒÑŽÑ‚ Ð¸ Ð²Ñ‹Ð¿ÑƒÑÐºÐ°ÑŽÑ‚ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ñ.</p></div></div>
-          <div class="advantage-item"><div class="advantage-icon">âš¡</div><div class="advantage-text"><h3>Ð’Ñ‹ÑÐ¾ÐºÐ°Ñ Ð¿Ñ€Ð¾Ð¸Ð·Ð²Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚ÑŒ</h3><p>ÐžÐ¿Ñ‚Ð¸Ð¼Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ð¹ ÐºÐ»Ð¸ÐµÐ½Ñ‚ Ð¾Ð±ÐµÑÐ¿ÐµÑ‡Ð¸Ð²Ð°ÐµÑ‚ Ð¼Ð°ÐºÑÐ¸Ð¼Ð°Ð»ÑŒÐ½Ñ‹Ð¹ FPS Ð¸ ÐºÐ¾Ð¼Ñ„Ð¾Ñ€Ñ‚Ð½Ñ‹Ð¹ Ð³ÐµÐ¹Ð¼Ð¿Ð»ÐµÐ¹.</p></div></div>
+        <div class="tc active" id="tc-adv">
+          <div class="adv-item"><div class="adv-ico">&#127911;</div><div class="adv-text"><h3>Поддержка 24/7</h3><p>Наша команда доступна в любое время — от начальной настройки до последних обновлений.</p></div></div>
+          <div class="adv-item"><div class="adv-ico">&#128737;&#65039;</div><div class="adv-text"><h3>Надёжная работа</h3><p>EUPHORIA работает стабильно. Разработчики постоянно оптимизируют и выпускают обновления.</p></div></div>
+          <div class="adv-item"><div class="adv-ico">&#9889;</div><div class="adv-text"><h3>Высокая производительность</h3><p>Оптимизированный клиент обеспечивает максимальный FPS и комфортный геймплей.</p></div></div>
         </div>
-        <div class="tab-content" id="tab-faq">
-          <div class="faq-list-tabs">
-            <div class="faq-item-tab"><button class="faq-question-tab" onclick="toggleFaqTab(this)"><span>Ð‘ÐµÐ·Ð¾Ð¿Ð°ÑÐ½Ð¾ Ð»Ð¸ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÑŒ EUPHORIA?</span><span class="arrow">â–¼</span></button><div class="faq-answer-tab"><p>Ð”Ð°, Ð¼Ñ‹ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐµÐ¼ Ð¿ÐµÑ€ÐµÐ´Ð¾Ð²Ñ‹Ðµ Ð¼ÐµÑ‚Ð¾Ð´Ñ‹ Ð·Ð°Ñ‰Ð¸Ñ‚Ñ‹ Ð¸ Ð¾Ð±Ñ…Ð¾Ð´Ð° Ð°Ð½Ñ‚Ð¸Ñ‡Ð¸Ñ‚Ð¾Ð². ÐšÐ»Ð¸ÐµÐ½Ñ‚ Ñ€ÐµÐ³ÑƒÐ»ÑÑ€Ð½Ð¾ Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÑ‚ÑÑ.</p></div></div>
-            <div class="faq-item-tab"><button class="faq-question-tab" onclick="toggleFaqTab(this)"><span>ÐšÐ°Ðº Ð°ÐºÑ‚Ð¸Ð²Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¿Ð¾ÑÐ»Ðµ Ð¿Ð¾ÐºÑƒÐ¿ÐºÐ¸?</span><span class="arrow">â–¼</span></button><div class="faq-answer-tab"><p>Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ Ð² ÐºÐ°Ð±Ð¸Ð½ÐµÑ‚ Ð¸ Ð²Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÐºÐ»ÑŽÑ‡ Ð² Ñ€Ð°Ð·Ð´ÐµÐ»Ðµ Â«ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸ â†’ SubscriptionÂ».</p></div></div>
-            <div class="faq-item-tab"><button class="faq-question-tab" onclick="toggleFaqTab(this)"><span>ÐÐ° ÐºÐ°ÐºÐ¸Ñ… Ð²ÐµÑ€ÑÐ¸ÑÑ… Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚?</span><span class="arrow">â–¼</span></button><div class="faq-answer-tab"><p>EUPHORIA Ð¿Ð¾Ð´Ð´ÐµÑ€Ð¶Ð¸Ð²Ð°ÐµÑ‚ Minecraft 1.21+.</p></div></div>
-            <div class="faq-item-tab"><button class="faq-question-tab" onclick="toggleFaqTab(this)"><span>Ð•ÑÑ‚ÑŒ Ð»Ð¸ Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‚ ÑÑ€ÐµÐ´ÑÑ‚Ð²?</span><span class="arrow">â–¼</span></button><div class="faq-answer-tab"><p>ÐœÑ‹ Ð³Ð°Ñ€Ð°Ð½Ñ‚Ð¸Ñ€ÑƒÐµÐ¼ Ñ€Ð°Ð±Ð¾Ñ‚Ð¾ÑÐ¿Ð¾ÑÐ¾Ð±Ð½Ð¾ÑÑ‚ÑŒ. ÐŸÑ€Ð¸ Ñ‚ÐµÑ…Ð½Ð¸Ñ‡ÐµÑÐºÐ¸Ñ… Ð¿Ñ€Ð¾Ð±Ð»ÐµÐ¼Ð°Ñ… Ñ€Ð°ÑÑÐ¼Ð¾Ñ‚Ñ€Ð¸Ð¼ Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‚ ÑÐ¾Ð³Ð»Ð°ÑÐ½Ð¾ ÑÐ¾Ð³Ð»Ð°ÑˆÐµÐ½Ð¸ÑŽ.</p></div></div>
+        <div class="tc" id="tc-faq">
+          <div class="faq-tab-list">
+            <div class="fti"><button class="ftq" onclick="tgFt(this)"><span>Безопасно ли использовать EUPHORIA?</span><span class="arr">&#9660;</span></button><div class="fta"><p>Да, мы используем передовые методы защиты и обхода античитов. Клиент регулярно обновляется.</p></div></div>
+            <div class="fti"><button class="ftq" onclick="tgFt(this)"><span>Как активировать после покупки?</span><span class="arr">&#9660;</span></button><div class="fta"><p>Войдите в кабинет и введите ключ в разделе «Настройки → Subscription».</p></div></div>
+            <div class="fti"><button class="ftq" onclick="tgFt(this)"><span>На каких версиях работает?</span><span class="arr">&#9660;</span></button><div class="fta"><p>EUPHORIA поддерживает Minecraft 1.21+.</p></div></div>
+            <div class="fti"><button class="ftq" onclick="tgFt(this)"><span>Есть ли возврат средств?</span><span class="arr">&#9660;</span></button><div class="fta"><p>Мы гарантируем работоспособность. При технических проблемах рассмотрим возврат согласно соглашению.</p></div></div>
           </div>
         </div>
-        <div class="tab-content" id="tab-statistics">
-          <div class="stats-grid">
-            <div class="stat-card"><span class="stat-value">1.21+</span><span class="stat-title">Ð’ÐµÑ€ÑÐ¸Ð¸ Minecraft</span></div>
-            <div class="stat-card"><span class="stat-value">24/7</span><span class="stat-title">Ð”Ð¾ÑÑ‚ÑƒÐ¿Ð½Ð¾ÑÑ‚ÑŒ</span></div>
-            <div class="stat-card"><span class="stat-value">âš¡</span><span class="stat-title">Ð‘Ñ‹ÑÑ‚Ñ€Ñ‹Ð¹ Ð·Ð°Ð¿ÑƒÑÐº</span></div>
-            <div class="stat-card"><span class="stat-value">ðŸ”’</span><span class="stat-title">Ð—Ð°Ñ‰Ð¸Ñ‚Ð° Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚Ð°</span></div>
+        <div class="tc" id="tc-stat">
+          <div class="stats-g">
+            <div class="sc"><span class="sv">1.21+</span><span class="st">Версии Minecraft</span></div>
+            <div class="sc"><span class="sv">24/7</span><span class="st">Доступность</span></div>
+            <div class="sc"><span class="sv">&#9889;</span><span class="st">Быстрый запуск</span></div>
+            <div class="sc"><span class="sv">&#128274;</span><span class="st">Защита аккаунта</span></div>
           </div>
         </div>
       </div>
       <div>
         <div class="carousel-slides">
-          <div class="carousel-slide active">
-            <div class="feature-card-carousel">
-              <div class="feature-graphic-carousel"><div class="circle-inner">ðŸš€</div></div>
-              <div class="feature-content-carousel">
-                <div class="feature-title-carousel"><span style="font-size:22px;color:var(--primary)">ðŸ“ˆ</span><h2>ÐžÐ¿Ñ‚Ð¸Ð¼Ð¸Ð·Ð°Ñ†Ð¸Ñ</h2></div>
-                <p>ÐšÐ»Ð¸ÐµÐ½Ñ‚ Ð¸Ð·Ð²ÐµÑÑ‚ÐµÐ½ ÑÐ²Ð¾ÐµÐ¹ Ð¾Ð¿Ñ‚Ð¸Ð¼Ð¸Ð·Ð°Ñ†Ð¸ÐµÐ¹. Ð¡ ÐºÐ°Ð¶Ð´Ñ‹Ð¼ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸ÐµÐ¼ Ð¼Ñ‹ ÑƒÐ»ÑƒÑ‡ÑˆÐ°ÐµÐ¼ ÑÐºÐ¾Ñ€Ð¾ÑÑ‚ÑŒ Ð´Ð»Ñ Ð²Ð°ÑˆÐµÐ³Ð¾ ÐºÐ¾Ð¼Ñ„Ð¾Ñ€Ñ‚Ð½Ð¾Ð³Ð¾ Ð³ÐµÐ¹Ð¼Ð¿Ð»ÐµÑ!</p>
-              </div>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <div class="feature-card-carousel">
-              <div class="feature-graphic-carousel">
-                <div class="esp-visual">
-                  <div class="esp-corner esp-tl"></div><div class="esp-corner esp-tr"></div>
-                  <div class="esp-corner esp-bl"></div><div class="esp-corner esp-br"></div>
-                  <span style="font-size:32px;color:var(--primary)">ðŸ‘ï¸</span>
-                  <div class="esp-scan-line"></div>
-                </div>
-              </div>
-              <div class="feature-content-carousel">
-                <div class="feature-title-carousel"><span style="font-size:22px;color:var(--primary)">ðŸ‘ï¸</span><h2>Ð’Ð¸Ð·ÑƒÐ°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ñ</h2></div>
-                <p>Ð’Ð¸Ð·ÑƒÐ°Ð»ÑŒÐ½Ð°Ñ ÑÑ‚Ð¾Ñ€Ð¾Ð½Ð° EUPHORIA Ð½Ð° Ð²Ñ‹ÑÑˆÐµÐ¼ ÑƒÑ€Ð¾Ð²Ð½Ðµ â€” Ð¾Ñ‚ ESP Ð´Ð¾ ÐºÐ°Ð¶Ð´Ð¾Ð¹ Ð¼ÐµÐ»Ð¾Ñ‡Ð¸.</p>
-              </div>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <div class="feature-card-carousel">
-              <div class="feature-graphic-carousel"><div class="shield-anim">ðŸ›¡ï¸</div></div>
-              <div class="feature-content-carousel">
-                <div class="feature-title-carousel"><span style="font-size:22px;color:var(--primary)">ðŸ›¡ï¸</span><h2>Ð˜Ð´ÐµÐ°Ð»ÑŒÐ½Ñ‹Ðµ Ð¾Ð±Ñ…Ð¾Ð´Ñ‹</h2></div>
-                <p>EUPHORIA Ð·Ð½Ð°Ð¼ÐµÐ½Ð¸Ñ‚ Ð¾Ð±Ñ…Ð¾Ð´Ð°Ð¼Ð¸ Ð´Ð»Ñ Ð±Ð¾Ð»ÑŒÑˆÐ¸Ð½ÑÑ‚Ð²Ð° ÑÐµÑ€Ð²ÐµÑ€Ð¾Ð². ÐŸÑ€Ð¾Ð´Ð²Ð¸Ð½ÑƒÑ‚Ð¾Ðµ Ð¾Ð±Ð½Ð°Ñ€ÑƒÐ¶ÐµÐ½Ð¸Ðµ Ð·Ð°Ñ‰Ð¸Ñ‚Ñ‹.</p>
-              </div>
-            </div>
-          </div>
+          <div class="cs active"><div class="fc"><div class="fg"><div class="ci">&#128640;</div></div><div class="fcont"><div class="ft2"><span style="font-size:22px;color:var(--primary)">&#128200;</span><h2>Оптимизация</h2></div><p>Клиент известен своей оптимизацией. С каждым обновлением мы улучшаем скорость для вашего комфортного геймплея!</p></div></div></div>
+          <div class="cs"><div class="fc"><div class="fg"><div class="ev"><div class="ec etl"></div><div class="ec etr"></div><div class="ec ebl"></div><div class="ec ebr"></div><span style="font-size:32px;color:var(--primary);z-index:1">&#128065;&#65039;</span><div class="esl"></div></div></div><div class="fcont"><div class="ft2"><span style="font-size:22px;color:var(--primary)">&#128065;&#65039;</span><h2>Визуализация</h2></div><p>Визуальная сторона EUPHORIA на высшем уровне — от ESP до каждой мелочи.</p></div></div></div>
+          <div class="cs"><div class="fc"><div class="fg"><div class="sa">&#128737;&#65039;</div></div><div class="fcont"><div class="ft2"><span style="font-size:22px;color:var(--primary)">&#128737;&#65039;</span><h2>Идеальные обходы</h2></div><p>EUPHORIA знаменит обходами для большинства серверов.</p></div></div></div>
         </div>
-        <div class="carousel-nav">
-          <button class="carousel-btn" onclick="changeSlide(-1)">â€¹</button>
-          <div class="carousel-dots">
-            <span class="carousel-dot active" onclick="goToSlide(0)"></span>
-            <span class="carousel-dot" onclick="goToSlide(1)"></span>
-            <span class="carousel-dot" onclick="goToSlide(2)"></span>
-          </div>
-          <button class="carousel-btn" onclick="changeSlide(1)">â€º</button>
+        <div class="cn">
+          <button class="cb" onclick="chSlide(-1)">&#8249;</button>
+          <div class="cdots"><span class="cd active" onclick="goSlide(0)"></span><span class="cd" onclick="goSlide(1)"></span><span class="cd" onclick="goSlide(2)"></span></div>
+          <button class="cb" onclick="chSlide(1)">&#8250;</button>
         </div>
       </div>
     </div>
   </div>
 </section>
-<section class="pricing-section" id="pricing">
+<section class="sec" id="pricing">
   <div class="container">
-    <div class="section-header"><span class="kicker">Ð¢ÐÐ Ð˜Ð¤Ð«</span><h2>Ð’Ñ‹Ð±ÐµÑ€Ð¸ ÑÐ²Ð¾Ð¹ Ð´Ð¾ÑÑ‚ÑƒÐ¿</h2><p>Ð§ÐµÐ¼ Ð´Ð¾Ð»ÑŒÑˆÐµ ÑÑ€Ð¾Ðº â€” Ñ‚ÐµÐ¼ Ð²Ñ‹Ð³Ð¾Ð´Ð½ÐµÐµ Ñ‚Ð°Ñ€Ð¸Ñ„.</p></div>
-    <div class="pricing-grid" id="cards"></div>
-    <div class="promo-wrap">
-      <input id="promoInput" placeholder="Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¿Ñ€Ð¾Ð¼Ð¾ÐºÐ¾Ð´...">
-      <button class="btn" onclick="applyPromo()">ÐŸÑ€Ð¸Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ</button>
-    </div>
-    <div id="promoStatus" role="status" aria-live="polite" style="min-height:20px;text-align:center;margin-top:8px;font-size:13px"></div>
-    <div class="payment-box">
-      <h3>2. Ð¡Ð¿Ð¾ÑÐ¾Ð± Ð¾Ð¿Ð»Ð°Ñ‚Ñ‹</h3>
-      <div id="selectedPlanHint" style="color:var(--muted);font-size:13px;margin-bottom:14px">1. Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ñ‚Ð°Ñ€Ð¸Ñ„ â†’ 2. ÐžÐ¿Ð»Ð°Ñ‚Ð°</div>
-      <div class="payment-methods">
-        <button class="pay-method" onclick="selectPayment('funpay',this)">ðŸ’° FunPay<small>ÐœÐ°Ñ€ÐºÐµÑ‚Ð¿Ð»ÐµÐ¹Ñ</small></button>
-        <button class="pay-method" onclick="selectPayment('yumoney',this)">ðŸŸ¡ Ð®Money<small>ÐšÐ¾ÑˆÐµÐ»Ñ‘Ðº</small></button>
-        <button class="pay-method" onclick="selectPayment('card',this)">ðŸ’³ ÐšÐ°Ñ€Ñ‚Ð°<small>Ð‘Ð°Ð½ÐºÐ¾Ð²ÑÐºÐ°Ñ</small></button>
-        <button class="pay-method" onclick="selectPayment('visa',this)">ðŸ”µ Visa<small>Card payment</small></button>
-        <button class="pay-method" onclick="selectPayment('mastercard',this)">ðŸ”´ MC<small>Card payment</small></button>
+    <div class="sh"><span class="kicker">Тарифы</span><h2>Выбери свой доступ</h2><p>Чем дольше срок — тем выгоднее тариф.</p></div>
+    <div class="pg" id="cards"></div>
+    <div class="pw"><input id="promoInput" placeholder="Введите промокод..."><button class="btn" onclick="applyPromo()">Применить</button></div>
+    <div id="promoStatus" style="min-height:20px;text-align:center;margin-top:8px;font-size:13px"></div>
+    <div class="paybox">
+      <h3>2. Способ оплаты</h3>
+      <div id="planHint" style="color:var(--muted);font-size:13px;margin-bottom:14px">1. Выберите тариф → 2. Оплата</div>
+      <div class="pms">
+        <button class="pm" onclick="selPay('funpay',this)">&#128176; FunPay<small>&#1052;&#1072;&#1088;&#1082;&#1077;&#1090;&#1087;&#1083;&#1077;&#1081;&#1089;</small></button>
+        <button class="pm" onclick="selPay('yumoney',this)">&#127505; &#1070;Money<small>&#1050;&#1086;&#1096;&#1077;&#1083;&#1105;&#1082;</small></button>
+        <button class="pm" onclick="selPay('card',this)">&#128179; &#1050;&#1072;&#1088;&#1090;&#1072;<small>&#1041;&#1072;&#1085;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;</small></button>
+        <button class="pm" onclick="selPay('visa',this)">&#128309; Visa<small>Card payment</small></button>
+        <button class="pm" onclick="selPay('mc',this)">&#128308; MC<small>Card payment</small></button>
       </div>
-      <div class="checkout" id="checkout">
-        <div class="checkout-row"><span id="checkoutProduct">Ð¢Ð°Ñ€Ð¸Ñ„</span><b id="checkoutPrice">0 â‚½</b></div>
-        <div class="checkout-row"><span>ÐžÐ¿Ð»Ð°Ñ‚Ð°</span><b id="checkoutMethodValue">â€”</b></div>
-        <div class="checkout-row total"><span>Ðš Ð¾Ð¿Ð»Ð°Ñ‚Ðµ</span><span id="checkoutTotal">0 â‚½</span></div>
-        <button class="btn btn-full" style="margin-top:12px" onclick="startPayment()" id="paymentBtn">ÐŸÐµÑ€ÐµÐ¹Ñ‚Ð¸ Ðº Ð¾Ð¿Ð»Ð°Ñ‚Ðµ</button>
+      <div class="co" id="checkout">
+        <div class="cr"><span id="coProd">&#1058;&#1072;&#1088;&#1080;&#1092;</span><b id="coPrice">0 &#8381;</b></div>
+        <div class="cr"><span>&#1054;&#1087;&#1083;&#1072;&#1090;&#1072;</span><b id="coMethod">&#8212;</b></div>
+        <div class="cr tot"><span>К оплате</span><span id="coTotal">0 &#8381;</span></div>
+        <button class="btn btn-full" style="margin-top:12px" onclick="startPay()" id="payBtn">Перейти к оплате</button>
       </div>
     </div>
   </div>
 </section>
-<section class="faq-section" id="faq">
+<section class="sec" id="faq">
   <div class="container">
-    <div class="section-header"><span class="kicker">FAQ</span><h2>Ð§Ð°ÑÑ‚Ñ‹Ðµ Ð²Ð¾Ð¿Ñ€Ð¾ÑÑ‹</h2></div>
-    <div class="faq-list">
-      <div class="faq-item-pub"><button class="faq-q" onclick="toggleFaq(this)">ÐšÐ°ÐºÐ°Ñ Ð²Ð°Ð»ÑŽÑ‚Ð° Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐµÑ‚ÑÑ?<span class="faq-arrow">â–¼</span></button><div class="faq-a"><p>Ð’ÑÐµ Ñ†ÐµÐ½Ñ‹ Ð½Ð° ÑÐ°Ð¹Ñ‚Ðµ ÑƒÐºÐ°Ð·Ð°Ð½Ñ‹ Ð² Ñ€Ð¾ÑÑÐ¸Ð¹ÑÐºÐ¸Ñ… Ñ€ÑƒÐ±Ð»ÑÑ… (â‚½).</p></div></div>
-      <div class="faq-item-pub"><button class="faq-q" onclick="toggleFaq(this)">ÐœÐ¾Ð¶Ð½Ð¾ Ð»Ð¸ Ð¿Ñ€Ð¸Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð¼Ð¾ÐºÐ¾Ð´?<span class="faq-arrow">â–¼</span></button><div class="faq-a"><p>Ð”Ð°. Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÐºÐ¾Ð´ Ð² Ð¿Ð¾Ð»Ðµ Ð¿Ð¾Ð´ Ñ‚Ð°Ñ€Ð¸Ñ„Ð°Ð¼Ð¸. Ð¡ÐºÐ¸Ð´ÐºÐ° Ð°Ð²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸ Ð¿ÐµÑ€ÐµÑÑ‡Ð¸Ñ‚Ð°ÐµÑ‚ Ñ†ÐµÐ½Ñ‹.</p></div></div>
-      <div class="faq-item-pub"><button class="faq-q" onclick="toggleFaq(this)">ÐšÐ°Ðº Ð¸Ð·Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ñ‚Ð°Ñ€Ð¸Ñ„Ñ‹?<span class="faq-arrow">â–¼</span></button><div class="faq-a"><p>Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ Ð² Ð°Ð´Ð¼Ð¸Ð½-Ð¿Ð°Ð½ÐµÐ»ÑŒ Ð¸ Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐ¹Ñ‚Ðµ Ð¸Ð»Ð¸ ÑƒÐ´Ð°Ð»ÑÐ¹Ñ‚Ðµ Ñ‚Ð°Ñ€Ð¸Ñ„Ñ‹ Ð¸ Ð¿Ñ€Ð¾Ð¼Ð¾ÐºÐ¾Ð´Ñ‹.</p></div></div>
-      <div class="faq-item-pub"><button class="faq-q" onclick="toggleFaq(this)">ÐšÐ°Ðº Ð²Ð¾Ð¹Ñ‚Ð¸ Ð² Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚?<span class="faq-arrow">â–¼</span></button><div class="faq-a"><p>ÐÐ°Ð¶Ð¼Ð¸Ñ‚Ðµ ÐºÐ½Ð¾Ð¿ÐºÑƒ Â«Ð’Ð¾Ð¹Ñ‚Ð¸Â» Ð² Ñ…ÐµÐ´ÐµÑ€Ðµ Ð¸Ð»Ð¸ Ð¿ÐµÑ€ÐµÐ¹Ð´Ð¸Ñ‚Ðµ Ð½Ð° <a href="/cabinet" style="color:var(--primary)">/cabinet</a>.</p></div></div>
+    <div class="sh"><span class="kicker">FAQ</span><h2>Частые вопросы</h2></div>
+    <div class="faq-pub-list">
+      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Какая валюта используется? <span class="fa2">&#9660;</span></button><div class="fpa"><p>Все цены на сайте указаны в российских рублях (₽).</p></div></div>
+      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Можно ли применить промокод? <span class="fa2">&#9660;</span></button><div class="fpa"><p>Да. Введите код в поле под тарифами.</p></div></div>
+      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Как изменить тарифы? <span class="fa2">&#9660;</span></button><div class="fpa"><p>Войдите в админ-панель и добавляйте или удаляйте тарифы.</p></div></div>
+      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Как войти в аккаунт? <span class="fa2">&#9660;</span></button><div class="fpa"><p>Нажмите «Войти» в хедере или перейдите на /cabinet.</p></div></div>
     </div>
   </div>
 </section>
-<section class="support-section" id="support">
+<section class="sec" id="support">
   <div class="container">
     <div class="cta-box">
       <span class="kicker">SUPPORT</span>
-      <h2>ÐžÑÑ‚Ð°Ð»Ð¸ÑÑŒ Ð²Ð¾Ð¿Ñ€Ð¾ÑÑ‹?</h2>
-      <p>Ð¡Ð²ÑÐ¶Ð¸Ñ‚ÐµÑÑŒ Ñ Ð½Ð°Ð¼Ð¸ Ñ‡ÐµÑ€ÐµÐ· ÑƒÐ´Ð¾Ð±Ð½Ñ‹Ð¹ ÐºÐ°Ð½Ð°Ð» Ð¿Ð¾Ð´Ð´ÐµÑ€Ð¶ÐºÐ¸.</p>
-      <a class="btn" href="#" onclick="supportAlert();return false">ðŸ“© Ð¡Ð²ÑÐ·Ð°Ñ‚ÑŒÑÑ Ñ Ð¿Ð¾Ð´Ð´ÐµÑ€Ð¶ÐºÐ¾Ð¹</a>
+      <h2>Остались вопросы?</h2>
+      <p>Свяжитесь с нами через удобный канал поддержки.</p>
+      <a class="btn" href="#" onclick="supAlert();return false">&#128233; Связаться с поддержкой</a>
     </div>
   </div>
 </section>
-<!-- Admin Panel -->
-<section id="adminPanel" class="admin container">
-  <h2 style="font-size:25px">âš™ ÐÐ´Ð¼Ð¸Ð½-Ð¿Ð°Ð½ÐµÐ»ÑŒ</h2>
-  <p style="color:var(--muted);margin:8px 0 20px">Ð£Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ñ‚Ð°Ñ€Ð¸Ñ„Ð°Ð¼Ð¸ Ð¸ Ð¿Ñ€Ð¾Ð¼Ð¾ÐºÐ¾Ð´Ð°Ð¼Ð¸.</p>
-  <div class="admin-grid">
-    <div class="admin-box">
-      <h3>ðŸ”‘ Key Generator</h3>
+<section id="adminPanel" class="admin-p container">
+  <h2 style="font-size:25px">&#9881; Админ-панель</h2>
+  <p style="color:var(--muted);margin:8px 0 20px">Управление тарифами и промокодами.</p>
+  <div class="ag">
+    <div class="ab"><h3>&#128273; Key Generator</h3>
       <label style="font-size:12px;color:var(--muted)">Duration</label>
-      <select id="key-duration" class="admin-input"><option value="7 Days">7 Days</option><option value="30 Days">30 Days</option><option value="90 Days">90 Days</option><option value="Lifetime">Lifetime</option></select>
+      <select id="key-duration" class="ai"><option value="7 Days">7 Days</option><option value="30 Days">30 Days</option><option value="90 Days">90 Days</option><option value="Lifetime">Lifetime</option></select>
       <label style="font-size:12px;color:var(--muted)">Amount</label>
-      <input type="number" id="key-amount" min="1" max="500" value="1" class="admin-input" placeholder="How many keys?">
+      <input type="number" id="key-amount" min="1" max="500" value="1" class="ai" placeholder="How many keys?">
       <label style="font-size:12px;color:var(--muted)">Max uses per key</label>
-      <input type="number" id="key-max-uses" min="1" value="1" class="admin-input" placeholder="Max uses per key">
-      <button class="btn" id="key-generate-btn" type="button" onclick="generateKeys()">Generate Keys</button>
-      <textarea id="generated-keys" rows="8" class="admin-input" placeholder="Generated keys..." readonly style="margin-top:8px;resize:vertical"></textarea>
-      <button class="btn" type="button" onclick="copyKeys()">Copy Keys</button>
-      <div id="key-generator-message" style="margin-top:8px;font-size:13px"></div>
+      <input type="number" id="key-max-uses" min="1" value="1" class="ai">
+      <button class="btn" type="button" onclick="genKeys()">Generate Keys</button>
+      <textarea id="gen-keys" rows="6" class="ai" readonly style="margin-top:8px;resize:vertical"></textarea>
+      <button class="btn" type="button" onclick="copyKeys()" style="margin-top:4px">Copy Keys</button>
+      <div id="kg-msg" style="margin-top:6px;font-size:13px"></div>
     </div>
-    <div class="admin-box">
-      <h3>Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ñ‚Ð°Ñ€Ð¸Ñ„</h3>
-      <form onsubmit="addProduct(event)" style="display:grid;gap:8px">
-        <input id="newTitle" class="admin-input" placeholder="ÐÐ°Ð·Ð²Ð°Ð½Ð¸Ðµ Ñ‚Ð°Ñ€Ð¸Ñ„Ð°">
-        <input id="newPrice" type="number" step="0.01" class="admin-input" placeholder="Ð¦ÐµÐ½Ð° Ð² â‚½">
-        <button class="btn" type="submit">Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ</button>
+    <div class="ab"><h3>Добавить тариф</h3>
+      <form onsubmit="addProd(event)" style="display:grid;gap:8px">
+        <input id="newTitle" class="ai" placeholder="Название тарифа">
+        <input id="newPrice" type="number" step="0.01" class="ai" placeholder="Цена в ₽">
+        <button class="btn" type="submit">Добавить</button>
       </form>
-      <div class="promo-list" id="productList"></div>
+      <div class="pl" id="productList"></div>
     </div>
-    <div class="admin-box">
-      <h3>ðŸŽŸ Ð¡Ð¾Ð·Ð´Ð°Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð¼Ð¾ÐºÐ¾Ð´</h3>
-      <form onsubmit="addPromo(event)" style="display:grid;gap:8px">
-        <input id="newPromo" class="admin-input" placeholder="ÐšÐ¾Ð´, Ð½Ð°Ð¿Ñ€Ð¸Ð¼ÐµÑ€ EUPHORIA20">
-        <input id="newDiscount" type="number" min="1" max="100" class="admin-input" placeholder="Ð¡ÐºÐ¸Ð´ÐºÐ° %, Ð½Ð°Ð¿Ñ€Ð¸Ð¼ÐµÑ€ 20">
-        <input id="newPromoMax" type="number" min="0" class="admin-input" placeholder="ÐœÐ°ÐºÑ. Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ð½Ð¸Ð¹ (0 = âˆž)">
-        <input id="newPromoOwner" class="admin-input" placeholder="Ð’Ð»Ð°Ð´ÐµÐ»ÐµÑ† / Media (Ð½ÐµÐ¾Ð±ÑÐ·Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾)">
-        <button class="btn" type="submit">Ð¡Ð¾Ð·Ð´Ð°Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð¼Ð¾ÐºÐ¾Ð´</button>
+    <div class="ab"><h3>&#127915; Создать промокод</h3>
+      <form onsubmit="addPromoAdmin(event)" style="display:grid;gap:8px">
+        <input id="newPromo" class="ai" placeholder="Код, например EUPHORIA20">
+        <input id="newDiscount" type="number" min="1" max="100" class="ai" placeholder="Скидка %, например 20">
+        <input id="newPromoMax" type="number" min="0" class="ai" placeholder="Макс. использований (0 = ∞)">
+        <input id="newPromoOwner" class="ai" placeholder="Владелец / Media (необязательно)">
+        <button class="btn" type="submit">Создать промокод</button>
       </form>
-      <div class="promo-list" id="promoList"></div>
+      <div class="pl" id="promoList"></div>
     </div>
-    <div class="admin-box" style="grid-column:1/-1"><h3>Created Keys</h3><div id="keyList" class="key-list"></div></div>
-    <div class="admin-box" style="grid-column:1/-1" id="playersBox">
-      <h3>ðŸ‘¥ Players</h3>
-      <div id="playerStats" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+    <div class="ab" style="grid-column:1/-1"><h3>Created Keys</h3><div id="keyList"></div></div>
+    <div class="ab" style="grid-column:1/-1">
+      <h3>&#128101; Players</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
         <div style="background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">Total</div><div style="font-size:22px;font-weight:800" id="statTotal">0</div></div>
         <div style="background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">Active sub</div><div style="font-size:22px;font-weight:800;color:#34d399" id="statActive">0</div></div>
         <div style="background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">HWID bound</div><div style="font-size:22px;font-weight:800;color:#a78bfa" id="statHwid">0</div></div>
       </div>
-      <div id="playerList" class="key-list" style="max-height:360px;overflow:auto"></div>
+      <div id="playerList" style="max-height:360px;overflow:auto"></div>
     </div>
-    <div class="admin-box" style="grid-column:1/-1" id="ipBanBox">
-      <h3>ðŸš« IP Ban System</h3>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Your IP: <code id="yourIp">â€”</code></p>
-      <form onsubmit="addIpBan(event)" style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end;margin-bottom:16px">
-        <div><label style="font-size:12px;color:var(--muted)">IP Address</label><input id="banIp" class="admin-input" placeholder="1.2.3.4" required style="margin-top:4px"></div>
-        <div><label style="font-size:12px;color:var(--muted)">Reason (optional)</label><input id="banReason" class="admin-input" placeholder="Spam / abuse" style="margin-top:4px"></div>
-        <div><label style="font-size:12px;color:var(--muted)">Days (0=perm)</label><input id="banDays" type="number" min="0" value="0" class="admin-input" style="width:90px;margin-top:4px"></div>
+    <div class="ab" style="grid-column:1/-1">
+      <h3>&#128683; IP Ban System</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Your IP: <code id="yourIp">&#8212;</code></p>
+      <form onsubmit="addBan(event)" style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end;margin-bottom:16px">
+        <div><label style="font-size:12px;color:var(--muted)">IP Address</label><input id="banIp" class="ai" placeholder="1.2.3.4" required style="margin-top:4px"></div>
+        <div><label style="font-size:12px;color:var(--muted)">Reason</label><input id="banReason" class="ai" placeholder="Spam / abuse" style="margin-top:4px"></div>
+        <div><label style="font-size:12px;color:var(--muted)">Days (0=perm)</label><input id="banDays" type="number" min="0" value="0" class="ai" style="width:90px;margin-top:4px"></div>
         <button class="btn" type="submit">Ban IP</button>
       </form>
-      <div id="ipBanList" class="promo-list"></div>
+      <div id="banList" class="pl"></div>
     </div>
-    <div class="admin-box" style="grid-column:1/-1" id="fpBox">
-      <h3>ðŸ§¬ Browser Fingerprints</h3>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Recent login fingerprints (hashed). Your current: <code id="currentFp">â€”</code></p>
-      <div id="fpList" class="promo-list"></div>
+    <div class="ab" style="grid-column:1/-1">
+      <h3>&#129518; Browser Fingerprints</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Current: <code id="currentFp">&#8212;</code></p>
+      <div id="fpList" class="pl"></div>
     </div>
   </div>
 </section>
-<!-- Cabinet Section -->
-<section id="cabinet" class="cabinet-section">
+<section id="cabinet" class="cab-sec">
   <div class="container">
-    <div class="cabinet-shell">
-      <aside class="cabinet-sidebar">
-        <div class="cabinet-user-mini">
-          <div class="cabinet-avatar">E</div>
-          <div><strong id="cabinetUsernameMini">Guest</strong><span id="cabinetRoleMini">User</span></div>
-        </div>
-        <button class="cabinet-nav-btn active" data-cab="account">ðŸ‘¤ Account</button>
-        <button class="cabinet-nav-btn" data-cab="launcher">ðŸš€ Launcher</button>
-        <button class="cabinet-nav-btn" data-cab="settings">âš™ Settings</button>
-        <button class="cabinet-nav-btn" id="cabinetAdminBtn" style="display:none" data-cab="admin">ðŸ‘‘ Admin Panel</button>
+    <div class="cab-shell">
+      <aside class="cab-side">
+        <div class="cum"><div class="cav">E</div><div><strong id="cabUserMini">Guest</strong><span id="cabRoleMini">User</span></div></div>
+        <button class="cnb act" data-p="account">&#128100; Account</button>
+        <button class="cnb" data-p="launcher">&#128640; Launcher</button>
+        <button class="cnb" data-p="settings">&#9881; Settings</button>
+        <button class="cnb" id="cabAdminBtn" style="display:none" data-p="admin">&#128081; Admin Panel</button>
       </aside>
-      <main class="cabinet-content">
-        <div class="cabinet-top">
-          <div><span class="kicker">ACCOUNT CABINET</span><h2 id="cabinetHeading" style="font-size:26px;margin-top:6px">Account</h2></div>
-          <button class="btn ghost" id="cabinetRefresh" style="font-size:13px;padding:9px 14px">Refresh</button>
+      <main class="cab-cont">
+        <div class="ctop">
+          <div><span class="kicker">Личный кабинет</span><h2 id="cabHead" style="font-size:26px;margin-top:6px">Account</h2></div>
+          <button class="btn ghost" id="cabRefresh" style="font-size:13px;padding:9px 14px">Обновить</button>
         </div>
-        <section class="cab-panel" data-panel="account">
-          <div id="cabAuthBlock" class="cab-card wide" style="display:none">
-            <span class="cab-label">Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ / Ð’Ñ…Ð¾Ð´</span>
-            <h3 id="cabAuthTitle" style="font-size:20px;margin-bottom:4px">Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ Ð² Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚</h3>
-            <p style="color:var(--muted);font-size:13px;margin-bottom:16px">ÐžÐ´Ð¸Ð½ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚ â€” ÐºÐ°Ð±Ð¸Ð½ÐµÑ‚, Ð¿Ð¾Ð´Ð¿Ð¸ÑÐºÐ° Ð¸ ÐºÐ»ÑŽÑ‡Ð¸.</p>
+        <section class="cp" data-p="account">
+          <div id="cabAuth" class="cc wide" style="display:none">
+            <span class="cl">Регистрация / Войти</span>
+            <h3 id="cabAuthTitle" style="font-size:20px;margin-bottom:4px">Войдите в аккаунт</h3>
+            <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Один аккаунт — кабинет, подписка и ключи.</p>
             <div style="display:flex;gap:8px;margin-bottom:16px">
-              <button type="button" class="btn" id="cabTabLogin" onclick="cabSetAuthTab('login')" style="padding:9px 16px;font-size:13px">Ð’Ñ…Ð¾Ð´</button>
-              <button type="button" class="btn ghost" id="cabTabRegister" onclick="cabSetAuthTab('register')" style="padding:9px 16px;font-size:13px">Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ</button>
+              <button type="button" class="btn" id="cabTL" onclick="cabAuthTab('login')" style="padding:9px 16px;font-size:13px">Вход</button>
+              <button type="button" class="btn ghost" id="cabTR" onclick="cabAuthTab('register')" style="padding:9px 16px;font-size:13px">Регистрация</button>
             </div>
-            <form id="cabLoginForm" onsubmit="cabDoLogin(event)" style="display:grid;gap:10px;max-width:360px">
-              <input class="admin-input" id="cabLoginUser" placeholder="Ð›Ð¾Ð³Ð¸Ð½ Ð¸Ð»Ð¸ email" required>
-              <input class="admin-input" id="cabLoginPass" type="password" placeholder="ÐŸÐ°Ñ€Ð¾Ð»ÑŒ" required>
-              <button class="btn" type="submit">Ð’Ð¾Ð¹Ñ‚Ð¸</button>
+            <form id="cabLF" onsubmit="cabLogin(event)" style="display:grid;gap:10px;max-width:360px">
+              <input class="ai" id="cabLU" placeholder="Логин или email" required>
+              <input class="ai" id="cabLP" type="password" placeholder="Пароль" required>
+              <button class="btn" type="submit">Войти</button>
             </form>
-            <form id="cabRegisterForm" onsubmit="cabDoRegister(event)" style="display:none;gap:10px;max-width:360px">
-              <input class="admin-input" id="cabRegUser" placeholder="Ð›Ð¾Ð³Ð¸Ð½" required minlength="3">
-              <input class="admin-input" id="cabRegEmail" type="email" placeholder="Email" required>
-              <input class="admin-input" id="cabRegPass" type="password" placeholder="ÐŸÐ°Ñ€Ð¾Ð»ÑŒ (Ð¼Ð¸Ð½. 6)" required minlength="6">
-              <button class="btn" type="submit">Ð¡Ð¾Ð·Ð´Ð°Ñ‚ÑŒ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚</button>
+            <form id="cabRF" onsubmit="cabRegister(event)" style="display:none;gap:10px;max-width:360px">
+              <input class="ai" id="cabRU" placeholder="Логин" required minlength="3">
+              <input class="ai" id="cabRE" type="email" placeholder="Email" required>
+              <input class="ai" id="cabRP" type="password" placeholder="Пароль (мин. 6)" required minlength="6">
+              <button class="btn" type="submit">Создать аккаунт</button>
             </form>
             <div id="cabAuthMsg" style="margin-top:10px;color:#f87171;font-size:13px"></div>
           </div>
-          <div id="cabAccountBlock" style="display:none">
-            <div class="cab-card wide" style="margin-bottom:14px">
+          <div id="cabAcc" style="display:none">
+            <div class="cc wide" style="margin-bottom:14px">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-                <div><span class="cab-label">ðŸ‘‘ ÐŸÐ¾Ð´Ð¿Ð¸ÑÐºÐ°</span><h3 id="cabWelcome" style="font-size:18px;margin:4px 0 0">â€”</h3></div>
-                <strong id="cabSubscription" style="color:#a5b4fc">No subscription</strong>
+                <div><span class="cl">&#128081; Подписка</span><h3 id="cabWelcome" style="font-size:18px;margin:4px 0 0">&#8212;</h3></div>
+                <strong id="cabSub" style="color:#a5b4fc">Нет подписки</strong>
               </div>
-              <div class="cab-grid">
-                <div class="cab-card"><span class="cab-label"># UID</span><strong id="cabUid">â€”</strong></div>
-                <div class="cab-card"><span class="cab-label">Ð›Ð¾Ð³Ð¸Ð½</span><strong id="cabUsername">â€”</strong></div>
-                <div class="cab-card"><span class="cab-label">Ð Ð¾Ð»ÑŒ</span><strong id="cabRole">â€”</strong></div>
-                <div class="cab-card"><span class="cab-label">Email</span><strong id="cabEmail">â€”</strong></div>
-                <div class="cab-card wide"><span class="cab-label">HWID</span><strong id="cabHwid">Not bound</strong></div>
+              <div class="cg">
+                <div class="cc"><span class="cl"># UID</span><strong id="cabUid">&#8212;</strong></div>
+                <div class="cc"><span class="cl">&#1051;&#1086;&#1075;&#1080;&#1085;</span><strong id="cabUser">&#8212;</strong></div>
+                <div class="cc"><span class="cl">&#1056;&#1086;&#1083;&#1100;</span><strong id="cabRole2">&#8212;</strong></div>
+                <div class="cc"><span class="cl">Email</span><strong id="cabEmail">&#8212;</strong></div>
+                <div class="cc wide"><span class="cl">HWID</span><strong id="cabHwid">Not bound</strong></div>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
-                <button class="btn" onclick="document.querySelector('[data-cab=settings]').click()">ðŸ”‘ Activate Key</button>
-                <button class="btn ghost" onclick="alert('HWID Reset â€” 250â‚½')">HWID Reset Â· 250â‚½</button>
-                <button class="btn ghost" onclick="cabLogout()">Ð’Ñ‹Ð¹Ñ‚Ð¸</button>
+                <button class="btn" onclick="document.querySelector('[data-p=settings]').click()">&#128273; Activate Key</button>
+                <button class="btn ghost" onclick="alert('HWID Reset &#8212; 250\u20bd')">HWID Reset · 250₽</button>
+                <button class="btn ghost" onclick="cabLogout()">Выйти</button>
               </div>
             </div>
           </div>
         </section>
-        <section class="cab-panel" data-panel="launcher" style="display:none">
-          <div class="cab-card wide">
-            <span class="cab-label">Launcher</span>
-            <h3 style="margin-bottom:8px">Download / Launch</h3>
-            <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Launcher download and current version can be connected here.</p>
-            <button class="btn" onclick="alert('Launcher download link goes here.')">Download launcher</button>
-          </div>
+        <section class="cp" data-p="launcher" style="display:none">
+          <div class="cc wide"><span class="cl">Launcher</span><h3 style="margin-bottom:8px">Загрузка / Запуск</h3><p style="color:var(--muted);font-size:13px;margin-bottom:16px">Ссылка для загрузки лаунчера будет здесь.</p><button class="btn" onclick="alert('Launcher download link here')">Скачать лаунчер</button></div>
         </section>
-        <section class="cab-panel" data-panel="settings" style="display:none">
-          <div class="cab-card wide">
-            <span class="cab-label">Settings</span>
-            <h3 style="margin-bottom:12px">Profile settings</h3>
-            <form id="cabSettingsForm" style="display:grid;gap:10px;max-width:360px">
-              <input class="admin-input" id="cabSettingsEmail" type="email" placeholder="Email">
-              <button class="btn" type="submit">Save email</button>
+        <section class="cp" data-p="settings" style="display:none">
+          <div class="cc wide">
+            <span class="cl">Settings</span><h3 style="margin-bottom:12px">Настройки профиля</h3>
+            <form style="display:grid;gap:10px;max-width:360px">
+              <input class="ai" id="cabSEmail" type="email" placeholder="Email">
+              <button class="btn" type="submit">Сохранить email</button>
             </form>
-            <div id="cabSettingsMsg" style="margin-top:8px;font-size:13px;color:var(--muted)"></div>
+            <div id="cabSMsg" style="margin-top:8px;font-size:13px;color:var(--muted)"></div>
             <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
-            <h3 style="font-size:15px;margin-bottom:10px">Ð¡Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ð¿Ð°Ñ€Ð¾Ð»ÑŒ</h3>
-            <form id="cabPasswordForm" onsubmit="cabChangePassword(event)" style="display:grid;gap:10px;max-width:360px">
-              <input class="admin-input" id="cabPassCurrent" type="password" placeholder="Ð¢ÐµÐºÑƒÑ‰Ð¸Ð¹ Ð¿Ð°Ñ€Ð¾Ð»ÑŒ" required>
-              <input class="admin-input" id="cabPassNew" type="password" placeholder="ÐÐ¾Ð²Ñ‹Ð¹ Ð¿Ð°Ñ€Ð¾Ð»ÑŒ (Ð¼Ð¸Ð½. 6)" required minlength="6">
-              <input class="admin-input" id="cabPassNew2" type="password" placeholder="ÐŸÐ¾Ð²Ñ‚Ð¾Ñ€Ð¸Ñ‚Ðµ Ð½Ð¾Ð²Ñ‹Ð¹ Ð¿Ð°Ñ€Ð¾Ð»ÑŒ" required minlength="6">
-              <button class="btn" type="submit">Ð¡Ð¼ÐµÐ½Ð¸Ñ‚ÑŒ Ð¿Ð°Ñ€Ð¾Ð»ÑŒ</button>
+            <h3 style="font-size:15px;margin-bottom:10px">Сменить пароль</h3>
+            <form onsubmit="cabChPass(event)" style="display:grid;gap:10px;max-width:360px">
+              <input class="ai" id="cabPC" type="password" placeholder="Текущий пароль" required>
+              <input class="ai" id="cabPN" type="password" placeholder="Новый пароль (мин. 6)" required minlength="6">
+              <input class="ai" id="cabPN2" type="password" placeholder="Повторите новый пароль" required minlength="6">
+              <button class="btn" type="submit">Сменить пароль</button>
             </form>
             <div id="cabPassMsg" style="margin-top:8px;font-size:13px;color:var(--muted)"></div>
           </div>
-          <div class="cab-card wide" style="margin-top:16px">
-            <span class="cab-label">Subscription</span>
-            <div class="settings-sub-top">
-              <div class="settings-status-box">
-                <span id="settingsStatusLabel" style="font-weight:800">ÐÐµÐ°ÐºÑ‚Ð¸Ð²Ð½Ð¾</span>
-                <span id="settingsStatusVer" style="color:var(--muted);font-size:12px;margin-left:6px">â€”</span>
-                <p id="settingsStatusNote" style="color:var(--muted);margin-top:8px;font-size:12.5px">Ð£ Ð²Ð°Ñ Ð½ÐµÑ‚ Ð°ÐºÑ‚Ð¸Ð²Ð½Ñ‹Ñ… Ð¿Ð¾Ð´Ð¿Ð¸ÑÐ¾Ðº, Ð¿Ñ€Ð¸Ð¾Ð±Ñ€ÐµÑÑ‚Ð¸ Ð¿Ð¾Ð´Ð¿Ð¸ÑÐºÑƒ Ð¼Ð¾Ð¶Ð½Ð¾ Ð½Ð¸Ð¶Ðµ</p>
-              </div>
-              <form class="settings-key-form" onsubmit="cabActivateKey(event)">
-                <input class="admin-input" id="settingsKeyInput" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" style="margin-bottom:0">
+          <div class="cc wide" style="margin-top:16px">
+            <span class="cl">Подписка</span>
+            <div class="sts-top">
+              <div class="ssb"><span id="subLabel" style="font-weight:800">Неактивно</span><span id="subVer" style="color:var(--muted);font-size:12px;margin-left:6px">&#8212;</span><p id="subNote" style="color:var(--muted);margin-top:8px;font-size:12.5px">У вас нет активных подписок, приобрести можно ниже</p></div>
+              <form class="skf" onsubmit="cabActKey(event)">
+                <input class="ai" id="keyInput" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" style="margin-bottom:0">
                 <button class="btn" type="submit" style="align-self:start;white-space:nowrap">Activate Key</button>
-                <div id="settingsKeyMsg" style="grid-column:1/-1;font-size:12.5px;color:var(--muted)"></div>
+                <div id="keyMsg" style="grid-column:1/-1;font-size:12.5px;color:var(--muted)"></div>
               </form>
             </div>
           </div>
         </section>
-        <section class="cab-panel" data-panel="admin" style="display:none">
-          <div class="cab-card wide">
-            <span class="cab-label">Admin</span>
-            <h3 style="margin-bottom:8px">Admin Panel</h3>
-            <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Only users with the Admin role should see this section.</p>
-            <button class="btn" onclick="document.getElementById('adminPanel').scrollIntoView({behavior:'smooth'})">Open Admin Panel</button>
-          </div>
+        <section class="cp" data-p="admin" style="display:none">
+          <div class="cc wide"><span class="cl">Admin</span><h3 style="margin-bottom:8px">Админ-панель</h3><button class="btn" onclick="document.getElementById('adminPanel').scrollIntoView({behavior:'smooth'})">Открыть Админ-панель</button></div>
         </section>
       </main>
     </div>
   </div>
 </section>
-<!-- Player Auth Modal -->
-<div class="player-modal" id="playerModal">
-  <div class="player-box">
-    <button class="close-btn" onclick="closePlayerModal()">âœ•</button>
-    <div class="player-visual">
-      <div class="player-glyph"><img src="/static/images/logo.png" alt="EUPHORIA" onerror="this.parentElement.textContent='EU'"></div>
+<div class="pmod" id="pmod">
+  <div class="pbox">
+    <button class="closeb" onclick="closeMod()">&#10005;</button>
+    <div class="pvis">
+      <div class="pglyph"><img src="/static/images/logo.png" alt="EUPHORIA" onerror="this.parentElement.textContent='EU'"></div>
       <h3>EUPHORIA</h3>
-      <p>ÐžÐ´Ð¸Ð½ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚ â€” ÐºÐ°Ð±Ð¸Ð½ÐµÑ‚, Ð¿Ð¾Ð´Ð¿Ð¸ÑÐºÐ° Ð¸ ÐºÐ»ÑŽÑ‡Ð¸.</p>
+      <p>Один аккаунт — кабинет, подписка и ключи.</p>
     </div>
-    <div class="player-form-side">
-      <h2 id="playerFormTitle">Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ Ð² Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚</h2>
-      <p class="player-switch-line">ÐÐµÑ‚ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚Ð°? <a onclick="switchPlayerMode('register')">Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ</a></p>
-      <div id="playerLoginForm">
-        <div class="player-field-row"><input type="text" id="playerUser" placeholder="Ð›Ð¾Ð³Ð¸Ð½ Ð¸Ð»Ð¸ email"></div>
-        <div class="player-field-row"><input type="password" id="playerPass" placeholder="ÐŸÐ°Ñ€Ð¾Ð»ÑŒ"></div>
-        <button class="btn player-submit-btn" onclick="doPlayerLogin()">Ð’Ð¾Ð¹Ñ‚Ð¸ â†’</button>
+    <div class="pfs">
+      <h2 id="modTitle">Войдите в аккаунт</h2>
+      <p class="psl">Нет аккаунта? <a onclick="swMode('register')">Регистрация</a></p>
+      <div id="modLogin">
+        <div class="pfr"><input type="text" id="mUser" placeholder="Логин или email"></div>
+        <div class="pfr"><input type="password" id="mPass" placeholder="Пароль"></div>
+        <button class="btn psb" onclick="doLogin()">Войти &#8594;</button>
       </div>
-      <div id="playerRegisterForm" style="display:none">
-        <div class="player-field-row"><input type="text" id="playerRegUser" placeholder="Ð›Ð¾Ð³Ð¸Ð½"></div>
-        <div class="player-field-row"><input type="email" id="playerRegEmail" placeholder="Email"></div>
-        <div class="player-field-row"><input type="password" id="playerRegPass" placeholder="ÐŸÐ°Ñ€Ð¾Ð»ÑŒ (Ð¼Ð¸Ð½. 6)"></div>
-        <button class="btn player-submit-btn" onclick="doPlayerRegister()">Ð¡Ð¾Ð·Ð´Ð°Ñ‚ÑŒ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚ â†’</button>
+      <div id="modReg" style="display:none">
+        <div class="pfr"><input type="text" id="mRUser" placeholder="Логин"></div>
+        <div class="pfr"><input type="email" id="mREmail" placeholder="Email"></div>
+        <div class="pfr"><input type="password" id="mRPass" placeholder="Пароль (мин. 6)"></div>
+        <button class="btn psb" onclick="doReg()">Создать аккаунт &#8594;</button>
       </div>
-      <div class="player-msg" id="playerMsg"></div>
+      <div class="pmsg" id="modMsg"></div>
     </div>
   </div>
 </div>
 </main>
 <footer>
   <div class="container">
-    <div class="footer-content">
-      <div class="footer-section"><h3 style="color:var(--primary)">EUPHORIA</h3><p style="color:var(--muted);margin-top:4px">Minecraft Client Â· 2025</p></div>
-      <div class="footer-section"><h3>ÐŸÐ»Ð°Ñ‚Ñ„Ð¾Ñ€Ð¼Ð°</h3><ul><li><a href="#top">Ð“Ð»Ð°Ð²Ð½Ð°Ñ</a></li><li><a href="#pricing">Ð¢Ð°Ñ€Ð¸Ñ„Ñ‹</a></li><li><a href="#faq">FAQ</a></li></ul></div>
-      <div class="footer-section"><h3>ÐÐºÐºÐ°ÑƒÐ½Ñ‚</h3><ul><li><a href="/cabinet">Ð’Ð¾Ð¹Ñ‚Ð¸</a></li><li><a href="/cabinet">Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ</a></li></ul></div>
-      <div class="footer-section"><h3>ÐšÐ¾Ð½Ñ‚Ð°ÐºÑ‚Ñ‹</h3><ul><li><a href="#">Telegram</a></li><li><a href="#">Discord</a></li></ul></div>
-      <div class="footer-section"><h3>ÐŸÑ€Ð°Ð²Ð¾Ð²Ð°Ñ</h3><ul><li><a href="#">Ð£ÑÐ»Ð¾Ð²Ð¸Ñ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ð½Ð¸Ñ</a></li><li><a href="#">ÐšÐ¾Ð½Ñ„Ð¸Ð´ÐµÐ½Ñ†Ð¸Ð°Ð»ÑŒÐ½Ð¾ÑÑ‚ÑŒ</a></li></ul></div>
+    <div class="fc2">
+      <div class="fs"><h3 style="color:var(--primary)">EUPHORIA</h3><p style="margin-top:4px;color:var(--muted)">Minecraft Client &middot; 2025</p></div>
+      <div class="fs"><h3>Платформа</h3><ul><li><a href="#top">Главная</a></li><li><a href="#pricing">Тарифы</a></li><li><a href="#faq">FAQ</a></li></ul></div>
+      <div class="fs"><h3>Аккаунт</h3><ul><li><a href="/cabinet">Войти</a></li><li><a href="/cabinet">Регистрация</a></li></ul></div>
+      <div class="fs"><h3>Контакты</h3><ul><li><a href="#">Telegram</a></li><li><a href="#">Discord</a></li></ul></div>
+      <div class="fs"><h3>Правовая</h3><ul><li><a href="#">Условия использования</a></li><li><a href="#">КонфиденциальносΌь</a></li></ul></div>
     </div>
   </div>
 </footer>
 <script>
 // Canvas Rays
-(function(){
-  const canvas=document.getElementById('rays-background');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  let W,H,rays=[];
-  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
-  function initRays(){rays=[];const count=18;for(let i=0;i<count;i++)rays.push({angle:(Math.PI*2/count)*i,speed:0.0003+Math.random()*0.0004,length:0.3+Math.random()*0.5,alpha:0.03+Math.random()*0.06,width:40+Math.random()*120,color:Math.random()>0.6?'139,92,246':'56,189,248'});}
-  let t=0;
-  function draw(){ctx.clearRect(0,0,W,H);const cx=W/2,cy=H*0.45;t+=0.5;for(const r of rays){const angle=r.angle+t*r.speed;const len=Math.min(W,H)*r.length;const grd=ctx.createLinearGradient(cx,cy,cx+Math.cos(angle)*len,cy+Math.sin(angle)*len);grd.addColorStop(0,`rgba(${r.color},${r.alpha})`);grd.addColorStop(1,`rgba(${r.color},0)`);ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(len,-r.width/2);ctx.lineTo(len,r.width/2);ctx.closePath();ctx.fillStyle=grd;ctx.fill();ctx.restore();}requestAnimationFrame(draw);}
-  window.addEventListener('resize',resize);resize();initRays();draw();
-})();
-function toggleMobileMenu(){document.getElementById('mobileMenu').classList.toggle('open');}
+(function(){const c=document.getElementById('rays-bg');if(!c)return;const x=c.getContext('2d');let W,H,rays=[];function resize(){W=c.width=innerWidth;H=c.height=innerHeight;}function init(){rays=[];for(let i=0;i<18;i++)rays.push({angle:(Math.PI*2/18)*i,spd:3e-4+Math.random()*4e-4,len:.3+Math.random()*.5,alpha:.03+Math.random()*.06,w:40+Math.random()*120,col:Math.random()>.6?'139,92,246':'56,189,248'});}let t=0;function draw(){x.clearRect(0,0,W,H);const cx=W/2,cy=H*.45;t+=.5;for(const r of rays){const a=r.angle+t*r.spd;const l=Math.min(W,H)*r.len;const g=x.createLinearGradient(cx,cy,cx+Math.cos(a)*l,cy+Math.sin(a)*l);g.addColorStop(0,`rgba(${r.col},${r.alpha})`);g.addColorStop(1,`rgba(${r.col},0)`);x.save();x.translate(cx,cy);x.rotate(a);x.beginPath();x.moveTo(0,0);x.lineTo(l,-r.w/2);x.lineTo(l,r.w/2);x.closePath();x.fillStyle=g;x.fill();x.restore();}requestAnimationFrame(draw);}window.addEventListener('resize',resize);resize();init();draw();})();
+function toggleMenu(){document.getElementById('mmenu').classList.toggle('open');}
 // Tabs
-document.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+btn.dataset.tab).classList.add('active');});});
-function toggleFaqTab(el){const item=el.parentElement;const isActive=item.classList.contains('active');document.querySelectorAll('.faq-item-tab').forEach(i=>i.classList.remove('active'));if(!isActive)item.classList.add('active');}
-function toggleFaq(btn){const item=btn.parentElement;const isOpen=item.classList.contains('open');document.querySelectorAll('.faq-item-pub').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open');}
+document.querySelectorAll('.tbn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.tbn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tc').forEach(x=>x.classList.remove('active'));b.classList.add('active');const t=document.getElementById('tc-'+b.dataset.tab);if(t)t.classList.add('active');});});
+function tgFt(el){const i=el.parentElement;const was=i.classList.contains('open');document.querySelectorAll('.fti').forEach(x=>x.classList.remove('open'));if(!was)i.classList.add('open');}
+function tgFaq(btn){const i=btn.parentElement;const was=i.classList.contains('open');document.querySelectorAll('.fpi').forEach(x=>x.classList.remove('open'));if(!was)i.classList.add('open');}
 // Carousel
-let currentSlide=0;const slides=document.querySelectorAll('.carousel-slide');const dots=document.querySelectorAll('.carousel-dot');const totalSlides=slides.length;
-function showSlide(i){if(i>=totalSlides)currentSlide=0;else if(i<0)currentSlide=totalSlides-1;else currentSlide=i;slides.forEach((s,j)=>s.classList.toggle('active',j===currentSlide));dots.forEach((d,j)=>d.classList.toggle('active',j===currentSlide));}
-function changeSlide(d){showSlide(currentSlide+d);}function goToSlide(i){showSlide(i);}
-setInterval(()=>changeSlide(1),5000);
+let cs=0;const sl=document.querySelectorAll('.cs');const dt=document.querySelectorAll('.cd');
+function showSlide(i){if(i>=sl.length)cs=0;else if(i<0)cs=sl.length-1;else cs=i;sl.forEach((s,j)=>s.classList.toggle('active',j===cs));dt.forEach((d,j)=>d.classList.toggle('active',j===cs));}
+function chSlide(d){showSlide(cs+d);}function goSlide(i){showSlide(i);}
+setInterval(()=>chSlide(1),5000);
 // Cabinet nav
-(function(){const navs=document.querySelectorAll('.cabinet-nav-btn');const panels=document.querySelectorAll('.cab-panel');const heading=document.getElementById('cabinetHeading');navs.forEach(btn=>{btn.addEventListener('click',()=>{const target=btn.dataset.cab;navs.forEach(x=>x.classList.toggle('active',x===btn));panels.forEach(p=>{p.style.display=p.dataset.panel===target?'block':'none';});if(heading)heading.textContent=btn.textContent.replace(/^[^\w]+/u,'').trim();});});})();
-function cabSetAuthTab(tab){const login=tab==='login';document.getElementById('cabLoginForm').style.display=login?'grid':'none';document.getElementById('cabRegisterForm').style.display=login?'none':'grid';document.getElementById('cabTabLogin').className=login?'btn':'btn ghost';document.getElementById('cabTabRegister').className=login?'btn ghost':'btn';document.getElementById('cabAuthTitle').textContent=login?'Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ Ð² Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚':'Ð¡Ð¾Ð·Ð´Ð°Ð¹Ñ‚Ðµ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚';document.getElementById('cabAuthMsg').textContent='';}
-async function cabDoLogin(e){e.preventDefault();const msg=document.getElementById('cabAuthMsg');msg.textContent='';try{const r=await fetch('/api/player/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('cabLoginUser').value,password:document.getElementById('cabLoginPass').value})});const d=await r.json();if(d.ok){await loadCabinetUser();}else{msg.textContent=d.message||'ÐžÑˆÐ¸Ð±ÐºÐ°';}}catch(err){msg.textContent='ÐžÑˆÐ¸Ð±ÐºÐ° ÑÐµÑ‚Ð¸';}}
-async function cabDoRegister(e){e.preventDefault();const msg=document.getElementById('cabAuthMsg');msg.textContent='';try{const r=await fetch('/api/player/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('cabRegUser').value,email:document.getElementById('cabRegEmail').value,password:document.getElementById('cabRegPass').value})});const d=await r.json();if(d.ok){await loadCabinetUser();}else{msg.textContent=d.message||'ÐžÑˆÐ¸Ð±ÐºÐ°';}}catch(err){msg.textContent='ÐžÑˆÐ¸Ð±ÐºÐ° ÑÐµÑ‚Ð¸';}}
+(function(){const navs=document.querySelectorAll('.cnb');const panels=document.querySelectorAll('.cp');const hd=document.getElementById('cabHead');navs.forEach(b=>{b.addEventListener('click',()=>{const t=b.dataset.p;navs.forEach(x=>x.classList.toggle('act',x===b));panels.forEach(p=>{p.style.display=p.dataset.p===t?'block':'none';});if(hd)hd.textContent=b.textContent.trim().replace(/^[^a-zA-Z\u0400-\u04FF]+/,'');});});})();
+function cabAuthTab(tab){const l=tab==='login';document.getElementById('cabLF').style.display=l?'grid':'none';document.getElementById('cabRF').style.display=l?'none':'grid';document.getElementById('cabTL').className=l?'btn':'btn ghost';document.getElementById('cabTR').className=l?'btn ghost':'btn';document.getElementById('cabAuthTitle').textContent=l?'войдите в аккаунт':'создайте аккаунт';document.getElementById('cabAuthMsg').textContent='';}
+async function cabLogin(e){e.preventDefault();const m=document.getElementById('cabAuthMsg');m.textContent='';try{const r=await fetch('/api/player/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('cabLU').value,password:document.getElementById('cabLP').value})});const d=await r.json();if(d.ok){await loadUser();}else{m.textContent=d.message||'Ошибка';}}catch(e){m.textContent='Ошибка сети';}}
+async function cabRegister(e){e.preventDefault();const m=document.getElementById('cabAuthMsg');m.textContent='';try{const r=await fetch('/api/player/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('cabRU').value,email:document.getElementById('cabRE').value,password:document.getElementById('cabRP').value})});const d=await r.json();if(d.ok){await loadUser();}else{m.textContent=d.message||'Ошибка';}}catch(e){m.textContent='Ошибка сети';}}
 async function cabLogout(){await fetch('/api/player/logout',{method:'POST'});location.reload();}
-async function cabChangePassword(e){e.preventDefault();const msg=document.getElementById('cabPassMsg');const np=document.getElementById('cabPassNew').value;const np2=document.getElementById('cabPassNew2').value;if(np!==np2){msg.textContent='ÐŸÐ°Ñ€Ð¾Ð»Ð¸ Ð½Ðµ ÑÐ¾Ð²Ð¿Ð°Ð´Ð°ÑŽÑ‚';msg.style.color='#ef4444';return;}const r=await fetch('/api/player/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current_password:document.getElementById('cabPassCurrent').value,new_password:np})});const d=await r.json();msg.textContent=d.message||(d.ok?'ÐŸÐ°Ñ€Ð¾Ð»ÑŒ Ð¸Ð·Ð¼ÐµÐ½Ñ‘Ð½':'ÐžÑˆÐ¸Ð±ÐºÐ°');msg.style.color=d.ok?'#34d399':'#ef4444';}
-async function cabActivateKey(e){e.preventDefault();const msg=document.getElementById('settingsKeyMsg');const key=document.getElementById('settingsKeyInput').value.trim();const r=await fetch('/api/player/activate-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})});const d=await r.json();msg.textContent=d.message||(d.ok?'ÐšÐ»ÑŽÑ‡ Ð°ÐºÑ‚Ð¸Ð²Ð¸Ñ€Ð¾Ð²Ð°Ð½':'ÐžÑˆÐ¸Ð±ÐºÐ°');msg.style.color=d.ok?'#34d399':'#ef4444';if(d.ok)loadCabinetUser();}
-async function loadCabinetUser(){try{const r=await fetch('/api/player/me');const d=await r.json();const auth=document.getElementById('cabAuthBlock');const acc=document.getElementById('cabAccountBlock');if(d.ok&&d.logged_in){if(auth)auth.style.display='none';if(acc)acc.style.display='block';const p=d.player;const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v||'â€”';};setText('cabUid',p.uid);setText('cabUsername',p.username);setText('cabRole',p.role);setText('cabEmail',p.email);setText('cabWelcome',p.username);setText('cabinetUsernameMini',p.username);setText('cabinetRoleMini',p.role);const adminBtn=document.getElementById('cabinetAdminBtn');if(adminBtn)adminBtn.style.display=(p.role==='Admin')?'block':'none';if(p.subscription){const sub=p.subscription;const expire=sub.expires_at?new Date(sub.expires_at).toLocaleDateString('ru-RU'):'âˆž';setText('cabSubscription',sub.duration+' Â· Ð´Ð¾ '+expire);setText('settingsStatusLabel','ÐÐºÑ‚Ð¸Ð²Ð½Ð¾');setText('settingsStatusVer',sub.duration);setText('settingsStatusNote','ÐŸÐ¾Ð´Ð¿Ð¸ÑÐºÐ° Ð°ÐºÑ‚Ð¸Ð²Ð½Ð° Ð´Ð¾ '+expire);}}else{if(auth){auth.style.display='block';cabSetAuthTab('login');}if(acc)acc.style.display='none';}}catch(e){}}
-document.getElementById('cabinetRefresh')?.addEventListener('click',loadCabinetUser);
-// Player modal
-function openPlayerLogin(){document.getElementById('playerModal').classList.add('active');switchPlayerMode('login');}
-function closePlayerModal(){document.getElementById('playerModal').classList.remove('active');}
-function switchPlayerMode(mode){const isLogin=mode==='login';document.getElementById('playerLoginForm').style.display=isLogin?'block':'none';document.getElementById('playerRegisterForm').style.display=isLogin?'none':'block';document.getElementById('playerFormTitle').textContent=isLogin?'Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ Ð² Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚':'Ð¡Ð¾Ð·Ð´Ð°Ð¹Ñ‚Ðµ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚';const sl=document.querySelector('.player-switch-line');if(sl)sl.innerHTML=isLogin?'ÐÐµÑ‚ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚Ð°? <a onclick="switchPlayerMode(\'register\')">Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ</a>':'Ð£Ð¶Ðµ ÐµÑÑ‚ÑŒ Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚? <a onclick="switchPlayerMode(\'login\')">Ð’Ð¾Ð¹Ñ‚Ð¸</a>';document.getElementById('playerMsg').textContent='';}
-async function doPlayerLogin(){const msg=document.getElementById('playerMsg');msg.className='player-msg';try{const r=await fetch('/api/player/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('playerUser').value,password:document.getElementById('playerPass').value})});const d=await r.json();if(d.ok){closePlayerModal();await loadCabinetUser();}else{msg.textContent=d.message||'ÐžÑˆÐ¸Ð±ÐºÐ°';msg.className='player-msg err';}}catch(e){msg.textContent='ÐžÑˆÐ¸Ð±ÐºÐ° ÑÐµÑ‚Ð¸';msg.className='player-msg err';}}
-async function doPlayerRegister(){const msg=document.getElementById('playerMsg');msg.className='player-msg';try{const r=await fetch('/api/player/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('playerRegUser').value,email:document.getElementById('playerRegEmail').value,password:document.getElementById('playerRegPass').value})});const d=await r.json();if(d.ok){closePlayerModal();await loadCabinetUser();}else{msg.textContent=d.message||'ÐžÑˆÐ¸Ð±ÐºÐ°';msg.className='player-msg err';}}catch(e){msg.textContent='ÐžÑˆÐ¸Ð±ÐºÐ° ÑÐµÑ‚Ð¸';msg.className='player-msg err';}}
+async function cabChPass(e){e.preventDefault();const m=document.getElementById('cabPassMsg');const np=document.getElementById('cabPN').value;const np2=document.getElementById('cabPN2').value;if(np!==np2){m.textContent='Пароли не совпадают';m.style.color='#ef4444';return;}const r=await fetch('/api/player/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current_password:document.getElementById('cabPC').value,new_password:np})});const d=await r.json();m.textContent=d.message||(d.ok?'Пароль изменён':'Ошибка');m.style.color=d.ok?'#34d399':'#ef4444';}
+async function cabActKey(e){e.preventDefault();const m=document.getElementById('keyMsg');const k=document.getElementById('keyInput').value.trim();const r=await fetch('/api/player/activate-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:k})});const d=await r.json();m.textContent=d.message||(d.ok?'Ключ активирован':'Ошибка');m.style.color=d.ok?'#34d399':'#ef4444';if(d.ok)loadUser();}
+async function loadUser(){try{const r=await fetch('/api/player/me');const d=await r.json();const auth=document.getElementById('cabAuth');const acc=document.getElementById('cabAcc');if(d.ok&&d.logged_in){if(auth)auth.style.display='none';if(acc)acc.style.display='block';const p=d.player;const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v||'—';};s('cabUid',p.uid);s('cabUser',p.username);s('cabRole2',p.role);s('cabEmail',p.email);s('cabWelcome',p.username);s('cabUserMini',p.username);s('cabRoleMini',p.role);const ab=document.getElementById('cabAdminBtn');if(ab)ab.style.display=(p.role==='Admin')?'block':'none';if(p.subscription){const sub=p.subscription;const exp=sub.expires_at?new Date(sub.expires_at).toLocaleDateString('ru-RU'):'∞';s('cabSub',sub.duration+' · до '+exp);s('subLabel','Активно');s('subVer',sub.duration);s('subNote','Подписка активна до '+exp);}}else{if(auth){auth.style.display='block';cabAuthTab('login');}if(acc)acc.style.display='none';}}catch(e){}}
+document.getElementById('cabRefresh')?.addEventListener('click',loadUser);
+// Modal
+function openLogin(){document.getElementById('pmod').classList.add('on');swMode('login');}
+function closeMod(){document.getElementById('pmod').classList.remove('on');}
+function swMode(m){const l=m==='login';document.getElementById('modLogin').style.display=l?'block':'none';document.getElementById('modReg').style.display=l?'none':'block';document.getElementById('modTitle').textContent=l?'Войдите в аккаунт':'Создайте аккаунт';const sl=document.querySelector('.psl');if(sl)sl.innerHTML=l?'Нет аккаунта? <a onclick="swMode(\'register\')">Регистрация</a>':'Уже есть аккаунт? <a onclick="swMode(\'login\')">Войти</a>';document.getElementById('modMsg').textContent='';}
+async function doLogin(){const m=document.getElementById('modMsg');m.className='pmsg';try{const r=await fetch('/api/player/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('mUser').value,password:document.getElementById('mPass').value})});const d=await r.json();if(d.ok){closeMod();await loadUser();}else{m.textContent=d.message||'Ошибка';m.className='pmsg err';}}catch(e){m.textContent='Ошибка сети';m.className='pmsg err';}}
+async function doReg(){const m=document.getElementById('modMsg');m.className='pmsg';try{const r=await fetch('/api/player/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('mRUser').value,email:document.getElementById('mREmail').value,password:document.getElementById('mRPass').value})});const d=await r.json();if(d.ok){closeMod();await loadUser();}else{m.textContent=d.message||'Ошибка';m.className='pmsg err';}}catch(e){m.textContent='Ошибка сети';m.className='pmsg err';}}
 // Products
-let products=[],activePromo=null,selectedProduct=null,selectedPayment_=null;
-async function loadProducts(){try{const r=await fetch('/api/products');products=await r.json();renderCards();}catch(e){}}
-function renderCards(){const grid=document.getElementById('cards');if(!grid)return;const disc=activePromo?activePromo.discount:0;if(!products.length){grid.innerHTML='<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:20px">Ð¢Ð°Ñ€Ð¸Ñ„Ñ‹ ÑÐºÐ¾Ñ€Ð¾ Ð¿Ð¾ÑÐ²ÑÑ‚ÑÑ.</p>';return;}const maxPrice=Math.max(...products.map(p=>p.price),1);grid.innerHTML=products.map((p,i)=>{const orig=p.price;const final=disc?Math.round(orig*(100-disc)/100):orig;const isPop=p.popular||orig>=maxPrice;return`<div class="price-card${isPop?' popular':''}"><div class="popular-tag" style="${isPop?'':'display:none'">ðŸ”¥ Ð’Ñ‹Ð³Ð¾Ð´Ð½Ð¾</div><h3>${p.title}</h3><div class="price-big">${final}â‚½<small>${disc?` (âˆ’${disc}%) Ð±Ñ‹Ð»Ð¾ ${orig}â‚½`:''}</small></div><ul class="features-list"><li>Ð”Ð¾ÑÑ‚ÑƒÐ¿ Ðº ÐºÐ»Ð¸ÐµÐ½Ñ‚Ñƒ</li><li>ÐŸÐ¾Ð´Ð´ÐµÑ€Ð¶ÐºÐ° 24/7</li><li>Ð’ÑÐµ Ð¾Ð±Ñ…Ð¾Ð´Ñ‹</li>${isPop?'<li>ÐŸÑ€Ð¸Ð¾Ñ€Ð¸Ñ‚ÐµÑ‚Ð½Ð°Ñ Ð¿Ð¾Ð´Ð´ÐµÑ€Ð¶ÐºÐ°</li>':''}</ul><button class="btn btn-full" onclick="selectPlan(${i})">${selectedProduct===i?'âœ“ Ð’Ñ‹Ð±Ñ€Ð°Ð½Ð¾':'Ð’Ñ‹Ð±Ñ€Ð°Ñ‚ÑŒ Ñ‚Ð°Ñ€Ð¸Ñ„'}</button></div>`; }).join('');}
-function selectPlan(i){selectedProduct=i;renderCards();const p=products[i];const disc=activePromo?activePromo.discount:0;const final=disc?Math.round(p.price*(100-disc)/100):p.price;const hint=document.getElementById('selectedPlanHint');if(hint)hint.textContent=`Ð’Ñ‹Ð±Ñ€Ð°Ð½Ð¾: ${p.title} Â· ${final}â‚½`;updateCheckout();}
-async function applyPromo(){const code=document.getElementById('promoInput').value.trim().toUpperCase();const status=document.getElementById('promoStatus');if(!code){activePromo=null;renderCards();if(status)status.textContent='';return;}try{const r=await fetch('/api/promos');const promos=await r.json();if(promos[code]){activePromo={code,discount:promos[code]};if(status){status.textContent=`âœ“ ÐŸÑ€Ð¾Ð¼Ð¾ÐºÐ¾Ð´ ${code}: ÑÐºÐ¸Ð´ÐºÐ° ${promos[code]}%`;status.style.color='#34d399';}renderCards();}else{activePromo=null;if(status){status.textContent='âœ— ÐŸÑ€Ð¾Ð¼Ð¾ÐºÐ¾Ð´ Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½';status.style.color='#ef4444';}renderCards();}}catch(e){}}
-function selectPayment(method,btn){selectedPayment_=method;document.querySelectorAll('.pay-method').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');const labels={'funpay':'FunPay','yumoney':'Ð®Money','card':'Ð‘Ð°Ð½ÐºÐ¾Ð²ÑÐºÐ°Ñ ÐºÐ°Ñ€Ñ‚Ð°','visa':'Visa','mastercard':'Mastercard'};const mv=document.getElementById('checkoutMethodValue');if(mv)mv.textContent=labels[method]||method;updateCheckout();}
-function updateCheckout(){const checkout=document.getElementById('checkout');if(selectedProduct===null||selectedProduct===undefined){if(checkout)checkout.classList.remove('active');return;}if(!selectedPayment_)return;const p=products[selectedProduct];if(!p||!checkout)return;const disc=activePromo?activePromo.discount:0;const final=disc?Math.round(p.price*(100-disc)/100):p.price;checkout.classList.add('active');const cp=document.getElementById('checkoutPrice');const ct=document.getElementById('checkoutTotal');const cprod=document.getElementById('checkoutProduct');if(cp)cp.textContent=final+'â‚½';if(ct)ct.textContent=final+'â‚½';if(cprod)cprod.textContent=p.title;}
-async function startPayment(){if(selectedProduct===null||!selectedPayment_){alert('Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ Ñ‚Ð°Ñ€Ð¸Ñ„ Ð¸ ÑÐ¿Ð¾ÑÐ¾Ð± Ð¾Ð¿Ð»Ð°Ñ‚Ñ‹');return;}const p=products[selectedProduct];const btn=document.getElementById('paymentBtn');if(btn){btn.disabled=true;btn.textContent='ÐžÐ±Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐ°...';}try{const r=await fetch('/api/player/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:p.title,promo:activePromo?activePromo.code:''})});const d=await r.json();if(d.ok){alert(`âœ… Ð—Ð°ÐºÐ°Ð· ÑÐ¾Ð·Ð´Ð°Ð½!\nÐšÐ»ÑŽÑ‡: ${d.key}\nÐ¢Ð°Ñ€Ð¸Ñ„: ${d.duration}\nÐžÐ¿Ð»Ð°Ñ‡ÐµÐ½Ð¾: ${d.price_paid}â‚½`);loadCabinetUser();}else if(d.message?.includes('Login')){alert('Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ Ð² Ð°ÐºÐºÐ°ÑƒÐ½Ñ‚ Ð´Ð»Ñ Ð¾Ñ„Ð¾Ñ€Ð¼Ð»ÐµÐ½Ð¸Ñ');openPlayerLogin();}else{alert(d.message||'ÐžÑˆÐ¸Ð±ÐºÐ° Ð¾Ñ„Ð¾Ñ€Ð¼Ð»ÐµÐ½Ð¸Ñ');}}catch(e){alert('ÐžÑˆÐ¸Ð±ÐºÐ° ÑÐµÑ‚Ð¸');}finally{if(btn){btn.disabled=false;btn.textContent='ÐŸÐµÑ€ÐµÐ¹Ñ‚Ð¸ Ðº Ð¾Ð¿Ð»Ð°Ñ‚Ðµ';}}}
-function supportAlert(){alert('Ð¡Ð²ÑÐ¶Ð¸Ñ‚ÐµÑÑŒ Ñ Ð½Ð°Ð¼Ð¸:\nðŸ“© Telegram: @euphoria_support\nðŸ’¬ Discord: discord.gg/euphoria');}
+let prods=[],activePromo=null,selProd=null,selPayM=null;
+async function loadProds(){try{const r=await fetch('/api/products');prods=await r.json();renderCards();}catch(e){}}
+function renderCards(){const g=document.getElementById('cards');if(!g)return;const dc=activePromo?activePromo.discount:0;if(!prods.length){g.innerHTML='<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:20px">Тарифы скоро появятся.</p>';return;}const mx=Math.max(...prods.map(p=>p.price),1);g.innerHTML=prods.map((p,i)=>{const o=p.price;const f=dc?Math.round(o*(100-dc)/100):o;const isp=o>=mx;return`<div class="pc${isp?' pop':''}"><div class="ptag" style="${isp?'':'display:none'}">&#128293; Выгодно</div><h3>${p.title}</h3><div class="pb">${f}&#8381;<small>${dc?` (&#8722;${dc}%) было ${o}&#8381;`:''}</small></div><ul class="fl"><li>Доступ к клиенту</li><li>Поддержка 24/7</li><li>Все обходы</li>${isp?'<li>Приоритет</li>':''}</ul><button class="btn btn-full" onclick="sPlan(${i})">${selProd===i?'&#10003; Выбрано':'Выбрать тариф'}</button></div>`; }).join('');}
+function sPlan(i){selProd=i;renderCards();const p=prods[i];const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;const h=document.getElementById('planHint');if(h)h.textContent=`Выбрано: ${p.title} · ${f}&#8381;`;upCo();}
+async function applyPromo(){const code=document.getElementById('promoInput').value.trim().toUpperCase();const st=document.getElementById('promoStatus');if(!code){activePromo=null;renderCards();if(st)st.textContent='';return;}try{const r=await fetch('/api/promos');const pm=await r.json();if(pm[code]){activePromo={code,discount:pm[code]};if(st){st.textContent=`&#10003; ${code}: &#8722;${pm[code]}%`;st.style.color='#34d399';}renderCards();}else{activePromo=null;if(st){st.textContent='&#10005; Промокод не найден';st.style.color='#ef4444';}renderCards();}}catch(e){}}
+function selPay(m,b){selPayM=m;document.querySelectorAll('.pm').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');const lb={'funpay':'FunPay','yumoney':'ЮMoney','card':'Банковская карта','visa':'Visa','mc':'Mastercard'};const mv=document.getElementById('coMethod');if(mv)mv.textContent=lb[m]||m;upCo();}
+function upCo(){const co=document.getElementById('checkout');if(selProd===null||selProd===undefined){if(co)co.classList.remove('on');return;}if(!selPayM)return;const p=prods[selProd];if(!p||!co)return;const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;co.classList.add('on');const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('coProd',p.title);se('coPrice',f+'₽');se('coTotal',f+'₽');}
+async function startPay(){if(selProd===null||!selPayM){alert('Выберите тариф и способ оплаты');return;}const p=prods[selProd];const btn=document.getElementById('payBtn');if(btn){btn.disabled=true;btn.textContent='...';}try{const r=await fetch('/api/player/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:p.title,promo:activePromo?activePromo.code:''})});const d=await r.json();if(d.ok){alert(`✅ Заказ создан!\nКлюч: ${d.key}\nТариф: ${d.duration}\nОплачено: ${d.price_paid}₽`);loadUser();}else if(d.message?.includes('Login')){alert('Войдите в аккаунт');openLogin();}else{alert(d.message||'Ошибка');}}catch(e){alert('Ошибка сети');}finally{if(btn){btn.disabled=false;btn.textContent='Перейти к оплате';}}}
+function supAlert(){alert('Поддержка:\n📩 Telegram: @euphoria_support\n💬 Discord: discord.gg/euphoria');}
 // Admin
-async function initAdmin(){const r=await fetch('/api/player/me').catch(()=>null);if(!r)return;const d=await r.json().catch(()=>({}));if(d.ok&&d.player&&d.player.role==='Admin'){const ap=document.getElementById('adminPanel');if(ap)ap.classList.add('active');loadAdminData();}}
-async function loadAdminData(){try{const [keysR,promoR,prodR,playersR,bansR,fpR]=await Promise.all([fetch('/api/admin/keys'),fetch('/api/admin/promos'),fetch('/api/products'),fetch('/api/admin/players'),fetch('/api/admin/ip-bans'),fetch('/api/admin/fingerprints')]);const keys=await keysR.json().catch(()=>({}));const promos=await promoR.json().catch(()=>({}));const prods=await prodR.json().catch(()=>[]);const players=await playersR.json().catch(()=>({}));const bans=await bansR.json().catch(()=>({}));const fps=await fpR.json().catch(()=>({}));renderKeyList(keys.keys||[]);renderPromoList(promos.promos||[]);renderProductList(prods);renderPlayerList(players);renderBanList(bans);renderFpList(fps.fingerprints||[]);if(bans.your_ip){const el=document.getElementById('yourIp');if(el)el.textContent=bans.your_ip;}}catch(e){}}
-function renderKeyList(keys){const el=document.getElementById('keyList');if(!el)return;if(!keys.length){el.innerHTML='<p style="color:var(--muted);padding:12px">ÐÐµÑ‚ ÐºÐ»ÑŽÑ‡ÐµÐ¹</p>';return;}el.innerHTML=keys.map(k=>`<div class="promo-row"><span style="font-family:monospace;font-size:13px">${k.key}</span><span style="color:var(--muted);font-size:12px">${k.duration} Â· ${k.uses}/${k.max_uses}</span><small style="color:${k.active?'#34d399':'#ef4444'}">${k.active?'Active':'Disabled'}</small>${k.active?`<button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="disableKey(${k.id})">Disable</button>`:''}${k.bound?`<button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="resetHwid(${k.id})">Reset HWID</button>`:''}</div>`).join('');}
-function renderPromoList(promos){const el=document.getElementById('promoList');if(!el)return;el.innerHTML=promos.map(p=>`<div class="promo-row"><span>${p.code}</span><small>-${p.discount}% Â· ${p.uses}/${p.max_uses||'âˆž'} uses</small><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="deletePromo('${p.code}')">âœ•</button></div>`).join('');}
-function renderProductList(prods){const el=document.getElementById('productList');if(!el)return;el.innerHTML=prods.map(p=>`<div class="promo-row"><span>${p.title}</span><small>${p.price}â‚½</small><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="deleteProduct(${p.id})">âœ•</button></div>`).join('');}
-function renderPlayerList(data){const el=document.getElementById('playerList');const st=document.getElementById('statTotal');const sa=document.getElementById('statActive');const sh=document.getElementById('statHwid');if(!data.stats)return;if(st)st.textContent=data.stats.total_players||0;if(sa)sa.textContent=data.stats.active_subscriptions||0;if(sh)sh.textContent=data.stats.hwid_bound||0;if(!el||!data.players)return;el.innerHTML=(data.players||[]).map(p=>`<div class="promo-row" style="flex-wrap:wrap"><span style="font-weight:800">${p.username}</span><span style="color:var(--muted);font-size:12px">${p.uid}</span><span style="font-size:12px;color:${p.subscription_active?'#34d399':'var(--muted)'}">${p.subscription}</span><span style="font-size:11px;color:var(--muted)">${p.email}</span></div>`).join('');}
-function renderBanList(data){const el=document.getElementById('ipBanList');if(!el||!data.bans)return;el.innerHTML=(data.bans||[]).map(b=>`<div class="promo-row"><span>${b.ip}</span><span style="color:var(--muted);font-size:12px">${b.reason||'No reason'}</span><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="unbanIp(${b.id})">Unban</button></div>`).join('');}
-function renderFpList(fps){const el=document.getElementById('fpList');if(!el)return;el.innerHTML=fps.map(f=>`<div class="promo-row"><span style="font-family:monospace;font-size:12px">${f.fp_short}</span><span style="color:var(--muted);font-size:11px">${f.event}</span><span style="color:var(--muted);font-size:11px">${f.ip}</span></div>`).join('');}
-async function generateKeys(){const dur=document.getElementById('key-duration').value;const amt=parseInt(document.getElementById('key-amount').value)||1;const max=parseInt(document.getElementById('key-max-uses').value)||1;const r=await fetch('/api/admin/keys/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({duration:dur,amount:amt,max_uses:max})});const d=await r.json();const ta=document.getElementById('generated-keys');const msg=document.getElementById('key-generator-message');if(d.ok&&ta){ta.value=(d.keys||[]).join('\n');if(msg){msg.textContent=`Ð¡Ð¾Ð·Ð´Ð°Ð½Ð¾: ${d.keys.length}`;msg.style.color='#34d399';}loadAdminData();}else if(msg){msg.textContent=d.message||'ÐžÑˆÐ¸Ð±ÐºÐ°';msg.style.color='#ef4444';}}
-function copyKeys(){const ta=document.getElementById('generated-keys');if(ta&&ta.value)navigator.clipboard.writeText(ta.value).then(()=>alert('Ð¡ÐºÐ¾Ð¿Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¾!'));}
-async function disableKey(id){await fetch(`/api/admin/keys/${id}/disable`,{method:'POST'});loadAdminData();}
-async function resetHwid(id){await fetch(`/api/admin/keys/${id}/reset-hwid`,{method:'POST'});loadAdminData();}
-async function deletePromo(code){await fetch(`/api/admin/promos/${code}`,{method:'DELETE'});loadAdminData();}
-async function deleteProduct(id){await fetch(`/api/admin/products/${id}`,{method:'DELETE'});loadAdminData();}
-async function addProduct(e){e.preventDefault();const title=document.getElementById('newTitle').value.trim();const price=parseFloat(document.getElementById('newPrice').value);if(!title||!price)return;const r=await fetch('/api/admin/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,price})});const d=await r.json();if(d.ok){document.getElementById('newTitle').value='';document.getElementById('newPrice').value='';loadAdminData();loadProducts();}else alert(d.message||'ÐžÑˆÐ¸Ð±ÐºÐ°');}
-async function addPromo(e){e.preventDefault();const code=document.getElementById('newPromo').value.trim();const disc=parseInt(document.getElementById('newDiscount').value)||0;const maxU=parseInt(document.getElementById('newPromoMax').value)||null;const owner=document.getElementById('newPromoOwner').value.trim();const r=await fetch('/api/admin/promos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,discount:disc,max_uses:maxU||null,created_by:owner})});const d=await r.json();if(d.ok){['newPromo','newDiscount','newPromoMax','newPromoOwner'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});loadAdminData();}else alert(d.message||'ÐžÑˆÐ¸Ð±ÐºÐ°');}
-async function addIpBan(e){e.preventDefault();const ip=document.getElementById('banIp').value.trim();const reason=document.getElementById('banReason').value.trim();const days=parseInt(document.getElementById('banDays').value)||0;const r=await fetch('/api/admin/ip-bans',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip,reason,days})});const d=await r.json();if(d.ok){loadAdminData();}else alert(d.message||'ÐžÑˆÐ¸Ð±ÐºÐ°');}
-async function unbanIp(id){await fetch(`/api/admin/ip-bans/${id}/unban`,{method:'POST'});loadAdminData();}
-window.addEventListener('DOMContentLoaded',()=>{loadProducts();loadCabinetUser();initAdmin();});
-document.getElementById('playerModal').addEventListener('click',function(e){if(e.target===this)closePlayerModal();});
+async function initAdmin(){const r=await fetch('/api/player/me').catch(()=>null);if(!r)return;const d=await r.json().catch(()=>({}));if(d.ok&&d.player&&d.player.role==='Admin'){const ap=document.getElementById('adminPanel');if(ap)ap.classList.add('on');loadAdmin();}}
+async function loadAdmin(){try{const [kR,pR,pdR,plR,bR,fR]=await Promise.all([fetch('/api/admin/keys'),fetch('/api/admin/promos'),fetch('/api/products'),fetch('/api/admin/players'),fetch('/api/admin/ip-bans'),fetch('/api/admin/fingerprints')]);const k=await kR.json().catch(()=>({}));const p=await pR.json().catch(()=>({}));const pd=await pdR.json().catch(()=>[]);const pl=await plR.json().catch(()=>({}));const b=await bR.json().catch(()=>({}));const f=await fR.json().catch(()=>({}));rkl(k.keys||[]);rpl(p.promos||[]);rpd(pd);rplayer(pl);rban(b);rfp(f.fingerprints||[]);if(b.your_ip){const e=document.getElementById('yourIp');if(e)e.textContent=b.your_ip;}}catch(e){}}
+function rkl(keys){const e=document.getElementById('keyList');if(!e)return;e.innerHTML=keys.map(k=>`<div class="pr"><span style="font-family:monospace;font-size:13px">${k.key}</span><span style="color:var(--muted);font-size:12px">${k.duration}·${k.uses}/${k.max_uses}</span><small style="color:${k.active?'#34d399':'#ef4444'}">${k.active?'Active':'Disabled'}</small>${k.active?`<button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="disKey(${k.id})">Disable</button>`:''}${k.bound?`<button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="resHwid(${k.id})">Reset HWID</button>`:''}</div>`).join('')||'<p style="color:var(--muted);padding:12px">Нет ключей</p>';}
+function rpl(promos){const e=document.getElementById('promoList');if(!e)return;e.innerHTML=promos.map(p=>`<div class="pr"><span>${p.code}</span><small>-${p.discount}%·${p.uses}/${p.max_uses||'∞'}</small><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="delPromo('${p.code}')">✕</button></div>`).join('');}
+function rpd(pds){const e=document.getElementById('productList');if(!e)return;e.innerHTML=pds.map(p=>`<div class="pr"><span>${p.title}</span><small>${p.price}₽</small><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="delProd(${p.id})">✕</button></div>`).join('');}
+function rplayer(data){const e=document.getElementById('playerList');const st=id=>document.getElementById(id);if(data.stats){if(st('statTotal'))st('statTotal').textContent=data.stats.total_players||0;if(st('statActive'))st('statActive').textContent=data.stats.active_subscriptions||0;if(st('statHwid'))st('statHwid').textContent=data.stats.hwid_bound||0;}if(e&&data.players)e.innerHTML=(data.players||[]).map(p=>`<div class="pr" style="flex-wrap:wrap"><span style="font-weight:800">${p.username}</span><span style="color:var(--muted);font-size:12px">${p.uid}</span><span style="font-size:12px;color:${p.subscription_active?'#34d399':'var(--muted)'}">${p.subscription}</span><span style="font-size:11px;color:var(--muted)">${p.email}</span></div>`).join('');}
+function rban(data){const e=document.getElementById('banList');if(!e||!data.bans)return;e.innerHTML=(data.bans||[]).map(b=>`<div class="pr"><span>${b.ip}</span><span style="color:var(--muted);font-size:12px">${b.reason||'No reason'}</span><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="unban(${b.id})">Unban</button></div>`).join('');}
+function rfp(fps){const e=document.getElementById('fpList');if(!e)return;e.innerHTML=fps.map(f=>`<div class="pr"><span style="font-family:monospace;font-size:12px">${f.fp_short}</span><span style="color:var(--muted);font-size:11px">${f.event}</span><span style="color:var(--muted);font-size:11px">${f.ip}</span></div>`).join('');}
+async function genKeys(){const dur=document.getElementById('key-duration').value;const amt=parseInt(document.getElementById('key-amount').value)||1;const mx=parseInt(document.getElementById('key-max-uses').value)||1;const r=await fetch('/api/admin/keys/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({duration:dur,amount:amt,max_uses:mx})});const d=await r.json();const ta=document.getElementById('gen-keys');const m=document.getElementById('kg-msg');if(d.ok&&ta){ta.value=(d.keys||[]).join('\n');if(m){m.textContent=`Создано: ${d.keys.length}`;m.style.color='#34d399';}loadAdmin();}else if(m){m.textContent=d.message||'Ошибка';m.style.color='#ef4444';}}
+function copyKeys(){const t=document.getElementById('gen-keys');if(t&&t.value)navigator.clipboard.writeText(t.value).then(()=>alert('Скопировано!'));}
+async function disKey(id){await fetch(`/api/admin/keys/${id}/disable`,{method:'POST'});loadAdmin();}
+async function resHwid(id){await fetch(`/api/admin/keys/${id}/reset-hwid`,{method:'POST'});loadAdmin();}
+async function delPromo(c){await fetch(`/api/admin/promos/${c}`,{method:'DELETE'});loadAdmin();}
+async function delProd(id){await fetch(`/api/admin/products/${id}`,{method:'DELETE'});loadAdmin();}
+async function addProd(e){e.preventDefault();const t=document.getElementById('newTitle').value.trim();const p=parseFloat(document.getElementById('newPrice').value);if(!t||!p)return;const r=await fetch('/api/admin/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t,price:p})});const d=await r.json();if(d.ok){document.getElementById('newTitle').value='';document.getElementById('newPrice').value='';loadAdmin();loadProds();}else alert(d.message||'Ошибка');}
+async function addPromoAdmin(e){e.preventDefault();const c=document.getElementById('newPromo').value.trim();const dc=parseInt(document.getElementById('newDiscount').value)||0;const mx=parseInt(document.getElementById('newPromoMax').value)||null;const ow=document.getElementById('newPromoOwner').value.trim();const r=await fetch('/api/admin/promos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:c,discount:dc,max_uses:mx||null,created_by:ow})});const d=await r.json();if(d.ok){['newPromo','newDiscount','newPromoMax','newPromoOwner'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});loadAdmin();}else alert(d.message||'Ошибка');}
+async function addBan(e){e.preventDefault();const ip=document.getElementById('banIp').value.trim();const re=document.getElementById('banReason').value.trim();const dy=parseInt(document.getElementById('banDays').value)||0;const r=await fetch('/api/admin/ip-bans',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip,reason:re,days:dy})});const d=await r.json();if(d.ok)loadAdmin();else alert(d.message||'Ошибка');}
+async function unban(id){await fetch(`/api/admin/ip-bans/${id}/unban`,{method:'POST'});loadAdmin();}
+window.addEventListener('DOMContentLoaded',()=>{loadProds();loadUser();initAdmin();});
+document.getElementById('pmod').addEventListener('click',function(e){if(e.target===this)closeMod();});
 </script>
 </body>
 </html>
