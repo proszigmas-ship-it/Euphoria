@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кабинет — EUPHORIA</title>
+<link rel="icon" type="image/png" href="/static/images/logo.png">
+<style>
+:root{
+  --bg:#070912; --panel:#0c0f1c; --panel2:#10142450; --card:#111528; --card-hover:#151a30;
+  --primary:#7c6cf0; --primary2:#5b4bd6; --teal:#28c2b0; --teal2:#1fa494;
+  --text:#f4f5fb; --muted:#9398ad; --line:rgba(255,255,255,.08);
+  --success:#34d399; --danger:#f87171; --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 15% -10%,rgba(124,108,240,.18),transparent 40%),
+    radial-gradient(circle at 100% 20%,rgba(40,194,176,.08),transparent 35%),
+    var(--bg);
+}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit}
+.container{width:min(1180px,94%);margin:0 auto}
+
+/* ── Top bar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;height:70px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(7,9,18,.85);backdrop-filter:blur(14px);z-index:40}
+.brand{display:flex;align-items:center;gap:9px;font-weight:900;letter-spacing:.5px;font-size:19px}
+@keyframes euLogoPulse{0%,100%{box-shadow:0 0 0 1px rgba(124,108,240,.4),0 0 16px 1px rgba(124,108,240,.35),0 6px 18px rgba(124,108,240,.3)}50%{box-shadow:0 0 0 1px rgba(124,108,240,.55),0 0 24px 4px rgba(124,108,240,.5),0 8px 22px rgba(124,108,240,.4)}}
+.brand{transition:.2s transform}.brand:hover{transform:translateY(-1px)}
+.brand img{width:30px;height:30px;object-fit:cover;border-radius:9px;box-shadow:0 0 0 1px rgba(124,108,240,.4),0 0 14px 1px rgba(124,108,240,.3);transition:.2s transform,.2s box-shadow}
+.brand:hover img{transform:scale(1.06)}
+.top-user{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px}
+.top-user button{background:transparent;border:1px solid var(--line);color:var(--muted);padding:8px 14px;border-radius:10px;cursor:pointer}
+.top-user button:hover{color:#fff;border-color:rgba(255,255,255,.2)}
+
+.top-left{display:flex;align-items:center;gap:28px}
+.top-nav{display:flex;gap:18px;font-size:13px;color:var(--muted)}
+.top-nav a:hover{color:#fff}
+.lang-switch{display:flex;gap:4px;margin-right:6px}
+.lang-switch .lang{background:transparent;border:0;color:var(--muted);padding:4px 7px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700}
+.lang-switch .lang.active,.lang-switch .lang:hover{color:#fff;background:#161c34}
+.logout-btn{background:linear-gradient(135deg,#ef4444,#dc2626)!important;border:0!important;color:#fff!important;font-weight:700}
+.page-head{margin-bottom:22px}
+.page-head h1{font-size:24px;font-weight:800}
+.page-head .crumb{color:var(--muted);font-size:13px;margin-top:4px}
+.acc-bottom{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-top:16px}
+.chat-box{min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);gap:8px}
+.chat-box .bell{font-size:28px;opacity:.5}
+.activity-grid{display:grid;gap:10px}
+.activity-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:#0a0d19;border:1px solid var(--line)}
+.activity-card img,.activity-card .act-thumb{width:48px;height:48px;border-radius:10px;object-fit:cover;background:linear-gradient(135deg,#312e81,#1e1b4b);display:grid;place-items:center;font-weight:900;font-size:11px;color:#c7d2fe}
+.activity-card .meta{flex:1}
+.activity-card .meta strong{display:block;font-size:14px}
+.activity-card .meta span{color:var(--muted);font-size:12px}
+@media(max-width:900px){.acc-bottom{grid-template-columns:1fr}.top-nav{display:none}}
+
+
+/* ── Layout ── */
+.layout{display:grid;grid-template-columns:250px 1fr;gap:20px;padding:28px 0 60px}
+.sidebar{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;height:max-content;position:sticky;top:90px}
+.side-btn{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:transparent;border:0;color:#c7cbe0;padding:11px 12px;border-radius:10px;cursor:pointer;font-size:14px;margin-bottom:3px}
+.side-btn:hover{background:#141930}
+.side-btn.active{background:linear-gradient(135deg,rgba(124,108,240,.22),rgba(124,108,240,.06));color:#fff;box-shadow:inset 0 0 0 1px rgba(124,108,240,.35)}
+.side-btn .ico{width:18px;text-align:center;opacity:.85}
+
+.panel{display:none}
+.panel.active{display:block}
+
+h1.page-title{font-size:26px;margin-bottom:4px}
+.page-sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+
+/* ── Account panel ── */
+.acc-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.acc-id{display:flex;align-items:center;gap:14px}
+.avatar{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:22px;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff}
+.acc-id strong{font-size:19px;display:block}
+.acc-id span{color:var(--muted);font-size:13px}
+.btn{border:0;border-radius:11px;padding:12px 18px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:800;cursor:pointer;font-size:14px;box-shadow:0 8px 22px rgba(91,75,214,.28);transition:.15s transform}
+.btn:hover{transform:translateY(-1px)}
+.btn.teal{background:linear-gradient(135deg,var(--teal),var(--teal2));box-shadow:0 8px 22px rgba(40,194,176,.25)}
+.btn.ghost{background:transparent;border:1px solid var(--line);box-shadow:none;color:#e5e7f0}
+.btn.small{padding:9px 14px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+.card + .card{margin-top:16px}
+.card-kicker{color:#a99cf5;font-size:11px;letter-spacing:1.5px;font-weight:800;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+
+.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 40px}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.detail-row:last-child{border-bottom:0}
+.detail-row .k{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:7px}
+.detail-row .v{font-weight:700;font-size:14px}
+
+.tg-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.tg-row p{color:var(--muted);font-size:13px}
+
+/* ── Subscription panel ── */
+.sub-top{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:26px}
+.status-box{display:flex;align-items:center;justify-content:space-between;gap:14px;background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:16px 18px;cursor:default}
+.status-box .label{font-weight:800}
+.status-box .ver{color:var(--muted);font-size:12px;margin-left:6px}
+.status-box .arrow{color:var(--muted);font-size:18px}
+.status-note{color:var(--muted);font-size:12.5px;margin-top:10px}
+.key-form{display:flex;gap:9px}
+.key-form input{flex:1;background:#0a0d19;border:1px solid var(--line);color:#fff;border-radius:10px;padding:12px 14px;outline:none;letter-spacing:1px}
+.key-form input:focus{border-color:rgba(124,108,240,.5)}
+
+.section-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:800;margin:6px 0 14px;display:flex;align-items:center;gap:8px}
+
+.buy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.buy-card{background:linear-gradient(180deg,#141a30,#0c0f1e);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px;transition:.15s border-color,.15s transform}
+.buy-card:hover{border-color:rgba(124,108,240,.4);transform:translateY(-2px)}
+.buy-card .tag{font-size:11px;color:#a99cf5;text-transform:uppercase;letter-spacing:1px;font-weight:800}
+.buy-card .mark{width:42px;height:42px;border-radius:11px;overflow:hidden;box-shadow:0 0 0 1px rgba(124,108,240,.35),0 0 14px 1px rgba(124,108,240,.25),0 4px 12px rgba(124,108,240,.2);margin-bottom:2px;transition:.2s transform,.2s box-shadow}
+.buy-card:hover .mark{transform:scale(1.06);box-shadow:0 0 0 1px rgba(124,108,240,.5),0 0 20px 3px rgba(124,108,240,.4),0 6px 16px rgba(124,108,240,.3)}
+.buy-card .mark img{width:100%;height:100%;object-fit:cover}
+.buy-card h4{font-size:17px}
+.buy-card .price{font-size:22px;font-weight:900;margin-top:2px}
+.buy-card .popular-pill{position:absolute;transform:translate(120px,-14px);font-size:10px;background:rgba(124,108,240,.18);color:#c9c1ff;border:1px solid rgba(124,108,240,.35);padding:4px 8px;border-radius:999px}
+
+.placeholder-panel{padding:60px 20px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--radius)}
+.placeholder-panel h3{color:#e5e7f0;margin-bottom:8px}
+
+/* ── Auth gate ── */
+.gate{min-height:calc(100vh - 70px);display:grid;place-items:center;padding:30px}
+.gate-card{width:min(400px,100%);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px}
+.gate-card h2{margin-bottom:4px}
+.gate-card p.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.gate-mode{display:flex;gap:8px;margin-bottom:16px}
+.gate-mode button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.gate-mode button.active{background:#161c34;color:#fff;border-color:rgba(124,108,240,.5)}
+.gate-card form{display:grid;gap:10px}
+.gate-card input{background:#0a0d19;border:1px solid var(--line);color:#fff;border-radius:10px;padding:12px 14px;outline:none}
+.gate-msg{font-size:13px;min-height:18px;color:var(--danger)}
+
+/* ── Payment modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,5,10,.72);backdrop-filter:blur(6px);z-index:200;place-items:center;padding:18px}
+.modal-overlay.active{display:grid}
+.pay-modal{width:min(760px,100%);background:#0d101d;border:1px solid var(--line);border-radius:20px;overflow:hidden;display:grid;grid-template-columns:280px 1fr}
+.pay-visual{background:linear-gradient(200deg,#1a2036,#0b0e19 65%);padding:26px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px;position:relative;overflow:hidden}
+.pay-visual::before{content:"";position:absolute;top:-40px;left:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(124,108,240,.28),transparent 70%);pointer-events:none;z-index:0}
+.pay-visual .glyph{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:grid;place-items:center;font-weight:900;font-size:22px;margin-bottom:auto;overflow:hidden;animation:euLogoPulse 3s ease-in-out infinite;position:relative;z-index:1}
+.pay-visual .glyph img{width:100%;height:100%;object-fit:cover}
+.pay-visual h3{font-size:20px}
+.pay-visual p{color:var(--muted);font-size:13px;line-height:1.5}
+.pay-body{padding:24px 26px;max-height:82vh;overflow-y:auto}
+.pay-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.pay-order{color:#a99cf5;font-size:12px;font-weight:800;letter-spacing:1px}
+.pay-close{background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
+.pay-price{font-size:30px;font-weight:900;margin:2px 0 18px}
+.pay-price span{font-size:14px;color:var(--muted);font-weight:600}
+.pay-section-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:800;margin:16px 0 8px}
+.pay-methods{display:flex;flex-direction:column;gap:8px}
+.pay-method-group{display:flex;flex-direction:column;gap:6px}
+.pay-method-group .grp-label{font-size:11px;color:var(--muted)}
+.pay-method-row{display:flex;gap:8px}
+.pm-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;border:1px solid var(--line);background:#11162a;color:#c7cbe0;cursor:pointer;font-size:13px;font-weight:700}
+.pm-btn.active{border-color:rgba(124,108,240,.6);background:rgba(124,108,240,.14);color:#fff}
+.pay-periods{display:flex;gap:8px;flex-wrap:wrap}
+.period-btn{flex:1;min-width:110px;padding:11px 10px;border-radius:10px;border:1px solid var(--line);background:#11162a;color:#c7cbe0;cursor:pointer;font-size:12.5px;font-weight:700;text-align:center}
+.period-btn.active{border-color:rgba(124,108,240,.65);background:rgba(124,108,240,.16);color:#fff}
+.promo-row{display:flex;gap:8px}
+.promo-row input{flex:1;background:#0a0d19;border:1px solid var(--line);color:#fff;border-radius:10px;padding:11px 13px;outline:none}
+.promo-row button{white-space:nowrap}
+.agree-row{display:flex;gap:9px;align-items:flex-start;margin:18px 0 16px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.agree-row a{color:#a99cf5}
+.pay-msg{font-size:13px;min-height:18px;margin-top:4px}
+.pay-msg.ok{color:var(--success)}
+.pay-msg.err{color:var(--danger)}
+.full-btn{width:100%;margin-top:8px}
+
+@media(max-width:820px){.layout{grid-template-columns:1fr}.sidebar{position:static;display:flex;overflow-x:auto;gap:6px}.side-btn{white-space:nowrap;width:auto}.sub-top{grid-template-columns:1fr}.pay-modal{grid-template-columns:1fr}.pay-visual{display:none}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="top-left">
+      <a class="brand" href="/"><img src="/static/images/logo.png" alt="EUPHORIA"> euphoria</a>
+      <nav class="top-nav">
+        <a href="/#pricing">Тарифы</a>
+        <a href="/#faq">Документация</a>
+        <a href="#" onclick="alert('Поддержка: напишите в Discord / Telegram');return false">Поддержка</a>
+      </nav>
+    </div>
+    <div class="top-user">
+      <div class="lang-switch">
+        <button class="lang active" data-lang="ru">RU</button>
+        <button class="lang" data-lang="en">EN</button>
+        <button class="lang" data-lang="ka">KA</button>
+      </div>
+      <span id="topWho">—</span>
+      <button id="logoutBtn" class="logout-btn" onclick="logout()">Выйти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Auth gate (shown when not logged in) ── -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <h2 id="gateTitle">Вход в кабинет</h2>
+    <p class="sub">Войдите или создайте аккаунт, чтобы управлять подпиской.</p>
+    <div class="gate-mode">
+      <button class="active" id="modeLoginBtn" onclick="setGateMode('login')">Вход</button>
+      <button id="modeRegisterBtn" onclick="setGateMode('register')">Регистрация</button>
+    </div>
+    <form id="loginForm" onsubmit="doLogin(event)">
+      <input id="loginUser" placeholder="Логин или email" required>
+      <input id="loginPass" type="password" placeholder="Пароль" required>
+      <button class="btn full-btn">Войти</button>
+    </form>
+    <form id="registerForm" style="display:none" onsubmit="doRegister(event)">
+      <input id="regUser" placeholder="Логин" required minlength="3">
+      <input id="regEmail" type="email" placeholder="Email" required>
+      <input id="regPass" type="password" placeholder="Пароль" required minlength="6">
+      <button class="btn full-btn">Создать аккаунт</button>
+    </form>
+    <div class="gate-msg" id="gateMsg"></div>
+  </div>
+</div>
+
+<!-- ── Cabinet (shown when logged in) ── -->
+<div class="container" id="cabinetRoot" style="display:none">
+  <div class="layout">
+    <aside class="sidebar">
+      <button class="side-btn active" data-panel="account"><span class="ico">👤</span>Аккаунт</button>
+      <button class="side-btn" data-panel="subscription"><span class="ico">⚡</span>Подписка</button>
+      <button class="side-btn" data-panel="cosmetics"><span class="ico">🎨</span>Косметика</button>
+      <button class="side-btn" data-panel="resourcepacks"><span class="ico">📦</span>Ресурс-паки</button>
+      <button class="side-btn" data-panel="community"><span class="ico">👥</span>Сообщество</button>
+      <button class="side-btn" data-panel="tools"><span class="ico">🛠</span>Инструменты</button>
+      <button class="side-btn" data-panel="docs"><span class="ico">📘</span>Документация</button>
+    </aside>
+
+    <main>
+      <!-- Account -->
+      <section class="panel active" id="panel-account">
+        <div class="page-head">
+          <h1>Аккаунт</h1>
+          <div class="crumb">Ваш профиль, активность и данные аккаунта</div>
+        </div>
+
+        <div class="acc-head">
+          <div class="acc-id">
+            <div class="avatar" id="avatarLetter">?</div>
+            <div>
+              <strong id="accUsername">—</strong>
+              <span id="accEmail">—</span>
+            </div>
+          </div>
+          <button class="btn small teal" onclick="downloadClient()">⬇ Скачать</button>
+        </div>
+
+        <div class="card">
+          <div class="card-kicker"># Детали аккаунта</div>
+          <div class="details-grid">
+            <div class="detail-row"><span class="k"># UID</span><span class="v" id="dUid">—</span></div>
+            <div class="detail-row"><span class="k">◷ Роль</span><span class="v" id="dRole">—</span></div>
+            <div class="detail-row"><span class="k">♙ Логин</span><span class="v" id="dLogin">—</span></div>
+            <div class="detail-row"><span class="k">✉ Почта</span><span class="v" id="dEmail">—</span></div>
+            <div class="detail-row"><span class="k">📅 Дата регистрации</span><span class="v" id="dCreated">—</span></div>
+            <div class="detail-row"><span class="k">⚙ HWID</span><span class="v" id="dHwid">—</span></div>
+          </div>
+          <div class="tg-row">
+            <p id="tgStatus">Telegram не привязан. Привяжите его, если хотите получать уведомления от модулей.</p>
+            <button class="btn ghost small" onclick="linkTelegram()">✈ Привязать Telegram</button>
+          </div>
+        </div>
+
+        <div class="acc-bottom">
+          <div class="card">
+            <div class="card-kicker">○ Общий чат</div>
+            <div class="chat-box">
+              <div class="bell">🔔</div>
+              <strong style="color:#e5e7f0">Здесь пока тихо</strong>
+              <span>Напиши первым — и положь начало разговору</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-kicker">↗ Активность</div>
+            <div class="activity-grid">
+              <div class="activity-card">
+                <div class="act-thumb" style="background:linear-gradient(135deg,#f97316,#ea580c)">FT</div>
+                <div class="meta"><strong>FunTime</strong><span>0с наиграно</span></div>
+              </div>
+              <div class="activity-card">
+                <div class="act-thumb" style="background:linear-gradient(135deg,#22c55e,#16a34a)">HW</div>
+                <div class="meta"><strong>HolyWorld</strong><span>0с наиграно</span></div>
+              </div>
+              <div class="activity-card">
+                <div class="act-thumb" style="background:linear-gradient(135deg,#a855f7,#7c3aed)">SP</div>
+                <div class="meta"><strong>SpookyTime</strong><span>0с наиграно</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Subscription -->
+      <section class="panel" id="panel-subscription">
+        <div class="page-head">
+          <h1>Подписка</h1>
+          <div class="crumb">Управляйте подпиской и продлевайте доступ</div>
+        </div>
+
+        <div class="sub-top">
+          <div class="card" style="padding:18px">
+            <div class="card-kicker">⚡ Статус подписки</div>
+            <div class="status-box">
+              <div><span class="label" id="statusLabel">Неактивно</span><span class="ver" id="statusVer">—</span></div>
+              <span class="arrow">›</span>
+            </div>
+            <p class="status-note" id="statusNote">У вас нет активных подписок, приобрести подписку можно ниже</p>
+          </div>
+          <div class="card" style="padding:18px">
+            <div class="card-kicker">🔑 Активировать ключ</div>
+            <form class="key-form" onsubmit="activateKey(event)">
+              <input id="keyInput" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off">
+              <button class="btn small" type="submit">Активировать</button>
+            </form>
+            <p class="status-note" id="keyMsg"></p>
+          </div>
+        </div>
+
+        <div class="section-label">🛒 Покупка</div>
+        <div class="buy-grid" id="buyGrid"><p class="page-sub">Загрузка тарифов…</p></div>
+      </section>
+
+      <!-- Simple stub panels -->
+      <section class="panel" id="panel-cosmetics"><div class="placeholder-panel"><h3>Косметика</h3><p>Скины и оформление клиента скоро появятся здесь.</p></div></section>
+      <section class="panel" id="panel-resourcepacks"><div class="placeholder-panel"><h3>Ресурс-паки</h3><p>Раздел находится в разработке.</p></div></section>
+      <section class="panel" id="panel-community"><div class="placeholder-panel"><h3>Сообщество</h3><p>Discord и форум появятся здесь.</p></div></section>
+      <section class="panel" id="panel-tools"><div class="placeholder-panel"><h3>Инструменты</h3><p>Дополнительные утилиты скоро появятся здесь.</p></div></section>
+      <section class="panel" id="panel-docs"><div class="placeholder-panel"><h3>Документация</h3><p>Документация в процессе подготовки.</p></div></section>
+    </main>
+  </div>
+</div>
+
+<!-- ── Payment modal ── -->
+<div class="modal-overlay" id="payOverlay">
+  <div class="pay-modal">
+    <div class="pay-visual">
+      <div class="glyph"><img src="/static/images/logo.png" alt="EUPHORIA"></div>
+      <h3 id="payVisualTitle">EUPHORIA</h3>
+      <p>Вы получаете ранний доступ к новым модулям, обновлениям клиента и эксклюзивным функциям.</p>
+    </div>
+    <div class="pay-body">
+      <div class="pay-top">
+        <span class="pay-order" id="payOrder">ЗАКАЗ #1</span>
+        <button class="pay-close" onclick="closePayModal()">✕</button>
+      </div>
+      <div class="pay-price" id="payPrice">0 ₽ <span id="payPeriodLabel">/ 30 дней</span></div>
+
+      <div class="pay-section-label">Способ оплаты</div>
+      <div class="pay-methods">
+        <div class="pay-method-group">
+          <span class="grp-label">Россия</span>
+          <div class="pay-method-row">
+            <button class="pm-btn" data-method="mir" onclick="selectMethod('mir')">💳 МИР</button>
+            <button class="pm-btn active" data-method="sbp" onclick="selectMethod('sbp')">📲 СБП</button>
+          </div>
+        </div>
+        <div class="pay-method-group">
+          <span class="grp-label">Европа / Украина</span>
+          <div class="pay-method-row">
+            <button class="pm-btn" data-method="card" onclick="selectMethod('card')">💳 Visa / MC</button>
+            <button class="pm-btn" data-method="crypto" onclick="selectMethod('crypto')">🪙 Crypto Bot</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pay-section-label" id="periodSectionLabel">Период тарифа</div>
+      <div class="pay-periods" id="payPeriods"></div>
+
+      <div class="pay-section-label">Промокод</div>
+      <div class="promo-row">
+        <input id="promoInput" placeholder="Введите промокод">
+        <button class="btn ghost small" type="button" onclick="applyPromo()">Применить</button>
+      </div>
+
+      <label class="agree-row">
+        <input type="checkbox" id="agreeCheck" style="margin-top:3px">
+        <span>Я согласен с <a href="#" onclick="return false">условиями использования</a> и понимаю, что покупка не подлежит возврату.</span>
+      </label>
+
+      <button class="btn full-btn" id="payBtn" onclick="submitPayment()" disabled>Оплатить —</button>
+      <button class="btn teal full-btn" onclick="payViaFunPay()">Оплатить через FunPay →</button>
+      <p class="pay-msg" id="payMsg"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+let ME = null;
+let PRODUCTS = [];
+let PROMOS = {};
+let activePromo = null;
+let selectedMethod = 'sbp';
+let selectedProduct = null;
+let orderCounter = Math.floor(Math.random()*40)+1;
+
+const DURATION_SET = ['7 Days','30 Days','90 Days','Lifetime'];
+
+function fmt(n){ return Number(n).toLocaleString('ru-RU'); }
+function ruDuration(d){
+  return {'7 Days':'7 дней','30 Days':'30 дней','90 Days':'90 дней','Lifetime':'навсегда','HWID Reset':'разово'}[d] || d;
+}
+
+async function boot(){
+  try{
+    const r = await fetch('/api/player/me', {credentials:'same-origin'});
+    const d = await r.json();
+    if(r.ok && d.ok){ ME = d.player; showCabinet(); }
+    else { showGate(); }
+  }catch(e){ showGate(); }
+  loadProducts();
+}
+
+function showGate(){
+  document.getElementById('gate').style.display = 'grid';
+  document.getElementById('cabinetRoot').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+  document.getElementById('topWho').textContent = 'Гость';
+}
+
+function showCabinet(){
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('cabinetRoot').style.display = 'block';
+  document.getElementById('logoutBtn').style.display = 'inline-block';
+  document.getElementById('topWho').textContent = ME.username;
+  document.getElementById('avatarLetter').textContent = (ME.username||'?')[0].toUpperCase();
+  document.getElementById('accUsername').textContent = ME.username;
+  document.getElementById('accEmail').textContent = ME.email;
+  document.getElementById('dUid').textContent = ME.uid;
+  document.getElementById('dRole').textContent = ME.role;
+  document.getElementById('dLogin').textContent = ME.username;
+  document.getElementById('dEmail').textContent = ME.email;
+  document.getElementById('dCreated').textContent = ME.created_at ? new Date(ME.created_at).toLocaleDateString('ru-RU') : '—';
+  document.getElementById('dHwid').textContent = (ME.subscription && ME.subscription.hwid_bound) ? 'Привязан' : '—';
+
+  const statusLabel = document.getElementById('statusLabel');
+  const statusVer = document.getElementById('statusVer');
+  const statusNote = document.getElementById('statusNote');
+  if(ME.subscription){
+    statusLabel.textContent = 'Активно';
+    statusLabel.style.color = '#34d399';
+    const dur = ME.subscription.duration;
+    statusVer.textContent = dur === 'Lifetime' ? 'навсегда' : (ME.subscription.expires_at ? 'до ' + new Date(ME.subscription.expires_at).toLocaleDateString('ru-RU') : dur);
+    statusNote.textContent = 'Спасибо за поддержку проекта!';
+  } else {
+    statusLabel.textContent = 'Неактивно';
+    statusLabel.style.color = '';
+    statusVer.textContent = '—';
+    statusNote.textContent = 'У вас нет активных подписок, приобрести подписку можно ниже';
+  }
+}
+
+/* ── Auth ── */
+function setGateMode(mode){
+  document.getElementById('modeLoginBtn').classList.toggle('active', mode==='login');
+  document.getElementById('modeRegisterBtn').classList.toggle('active', mode==='register');
+  document.getElementById('loginForm').style.display = mode==='login' ? 'grid' : 'none';
+  document.getElementById('registerForm').style.display = mode==='register' ? 'grid' : 'none';
+  document.getElementById('gateMsg').textContent = '';
+}
+async function doLogin(e){
+  e.preventDefault();
+  const msg = document.getElementById('gateMsg'); msg.style.color='var(--danger)'; msg.textContent='';
+  const body = { username: document.getElementById('loginUser').value, password: document.getElementById('loginPass').value };
+  const r = await fetch('/api/player/login', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify(body)});
+  const d = await r.json();
+  if(r.ok && d.ok){ location.reload(); } else { msg.textContent = d.message || 'Ошибка входа'; }
+}
+async function doRegister(e){
+  e.preventDefault();
+  const msg = document.getElementById('gateMsg'); msg.style.color='var(--danger)'; msg.textContent='';
+  const body = { username: document.getElementById('regUser').value, email: document.getElementById('regEmail').value, password: document.getElementById('regPass').value };
+  const r = await fetch('/api/player/register', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify(body)});
+  const d = await r.json();
+  if(r.ok && d.ok){ location.reload(); } else { msg.textContent = d.message || 'Ошибка регистрации'; }
+}
+async function logout(){ await fetch('/api/player/logout', {method:'POST', credentials:'same-origin'}); location.reload(); }
+
+/* ── Sidebar ── */
+document.querySelectorAll('.side-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.side-btn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('panel-'+b.dataset.panel).classList.add('active');
+  });
+});
+
+/* ── Key activation ── */
+async function activateKey(e){
+  e.preventDefault();
+  const keyMsg = document.getElementById('keyMsg');
+  const key = document.getElementById('keyInput').value.trim();
+  if(!key){ return; }
+  keyMsg.style.color = 'var(--muted)'; keyMsg.textContent = 'Активация…';
+  const r = await fetch('/api/player/activate-key', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify({key})});
+  const d = await r.json();
+  if(r.ok && d.ok){ keyMsg.style.color = 'var(--success)'; keyMsg.textContent = d.message; setTimeout(()=>location.reload(), 900); }
+  else { keyMsg.style.color = 'var(--danger)'; keyMsg.textContent = d.message || 'Не удалось активировать ключ'; }
+}
+
+/* ── Products / buy grid ── */
+async function loadProducts(){
+  try{
+    const [pr, pm] = await Promise.all([
+      fetch('/api/products').then(r=>r.json()),
+      fetch('/api/promos').then(r=>r.json())
+    ]);
+    PRODUCTS = pr; PROMOS = pm;
+  }catch(e){ PRODUCTS = []; }
+  renderBuyGrid();
+}
+function renderBuyGrid(){
+  const grid = document.getElementById('buyGrid');
+  if(!grid) return;
+  if(!PRODUCTS.length){ grid.innerHTML = '<p class="page-sub">Тарифы скоро появятся.</p>'; return; }
+  grid.innerHTML = PRODUCTS.map(p=>`
+    <div class="buy-card">
+      <div class="mark"><img src="/static/images/logo.png" alt=""></div>
+      <span class="tag">${DURATION_SET.includes(p.title) ? 'Тариф' : 'Разовая услуга'}</span>
+      <h4>${p.title === 'HWID Reset' ? 'Сброс HWID' : 'EUPHORIA · ' + ruDuration(p.title)}</h4>
+      <div class="price">${fmt(p.price)} ₽</div>
+      <button class="btn small" onclick='openPayModal(${JSON.stringify(p.title)})'>Купить</button>
+    </div>
+  `).join('');
+}
+
+/* ── Payment modal ── */
+function openPayModal(title){
+  if(!ME){ showGate(); return; }
+  const isService = !DURATION_SET.includes(title);
+  selectedProduct = PRODUCTS.find(p=>p.title===title) || PRODUCTS[0];
+  activePromo = null;
+  document.getElementById('promoInput').value = '';
+  document.getElementById('agreeCheck').checked = false;
+  document.getElementById('payOrder').textContent = 'ЗАКАЗ #' + (orderCounter++);
+  document.getElementById('payVisualTitle').textContent = selectedProduct.title === 'HWID Reset' ? 'Сброс HWID' : 'EUPHORIA';
+  document.getElementById('payMsg').textContent = '';
+
+  const periodsWrap = document.getElementById('payPeriods');
+  const periodLabel = document.getElementById('periodSectionLabel');
+  if(isService){
+    periodsWrap.innerHTML = '';
+    periodLabel.style.display = 'none';
+  } else {
+    periodLabel.style.display = 'block';
+    const durationProducts = PRODUCTS.filter(p=>DURATION_SET.includes(p.title));
+    periodsWrap.innerHTML = durationProducts.map(p=>`
+      <button type="button" class="period-btn ${p.title===selectedProduct.title?'active':''}" data-title="${p.title}" onclick='selectPeriod(${JSON.stringify(p.title)})'>${ruDuration(p.title)} — ${fmt(p.price)} ₽</button>
+    `).join('');
+  }
+  updatePayPrice();
+  document.getElementById('payOverlay').classList.add('active');
+}
+function closePayModal(){ document.getElementById('payOverlay').classList.remove('active'); }
+function selectPeriod(title){
+  selectedProduct = PRODUCTS.find(p=>p.title===title);
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.toggle('active', b.dataset.title===title));
+  activePromo = null; document.getElementById('promoInput').value='';
+  updatePayPrice();
+}
+function selectMethod(m){
+  selectedMethod = m;
+  document.querySelectorAll('.pm-btn').forEach(b=>b.classList.toggle('active', b.dataset.method===m));
+}
+function currentPrice(){
+  if(!selectedProduct) return 0;
+  let price = selectedProduct.price;
+  if(activePromo) price = Math.round(price * (100-activePromo)/100 * 100)/100;
+  return price;
+}
+function updatePayPrice(){
+  const price = currentPrice();
+  document.getElementById('payPrice').innerHTML = fmt(price) + ' ₽ <span id="payPeriodLabel">/ ' + ruDuration(selectedProduct.title) + '</span>';
+  const btn = document.getElementById('payBtn');
+  btn.textContent = 'Оплатить ' + fmt(price) + ' ₽ →';
+  btn.disabled = !document.getElementById('agreeCheck').checked;
+}
+document.getElementById('agreeCheck').addEventListener('change', updatePayPrice);
+
+function applyPromo(){
+  const code = document.getElementById('promoInput').value.trim().toUpperCase();
+  const msg = document.getElementById('payMsg');
+  if(!code){ activePromo = null; updatePayPrice(); return; }
+  if(PROMOS[code] !== undefined){
+    activePromo = PROMOS[code];
+    msg.className = 'pay-msg ok';
+    msg.textContent = 'Промокод применён: -' + activePromo + '%';
+  } else {
+    activePromo = null;
+    msg.className = 'pay-msg err';
+    msg.textContent = 'Промокод не найден';
+  }
+  updatePayPrice();
+}
+
+async function submitPayment(){
+  const btn = document.getElementById('payBtn');
+  const msg = document.getElementById('payMsg');
+  if(!document.getElementById('agreeCheck').checked) return;
+  btn.disabled = true; btn.textContent = 'Обработка…';
+  const code = document.getElementById('promoInput').value.trim().toUpperCase();
+  try{
+    const r = await fetch('/api/player/checkout', {
+      method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin',
+      body: JSON.stringify({ product: selectedProduct.title, promo: code, method: selectedMethod })
+    });
+    const d = await r.json();
+    if(r.ok && d.ok){
+      msg.className='pay-msg ok';
+      msg.textContent = 'Оплата принята — ключ выдан и активирован на ваш аккаунт: ' + d.key;
+      setTimeout(()=>location.reload(), 1600);
+    } else {
+      msg.className='pay-msg err';
+      msg.textContent = d.message || 'Не удалось оформить заказ';
+      btn.disabled = false; updatePayPrice();
+    }
+  }catch(e){
+    msg.className='pay-msg err'; msg.textContent = 'Ошибка сети';
+    btn.disabled = false; updatePayPrice();
+  }
+}
+function payViaFunPay(){
+  window.open('https://funpay.com', '_blank');
+}
+
+/* ── Stub actions ── */
+function downloadClient(){ alert('Файл клиента появится здесь после публикации сборки.'); }
+function linkTelegram(){ alert('Привязка Telegram-бота скоро будет доступна.'); }
+
+boot();
+</script>
+</body>
+</html>

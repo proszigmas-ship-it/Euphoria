@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EUPHORIA — Minecraft Client</title>
+<meta name="description" content="EUPHORIA — современный Minecraft Client. Тарифы, функции и поддержка.">
+<link rel="icon" type="image/png" href="/static/images/logo.png">
+<style>
+:root{
+  --bg:#070812; --bg2:#0d1020; --card:#111528; --card2:#171b31;
+  --primary:#8b5cf6; --primary2:#6d28d9; --cyan:#38bdf8;
+  --text:#f8fafc; --muted:#9ca3af; --line:rgba(255,255,255,.09);
+  --success:#34d399; --danger:#ef4444; --shadow:0 20px 60px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;color:var(--text);
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 50% -10%,rgba(139,92,246,.28),transparent 35%),
+    radial-gradient(circle at 90% 35%,rgba(56,189,248,.08),transparent 28%),
+    var(--bg);
+}
+a{text-decoration:none;color:inherit}
+button,input,select{font:inherit}
+.container{width:min(1120px,92%);margin:auto}
+header{
+  position:sticky;top:0;z-index:50;
+  background:rgba(7,8,18,.78);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);
+}
+.nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:25px}
+.logo{font-weight:900;letter-spacing:0;font-size:23px;display:inline-flex;align-items:center;gap:10px}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 0 1px rgba(139,92,246,.4),0 0 18px 2px rgba(139,92,246,.35),0 6px 20px rgba(139,92,246,.3)}50%{box-shadow:0 0 0 1px rgba(139,92,246,.55),0 0 28px 6px rgba(139,92,246,.5),0 8px 26px rgba(139,92,246,.4)}}
+.logo{transition:.2s transform}
+.logo:hover{transform:translateY(-1px)}
+.logo img{height:38px;width:38px;object-fit:cover;border-radius:11px;box-shadow:0 0 0 1px rgba(139,92,246,.4),0 0 16px 1px rgba(139,92,246,.3),0 4px 14px rgba(139,92,246,.25);flex-shrink:0;transition:.2s box-shadow,.2s transform}
+.logo:hover img{transform:scale(1.06);box-shadow:0 0 0 1px rgba(139,92,246,.55),0 0 22px 3px rgba(139,92,246,.45),0 6px 18px rgba(139,92,246,.35)}
+.logo .logo-word{letter-spacing:0.12em;font-weight:900}.logo .logo-word span{color:var(--primary);letter-spacing:0.12em}
+nav{display:flex;gap:28px;color:var(--muted);font-size:14px}
+nav a:hover{color:#fff}
+.controls{display:flex;align-items:center;gap:10px}
+select,.ghost{
+  background:#0e1120;color:#fff;border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;outline:none
+}
+.btn{
+  border:0;border-radius:10px;padding:12px 18px;color:#fff;
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  font-weight:800;cursor:pointer;box-shadow:0 8px 25px rgba(109,40,217,.25);
+  transition:.2s transform,.2s box-shadow
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(109,40,217,.38)}
+.btn.ghost{background:transparent;box-shadow:none}
+.hero{padding:105px 0 75px;text-align:center}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 13px;
+  border:1px solid rgba(139,92,246,.35);border-radius:999px;
+  background:rgba(139,92,246,.08);color:#c4b5fd;font-size:13px;margin-bottom:22px
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 12px var(--success)}
+.hero h1{font-size:clamp(44px,8vw,82px);line-height:.95;letter-spacing:-3px;margin-bottom:22px}
+.gradient{background:linear-gradient(90deg,#fff,#c4b5fd,#38bdf8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{max-width:690px;margin:0 auto 30px;color:var(--muted);font-size:18px;line-height:1.7}
+.hero-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:65px}
+.stat{padding:20px;border:1px solid var(--line);background:rgba(17,21,40,.65);border-radius:16px}
+.stat b{display:block;font-size:25px}.stat span{color:var(--muted);font-size:13px}
+section{padding:70px 0}
+.section-head{text-align:center;margin-bottom:38px}
+.kicker{color:#a78bfa;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:900}
+h2{font-size:38px;margin-top:9px}
+.section-head p{color:var(--muted);margin-top:10px}
+.features{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.feature,.price-card,.faq-item{
+  background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));
+  border:1px solid var(--line);border-radius:18px
+}
+.feature{padding:24px}
+.icon{font-size:25px;margin-bottom:16px}
+.feature h3{margin-bottom:8px}.feature p{color:var(--muted);line-height:1.55;font-size:14px}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.price-card{padding:28px;position:relative;overflow:hidden}
+.price-card.popular{border-color:rgba(139,92,246,.65);box-shadow:var(--shadow)}
+.popular-tag{
+  position:absolute;right:18px;top:18px;background:rgba(139,92,246,.15);
+  color:#c4b5fd;border:1px solid rgba(139,92,246,.3);padding:6px 9px;border-radius:999px;font-size:11px;font-weight:800
+}
+.price-card h3{font-size:20px}.price{font-size:42px;font-weight:900;margin:18px 0 6px}
+.price small{font-size:13px;color:var(--muted);font-weight:500}
+.features-list{list-style:none;margin:22px 0;color:#d1d5db}
+.features-list li{padding:8px 0}.features-list li::before{content:"✓";color:var(--success);font-weight:900;margin-right:9px}
+.full{width:100%}
+.promo{margin:25px auto 0;display:flex;max-width:520px;gap:9px}
+.promo input,.admin input,.admin textarea,.admin select{
+  width:100%;padding:12px 14px;background:#0a0d19;color:#fff;
+  border:1px solid var(--line);border-radius:10px;outline:none
+}
+.faq{max-width:850px;margin:auto;display:grid;gap:10px}
+.faq-item{padding:19px 20px}.faq-item summary{cursor:pointer;font-weight:800}.faq-item p{color:var(--muted);padding-top:12px;line-height:1.6}
+.cta{
+  text-align:center;padding:55px 25px;border:1px solid var(--line);border-radius:24px;
+  background:radial-gradient(circle at 50% 0,rgba(139,92,246,.22),transparent 60%),var(--card)
+}
+footer{border-top:1px solid var(--line);padding:30px 0;color:var(--muted);font-size:13px}
+.footer-row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.admin{display:none;margin:25px auto;padding:25px;border:1px dashed var(--primary);border-radius:18px;background:#0c0f1d}
+.admin.active{display:block}.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.admin h3{margin-bottom:15px}.admin form{display:grid;gap:10px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:100;place-items:center;padding:20px}
+.modal.active{display:grid}.modal-box{width:min(390px,100%);background:#111528;border:1px solid var(--line);border-radius:18px;padding:26px}
+.modal-box form{display:grid;gap:10px;margin-top:15px}.modal-box input{padding:12px;background:#090c17;border:1px solid var(--line);border-radius:10px;color:#fff}
+.close{float:right;cursor:pointer;color:var(--muted);font-size:22px}
+@media(max-width:850px){nav{display:none}.features{grid-template-columns:1fr 1fr}.pricing-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.admin-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.features{grid-template-columns:1fr}.hero{padding-top:75px}.promo{flex-direction:column}h2{font-size:30px}}
+
+.login-page{position:fixed;inset:0;display:grid;place-items:center;background:
+ radial-gradient(circle at 50% 35%,rgba(255,255,255,.96),rgba(239,241,241,.97) 58%,rgba(229,233,233,.98));
+ color:#1b1b1b;overflow:auto;padding:35px 15px}
+.login-page:after{content:"";position:absolute;inset:auto 0 0;height:34%;
+ background:linear-gradient(180deg,transparent,rgba(255,255,255,.6)),
+ repeating-linear-gradient(120deg,rgba(130,145,145,.06) 0 2px,transparent 2px 100px);
+ pointer-events:none}
+.login-card{position:relative;z-index:2;width:min(430px,94vw);text-align:center}
+.login-close{position:absolute;right:-5px;top:-12px;border:0;background:none;color:#777;font-size:25px;cursor:pointer}
+.login-eyebrow{font-size:13px;color:#333;margin-bottom:14px}
+.login-card h2{font-size:48px;line-height:1.05;letter-spacing:-2.7px;margin:0 0 34px;font-weight:750;color:#171717}
+.login-form{text-align:left}
+.login-form label{display:block;color:#59616a;font-size:13px;margin:0 0 8px 2px}
+.login-form input{width:100%;height:41px;border:1px solid #d1d3d3;background:rgba(255,255,255,.38);border-radius:24px;padding:0 20px;color:#222;outline:none}
+.login-form input:focus{border-color:#aaa;box-shadow:0 0 0 3px rgba(0,0,0,.04)}
+.password-wrap{position:relative}
+.password-wrap input{padding-right:48px}
+.eye{position:absolute;right:14px;top:7px;border:0;background:none;color:#777;cursor:pointer}
+.forgot{text-align:right;color:#92979a;font-size:12px;margin:7px 4px 17px}
+.fake-captcha{height:64px;border:1px solid #d3d5d5;border-radius:4px;background:#fafafa;display:flex;align-items:center;gap:9px;padding:8px 10px;color:#222;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.captcha-check{width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#26934f;color:white;font-size:22px;font-weight:800}
+.fake-captcha small{margin-left:auto;text-align:right;font-size:8px;color:#555;line-height:1.15}
+.login-separator{display:flex;align-items:center;gap:10px;color:#a1a5a7;font-size:11px;margin:14px 0}
+.login-separator:before,.login-separator:after{content:"";height:1px;border-top:2px dashed #c9cccd;flex:1}
+.login-submit,.signup-btn{width:100%;height:36px;border:0;border-radius:20px;background:#e5e5e4;color:#4f5960;cursor:pointer;margin-top:0}
+.signup-btn{margin-top:9px}
+.login-submit:hover,.signup-btn:hover{background:#dcdcdc}
+.admin-box{background:#111528;border:1px solid var(--line);border-radius:16px;padding:20px}
+.admin-box h3{margin-bottom:12px}
+.promo-list{display:grid;gap:8px;margin-top:15px}
+.promo-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 13px;background:#0a0d19;border:1px solid var(--line);border-radius:10px}
+.promo-row small{color:var(--success);font-weight:800}
+
+
+.payment-box{margin-top:24px;padding:20px;border:1px solid var(--line);border-radius:18px;background:rgba(17,21,40,.72)}
+.payment-box h3{margin-bottom:12px}
+.payment-methods{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.pay-method{border:1px solid var(--line);background:#0a0d19;color:#d9dde5;border-radius:12px;padding:12px 8px;cursor:pointer;text-align:center;font-weight:800;transition:.2s}
+.pay-method:hover,.pay-method.selected{border-color:var(--primary);background:rgba(139,92,246,.12);transform:translateY(-1px)}
+.pay-method small{display:block;color:var(--muted);font-size:10px;margin-top:4px;font-weight:500}
+.checkout{display:none;margin-top:15px;padding:15px;border-radius:13px;background:#0a0d19;border:1px solid var(--line)}
+.checkout.active{display:block}
+.checkout-row{display:flex;justify-content:space-between;gap:15px;padding:7px 0;color:#cbd5e1}
+.checkout-row.total{border-top:1px solid var(--line);margin-top:5px;padding-top:12px;font-size:18px;color:#fff;font-weight:900}
+@media(max-width:800px){.payment-methods{grid-template-columns:repeat(2,1fr)}}
+
+
+.selected-plan-note{margin:12px 0;color:#c4b5fd;font-size:13px;font-weight:700}
+
+
+.account-wrap{display:none;padding:85px 0 70px}
+.account-shell{width:min(1140px,92%);margin:auto}
+.account-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.account-tab{background:#111528;border:1px solid var(--line);border-radius:18px;padding:20px;cursor:pointer;color:#e8ecf5;min-height:95px;text-align:left}
+.account-tab.active{border-color:#3b82f6;background:linear-gradient(180deg,#2f63ed,#1f57df)}
+.account-tab .tab-icon{font-size:28px;display:block;margin-bottom:7px;color:#63a2ff}
+.account-content{background:rgba(17,21,40,.88);border:1px solid #2f67e933;box-shadow:0 0 0 2px #1e4eb41f inset;border-radius:22px;padding:30px}
+.account-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.account-title{font-size:22px;font-weight:800}.account-date{font-weight:800;color:#eaf1ff}
+.account-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.account-item{display:flex;justify-content:space-between;gap:15px;border-top:1px solid #2a3350;padding:13px 0}.account-label{color:#8fb0ff}.account-value{font-weight:800;text-align:right;word-break:break-word}
+.account-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.account-card{background:#0d1426;border:1px solid #2b3b63;border-radius:14px;padding:15px}
+.player-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:110;place-items:center;padding:20px}.player-modal.active{display:grid}
+.player-box{width:min(820px,100%);background:#0d101d;border:1px solid var(--line);border-radius:20px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;position:relative}
+.player-box .close{position:absolute;top:16px;right:18px;z-index:5;cursor:pointer;color:#c7cbe0;font-size:20px;background:rgba(255,255,255,.06);width:30px;height:30px;border-radius:50%;display:grid;place-items:center}
+.player-visual{position:relative;overflow:hidden;background:
+  radial-gradient(ellipse 80% 60% at 50% 35%,rgba(139,92,246,.22),transparent 55%),
+  radial-gradient(circle at 20% 80%,rgba(91,75,214,.12),transparent 40%),
+  linear-gradient(165deg,#151a2e 0%,#0b0e19 55%,#080a14 100%);
+  padding:36px 32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:420px;text-align:center}
+.player-visual .glyph{width:88px;height:88px;border-radius:22px;background:linear-gradient(135deg,var(--primary,#8b5cf6),#5b4bd6);display:grid;place-items:center;font-weight:900;font-size:22px;color:#fff;position:relative;top:auto;left:auto;overflow:hidden;animation:logoPulse 3s ease-in-out infinite;box-shadow:0 0 0 1px rgba(139,92,246,.45),0 0 40px 8px rgba(139,92,246,.35),0 12px 28px rgba(0,0,0,.4);z-index:1}
+.player-visual .glyph img{width:100%;height:100%;object-fit:cover;border-radius:22px;display:block}
+.player-visual::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:18px 18px;opacity:.5;pointer-events:none;z-index:0}
+.player-visual::after{content:"";position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,rgba(8,10,20,.85),transparent);pointer-events:none;z-index:0}
+.player-visual h3{font-size:24px;color:#fff;position:relative;z-index:1;margin:0;font-weight:800;letter-spacing:.02em}
+.player-visual p{color:#9398ad;font-size:13.5px;line-height:1.55;position:relative;z-index:1;margin:0;max-width:240px}
+.player-form-side{padding:40px 36px}
+.player-form-side h2{font-size:26px;margin-bottom:6px}
+.player-switch-line{color:#9398ad;font-size:13.5px;margin-bottom:22px}
+.player-switch-line a{color:#a99cf5;cursor:pointer;text-decoration:none}
+.player-field-label{font-size:12.5px;color:#9398ad;margin-bottom:6px;display:block}
+.player-field-row{position:relative;margin-bottom:16px}
+.player-field-row .fld-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#6b7086;font-size:14px}
+.player-field-row input{width:100%;background:#0a0d19;border:1px solid var(--line);color:#fff;border-radius:10px;padding:12px 14px 12px 36px;outline:none}
+.player-field-row input:focus{border-color:rgba(139,92,246,.5)}
+.player-field-row .fld-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#6b7086;background:none;border:0;font-size:14px}
+.player-forgot-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.player-forgot-row a{color:#a99cf5;font-size:12.5px;text-decoration:none;cursor:pointer}
+.player-submit-btn{width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+@media(max-width:720px){.player-box{grid-template-columns:1fr}.player-visual{display:none}}
+@media(max-width:850px){.account-nav{grid-template-columns:1fr 1fr}.account-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.account-nav{grid-template-columns:1fr}.account-content{padding:20px}.account-head{align-items:flex-start;flex-direction:column}}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <a class="logo" href="#top"><img src="/static/images/logo.png" alt="EUPHORIA"><span class="logo-word">EU<span>PHORIA</span></span></a>
+    <nav>
+      <a href="#features">Возможности</a>
+      <a href="#pricing">Тарифы</a>
+      <a href="#faq">FAQ</a>
+      <a href="#support">Поддержка</a>
+    </nav>
+    <div class="controls">
+      <select id="lang" onchange="changeLanguage()" title="Язык">
+        <option value="ru">RU 🇷🇺</option>
+        <option value="en">EN 🇺🇸</option>
+         <option value="uk">UK 🇺🇦</option>
+        <option value="ka">KA 🇬🇪</option>
+      </select>
+      <button class="ghost" id="accountBtn" onclick="openPlayerLogin()">Аккаунт</button>
+      <button class="btn" id="loginBtn" onclick="toggleModal()">Войти</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="container">
+    <div class="badge"><span class="dot"></span><span id="badge">Клиент обновляется и развивается</span></div>
+    <h1><span class="gradient">EUPHORIA</span><br>CLIENT</h1>
+    <p id="heroText">Современный Minecraft Client с красивым интерфейсом, удобной системой тарифов и быстрым доступом к основным функциям.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#pricing" id="heroBtn">Выбрать тариф</a>
+      <a class="btn ghost" href="#features" id="moreBtn">Узнать больше</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>1.21+</b><span id="s1">Поддерживаемые версии</span></div>
+      <div class="stat"><b>24/7</b><span id="s2">Доступ к клиенту</span></div>
+      <div class="stat"><b>⚡</b><span id="s3">Быстрый запуск</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+<div class="container">
+  <div class="section-head"><div class="kicker">EUPHORIA</div><h2 id="featuresTitle">Всё необходимое в одном месте</h2><p id="featuresSub">Чистый дизайн без лишнего визуального шума.</p></div>
+  <div class="features">
+    <article class="feature"><div class="icon">⚡</div><h3 id="f1t">Производительность</h3><p id="f1p">Оптимизированный интерфейс и лёгкая структура сайта.</p></article>
+    <article class="feature"><div class="icon">🎨</div><h3 id="f2t">Современный дизайн</h3><p id="f2p">Тёмная тема, мягкие градиенты и аккуратные карточки.</p></article>
+    <article class="feature"><div class="icon">🛠️</div><h3 id="f3t">Управление</h3><p id="f3p">Тарифы и промокоды можно менять через админ-панель.</p></article>
+    <article class="feature"><div class="icon">🔒</div><h3 id="f4t">Простота</h3><p id="f4p">Минимум действий от выбора тарифа до покупки.</p></article>
+  </div>
+</div>
+</section>
+
+<section id="pricing">
+<div class="container">
+  <div class="section-head"><div class="kicker">STEP 1</div><h2 id="pricingTitle">Выбери свой доступ</h2><p id="pricingSub">Чем дольше срок — тем выгоднее тариф.</p></div>
+  <div style="text-align:center;color:var(--muted);font-size:12px;margin-bottom:12px">2. Выбери тариф</div>
+  <div class="pricing-grid" id="cards"></div>
+  <div class="promo">
+    <input id="promoInput" placeholder="Введите промокод...">
+    <button class="btn" onclick="applyPromo()" id="promoBtn">Применить</button>
+  </div>
+  <div id="promoStatus" role="status" aria-live="polite" style="min-height:20px;text-align:center;margin-top:8px;font-size:13px"></div>
+  <div class="payment-box">
+    <h3 id="paymentTitle">2. Способ оплаты</h3>
+    <div id="selectedPlanHint" style="color:var(--muted);font-size:13px;margin-bottom:12px">1. Промокод → 2. Тариф → 3. Оплата</div>
+    <div class="payment-methods">
+      <button class="pay-method" onclick="selectPayment('funpay',this)">💰 FunPay<small>Маркетплейс</small></button>
+      <button class="pay-method" onclick="selectPayment('yumoney',this)">🟡 ЮMoney<small>Кошелёк</small></button>
+      <button class="pay-method" onclick="selectPayment('card',this)">💳 Карта<small>Банковская карта</small></button>
+      <button class="pay-method" onclick="selectPayment('visa',this)">🔵 Visa<small>Card payment</small></button>
+      <button class="pay-method" onclick="selectPayment('mastercard',this)">🔴 Mastercard<small>Card payment</small></button>
+    </div>
+    <div class="checkout" id="checkout">
+      <div class="checkout-row"><span id="checkoutProduct">Тариф</span><b id="checkoutPrice">0 ₽</b></div>
+      <div class="checkout-row"><span id="checkoutMethod">Оплата</span><b id="checkoutMethodValue">—</b></div>
+      <div class="checkout-row total"><span id="checkoutTotalLabel">К оплате</span><span id="checkoutTotal">0 ₽</span></div>
+      <button class="btn full" style="margin-top:12px" onclick="startPayment()" id="paymentBtn">Перейти к оплате</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="faq">
+<div class="container">
+  <div class="section-head"><div class="kicker">FAQ</div><h2 id="faqTitle">Частые вопросы</h2></div>
+  <div class="faq">
+    <details class="faq-item"><summary id="q1">Какая валюта используется?</summary><p id="a1">Все цены на сайте указаны в российских рублях (₽).</p></details>
+    <details class="faq-item"><summary id="q2">Можно ли применить промокод?</summary><p id="a2">Да. Введите код в поле под тарифами. Скидка автоматически пересчитает цены.</p></details>
+    <details class="faq-item"><summary id="q3">Как изменить тарифы?</summary><p id="a3">Войдите в админ-панель и добавляйте или удаляйте тарифы и промокоды.</p></details>
+  </div>
+</div>
+</section>
+
+<section id="support">
+<div class="container">
+  <div class="cta">
+    <div class="kicker">SUPPORT</div><h2 id="ctaTitle">Остались вопросы?</h2>
+    <p id="ctaText" style="color:var(--muted);margin:12px auto 22px;max-width:600px">Свяжитесь с нами через удобный канал поддержки.</p>
+    <a class="btn" href="#" onclick="supportAlert();return false" id="supportBtn">Связаться с поддержкой</a>
+  </div>
+</div>
+</section>
+
+<section id="accountDashboard" class="account-wrap">
+<div class="account-shell">
+<div class="account-nav">
+<button class="account-tab active" onclick="showAccountTab('account')"><span class="tab-icon">♙</span>Аккаунт</button>
+<button class="account-tab" onclick="showAccountTab('settings')"><span class="tab-icon">⚙</span>Настройки</button>
+<button class="account-tab" onclick="showAccountTab('launcher')"><span class="tab-icon">▣</span>Лаунчер</button>
+<button class="account-tab" onclick="showAccountTab('register')"><span class="tab-icon">◷</span>Регистрация</button>
+</div>
+<div class="account-content" id="accountTabContent">
+<div class="account-head"><div class="account-title">👑 Подписка</div><div class="account-date" id="accountExpire">—</div></div>
+<div class="account-grid">
+<div class="account-item"><div class="account-label"># UID</div><div class="account-value" id="accountUid">—</div></div>
+<div class="account-item"><div class="account-label">♙ Логин</div><div class="account-value" id="accountUsername">—</div></div>
+<div class="account-item"><div class="account-label">🛡 Роль</div><div class="account-value" id="accountRole">User</div></div>
+<div class="account-item"><div class="account-label">✉ Email</div><div class="account-value" id="accountEmail">—</div></div>
+<div class="account-item"><div class="account-label">⚙ HWID</div><div class="account-value" id="accountHwid">Not bound</div></div>
+</div>
+<div class="account-actions">
+<button class="btn" onclick="openPlayerKeyActivate()">🔑 Activate Key</button>
+<button class="ghost" onclick="alert('HWID Reset price: 250₽')">HWID Reset · 250₽</button>
+<button class="ghost" onclick="playerLogout()">Выйти</button>
+</div>
+</div></div>
+</section>
+
+<section id="adminPanel" class="admin container">
+  <h2 style="font-size:25px" id="adminTitle">⚙ Админ-панель</h2>
+  <p style="color:var(--muted);margin:8px 0 20px" id="adminSub">Управление тарифами и промокодами.</p>
+  <div class="admin-grid">
+    <div class="admin-box" id="key-generator-box">
+      <h3 id="keyGeneratorTitle">🔑 Key Generator</h3>
+      <div class="admin-form">
+        <label style="font-size:12px;color:var(--muted)">Duration</label>
+        <select id="key-duration">
+           <option value="7 Days">7 Days</option>
+           <option value="30 Days">30 Days</option>
+           <option value="90 Days">90 Days</option>
+           <option value="Lifetime">Lifetime</option>
+        </select>
+        <label style="font-size:12px;color:var(--muted)">Amount</label>
+        <input type="number" id="key-amount" min="1" max="500" value="1" placeholder="How many keys?">
+        <label style="font-size:12px;color:var(--muted)">Max uses per key</label>
+        <input type="number" id="key-max-uses" min="1" value="1" placeholder="Max uses per key">
+        <button class="btn" id="key-generate-btn" type="button" onclick="generateKeys()">Generate Keys</button>
+        <textarea id="generated-keys" rows="8" placeholder="Generated keys..." readonly></textarea>
+        <button class="btn" id="copyKeysBtn" type="button" onclick="copyKeys()">Copy Keys</button>
+        <div id="key-generator-message"></div>
+      </div>
+    </div>
+
+    <div class="admin-box"><h3 id="addTariffTitle">Добавить тариф</h3><form onsubmit="addProduct(event)">
+      <input id="newTitle" placeholder="Название тарифа"><input id="newPrice" type="number" step="0.01" placeholder="Цена в ₽"><button class="btn">Добавить</button>
+    </form><div class="promo-list" id="productList"></div></div>
+    <div class="admin-box"><h3 id="addPromoTitle">🎟 Создать промокод</h3><form onsubmit="addPromo(event)">
+      <input id="newPromo" placeholder="Код, например EUPHORIA20">
+      <input id="newDiscount" type="number" min="1" max="100" placeholder="Скидка %, например 20">
+      <input id="newPromoMax" type="number" min="0" placeholder="Макс. использований (0 = ∞)">
+      <input id="newPromoOwner" placeholder="Владелец / Media (необязательно)">
+      <button class="btn">Создать промокод</button>
+    </form>
+    <div class="promo-list" id="promoList"></div></div>
+    <div class="admin-box" style="grid-column:1/-1"><h3 id="keyListTitle">Created Keys</h3><div id="keyList" class="key-list"></div></div>
+
+    <div class="admin-box" style="grid-column:1/-1" id="playersBox">
+      <h3>👥 Players</h3>
+      <div id="playerStats" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+        <div style="background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Total</div>
+          <div style="font-size:22px;font-weight:800" id="statTotal">0</div>
+        </div>
+        <div style="background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Active sub</div>
+          <div style="font-size:22px;font-weight:800;color:#34d399" id="statActive">0</div>
+        </div>
+        <div style="background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase">HWID bound</div>
+          <div style="font-size:22px;font-weight:800;color:#a78bfa" id="statHwid">0</div>
+        </div>
+      </div>
+      <div id="playerList" class="key-list" style="max-height:360px;overflow:auto"></div>
+    </div>
+
+    <div class="admin-box" style="grid-column:1/-1" id="ipBanBox">
+      <h3 id="ipBanTitle">🚫 IP Ban System</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px" id="ipBanSub">Your IP: <code id="yourIp">—</code></p>
+      <form onsubmit="addIpBan(event)" style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end;margin-bottom:16px">
+        <div>
+          <label style="font-size:12px;color:var(--muted)">IP Address</label>
+          <input id="banIp" placeholder="1.2.3.4" required>
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--muted)">Reason (optional)</label>
+          <input id="banReason" placeholder="Spam / abuse">
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--muted)">Days (0 = permanent)</label>
+          <input id="banDays" type="number" min="0" value="0" style="width:90px">
+        </div>
+        <button class="btn" type="submit" id="banIpBtn">Ban IP</button>
+      </form>
+      <div id="ipBanList" class="promo-list"></div>
+    </div>
+
+    <div class="admin-box" style="grid-column:1/-1" id="fpBox">
+      <h3 id="fpTitle">🧬 Browser Fingerprints</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px" id="fpSub">Recent login fingerprints (hashed). Your current: <code id="currentFp">—</code></p>
+      <div id="fpList" class="promo-list"></div>
+    </div>
+  </div>
+</section>
+
+<section id="cabinet" class="cabinet-section">
+  <div class="container">
+    <div class="cabinet-shell">
+      <aside class="cabinet-sidebar">
+        <div class="cabinet-user-mini">
+          <div class="cabinet-avatar">E</div>
+          <div>
+            <strong id="cabinetUsernameMini">Guest</strong>
+            <span id="cabinetRoleMini">User</span>
+          </div>
+        </div>
+
+        <button class="cabinet-nav active" data-cab="account">👤 Account</button>
+        <button class="cabinet-nav" data-cab="launcher">🚀 Launcher</button>
+        <button class="cabinet-nav" data-cab="settings">⚙ Settings</button>
+        <button class="cabinet-nav" id="cabinetAdminBtn" style="display:none" data-cab="admin">👑 Admin Panel</button>
+      </aside>
+
+      <main class="cabinet-content">
+        <div class="cabinet-top">
+          <div>
+            <div class="kicker">ACCOUNT CABINET</div>
+            <h2 id="cabinetHeading">Account</h2>
+          </div>
+          <button class="ghost" id="cabinetRefresh">Refresh</button>
+        </div>
+
+        <section class="cab-panel" data-panel="account">
+          <!-- Guest: login + register (one system) -->
+          <div id="cabAuthBlock" class="cab-card wide" style="display:none">
+            <div class="cab-label">Регистрация / Вход</div>
+            <h3 id="cabAuthTitle">Войдите в аккаунт</h3>
+            <p class="muted">Один аккаунт — кабинет, подписка и ключи.</p>
+            <div style="display:flex;gap:8px;margin:14px 0">
+              <button type="button" class="btn" id="cabTabLogin" onclick="cabSetAuthTab('login')">Вход</button>
+              <button type="button" class="ghost" id="cabTabRegister" onclick="cabSetAuthTab('register')">Регистрация</button>
+            </div>
+            <form id="cabLoginForm" onsubmit="cabDoLogin(event)" style="display:grid;gap:10px;max-width:360px">
+              <input class="input" id="cabLoginUser" placeholder="Логин или email" required>
+              <input class="input" id="cabLoginPass" type="password" placeholder="Пароль" required>
+              <button class="btn" type="submit">Войти</button>
+            </form>
+            <form id="cabRegisterForm" onsubmit="cabDoRegister(event)" style="display:none;grid;gap:10px;max-width:360px">
+              <input class="input" id="cabRegUser" placeholder="Логин" required minlength="3">
+              <input class="input" id="cabRegEmail" type="email" placeholder="Email" required>
+              <input class="input" id="cabRegPass" type="password" placeholder="Пароль (мин. 6)" required minlength="6">
+              <button class="btn" type="submit">Создать аккаунт</button>
+            </form>
+            <div id="cabAuthMsg" class="muted" style="margin-top:10px;color:#f87171"></div>
+          </div>
+
+          <!-- Logged in: Delta-style subscription/account card -->
+          <div id="cabAccountBlock" style="display:none">
+            <div class="cab-card wide" style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div>
+                  <div class="cab-label">👑 Подписка</div>
+                  <h3 id="cabWelcome" style="margin:4px 0 0">—</h3>
+                </div>
+                <strong id="cabSubscription" style="color:#a5b4fc">No subscription</strong>
+              </div>
+              <div class="cab-grid" style="margin-top:16px">
+                <div class="cab-card">
+                  <span class="cab-label"># UID</span>
+                  <strong id="cabUid">—</strong>
+                </div>
+                <div class="cab-card">
+                  <span class="cab-label">Логин</span>
+                  <strong id="cabUsername">—</strong>
+                </div>
+                <div class="cab-card">
+                  <span class="cab-label">Роль</span>
+                  <strong id="cabRole">—</strong>
+                </div>
+                <div class="cab-card">
+                  <span class="cab-label">Email</span>
+                  <strong id="cabEmail">—</strong>
+                </div>
+                <div class="cab-card wide">
+                  <span class="cab-label">HWID</span>
+                  <strong id="cabHwid">Not bound</strong>
+                </div>
+              </div>
+              <div class="cab-actions" style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn" type="button" onclick="document.querySelector('[data-cab=settings]').click()">🔑 Activate Key</button>
+                <button class="ghost" type="button" onclick="alert('HWID Reset — 250₽. Оплатите в разделе Settings / Подписка.')">HWID Reset · 250₽</button>
+                <button class="ghost" type="button" onclick="cabLogout()">Выйти</button>
+              </div>
+              <div style="display:none"><strong id="cabClients">0</strong></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="cab-panel" data-panel="launcher" style="display:none">
+          <div class="cab-card wide">
+            <div class="cab-label">Launcher</div>
+            <h3>Download / Launch</h3>
+            <p class="muted">Launcher download and current version can be connected here.</p>
+            <button class="btn" onclick="alert('Launcher download link goes here.')">Download launcher</button>
+          </div>
+        </section>
+
+        <section class="cab-panel" data-panel="settings" style="display:none">
+          <div class="cab-card wide">
+            <div class="cab-label">Settings</div>
+            <h3>Profile settings</h3>
+            <form id="cabSettingsForm">
+              <input class="input" id="cabSettingsEmail" type="email" placeholder="Email">
+              <button class="btn" type="submit">Save email</button>
+            </form>
+            <div id="cabSettingsMsg" class="muted" style="margin-top:8px"></div>
+            <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+            <h3 style="font-size:15px;margin-bottom:10px">Сменить пароль</h3>
+            <form id="cabPasswordForm" onsubmit="cabChangePassword(event)" style="display:grid;gap:10px;max-width:360px">
+              <input class="input" id="cabPassCurrent" type="password" placeholder="Текущий пароль" required>
+              <input class="input" id="cabPassNew" type="password" placeholder="Новый пароль (мин. 6)" required minlength="6">
+              <input class="input" id="cabPassNew2" type="password" placeholder="Повторите новый пароль" required minlength="6">
+              <button class="btn" type="submit">Сменить пароль</button>
+            </form>
+            <div id="cabPassMsg" class="muted" style="margin-top:8px"></div>
+          </div>
+
+          <div class="cab-card wide" style="margin-top:16px">
+            <div class="cab-label">Subscription</div>
+            <div class="settings-sub-top">
+              <div class="settings-status-box">
+                <span id="settingsStatusLabel" style="font-weight:800">Неактивно</span>
+                <span id="settingsStatusVer" class="muted" style="font-size:12px;margin-left:6px">—</span>
+                <p id="settingsStatusNote" class="muted" style="margin-top:8px;font-size:12.5px">У вас нет активных подписок, приобрести подписку можно ниже</p>
+              </div>
+              <form class="settings-key-form" onsubmit="cabActivateKey(event)">
+                <input class="input" id="settingsKeyInput" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off">
+                <button class="btn" type="submit">Activate Key</button>
+                <div id="settingsKeyMsg" class="muted" style="grid-column:1/-1;font-size:12.5px"></div>
+              </form>
+            </div>
+
+          </div>
+        </section>
+
+        <section class="cab-panel" data-panel="admin" style="display:none">
+          <div class="cab-card wide">
+            <div class="cab-label">Admin</div>
+            <h3>Admin Panel</h3>
+            <p class="muted">Only users with the Admin role should see this section.</p>
+            <button class="btn" onclick="document.getElementById('admin').scrollIntoView({behavior:'smooth'})">Open Admin Panel</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</section>
+
+<style>
+.cabinet-section{padding:75px 0}
+.cabinet-shell{display:grid;grid-template-columns:245px 1fr;gap:18px;background:#0c1020;border:1px solid var(--line);border-radius:24px;padding:16px}
+.cabinet-sidebar{background:#090d19;border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:7px}
+.cabinet-user-mini{display:flex;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.cabinet-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:900}
+.cabinet-user-mini strong{display:block}.cabinet-user-mini span{font-size:12px;color:var(--muted)}
+.cabinet-nav{width:100%;border:1px solid transparent;background:transparent;color:#dce2f0;text-align:left;border-radius:10px;padding:11px 12px;cursor:pointer}
+.cabinet-nav:hover,.cabinet-nav.active{background:#12182a;border-color:var(--line)}
+.cabinet-content{padding:8px 10px 10px}
+.cabinet-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.cab-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.cab-card{background:#11182a;border:1px solid var(--line);border-radius:16px;padding:18px}
+.cab-card.wide{grid-column:1/-1}
+.cab-label{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:#9aa5bf;margin-bottom:7px}
+.cab-card strong{font-size:16px;overflow-wrap:anywhere}
+.cab-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+@media(max-width:800px){.cabinet-shell{grid-template-columns:1fr}.cab-grid{grid-template-columns:1fr}.cab-card.wide{grid-column:auto}}
+
+/* Subscription/payment block inside Settings */
+.settings-sub-top{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.settings-status-box{background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.settings-key-form{background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:8px;align-content:start}
+.settings-buy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:12px}
+.settings-buy-card{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.settings-buy-card h4{font-size:15px}
+.settings-buy-card .price{font-size:19px;font-weight:900}
+.settings-buy-card .tag{font-size:10px;color:#a99cf5;text-transform:uppercase;letter-spacing:1px;font-weight:800}
+@media(max-width:700px){.settings-sub-top{grid-template-columns:1fr}}
+
+/* Payment modal (Settings → Subscription) */
+.pay-modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,5,10,.72);backdrop-filter:blur(6px);z-index:210;place-items:center;padding:18px}
+.pay-modal-overlay.active{display:grid}
+.pay-modal-box{width:min(420px,100%);background:#111528;border:1px solid var(--line);border-radius:18px;padding:24px;max-height:88vh;overflow-y:auto}
+.pay-modal-box .pay-top{display:flex;justify-content:space-between;align-items:flex-start}
+.pay-modal-box .pay-order{color:#a99cf5;font-size:12px;font-weight:800;letter-spacing:1px}
+.pay-modal-box .pay-close{background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer}
+.pay-modal-box .pay-price{font-size:28px;font-weight:900;margin:4px 0 16px}
+.pay-modal-box .pay-price span{font-size:13px;color:var(--muted);font-weight:600}
+.pay-modal-box .pay-section-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:800;margin:14px 0 8px}
+.pay-modal-box .pay-periods{display:flex;gap:8px;flex-wrap:wrap}
+.pay-modal-box .period-btn{flex:1;min-width:100px;padding:10px;border-radius:10px;border:1px solid var(--line);background:#0e1120;color:#d1d5db;cursor:pointer;font-size:12px;font-weight:700;text-align:center}
+.pay-modal-box .period-btn.active{border-color:rgba(139,92,246,.65);background:rgba(139,92,246,.16);color:#fff}
+.pay-modal-box .promo-row{display:flex;gap:8px}
+.pay-modal-box .promo-row input{flex:1}
+.pay-modal-box .agree-row{display:flex;gap:9px;align-items:flex-start;margin:16px 0;font-size:12px;color:var(--muted);line-height:1.5}
+.pay-modal-box .pay-msg{font-size:13px;min-height:18px;margin-top:6px}
+.pay-modal-box .pay-msg.ok{color:var(--success)}
+.pay-modal-box .pay-msg.err{color:var(--danger)}
+</style>
+
+<script>
+(function(){
+  const navs = document.querySelectorAll(".cabinet-nav");
+  const panels = document.querySelectorAll(".cab-panel");
+  const heading = document.getElementById("cabinetHeading");
+
+  navs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.cab;
+      navs.forEach(x => x.classList.toggle("active", x === btn));
+      panels.forEach(panel => {
+        panel.style.display = panel.dataset.panel === target ? "block" : "none";
+      });
+      heading.textContent = btn.textContent.replace(/^[^\w]+/u, "").trim();
+    });
+  });
+
+  window.cabSetAuthTab = function(tab){
+    const login = tab === 'login';
+    document.getElementById('cabLoginForm').style.display = login ? 'grid' : 'none';
+    document.getElementById('cabRegisterForm').style.display = login ? 'none' : 'grid';
+    document.getElementById('cabTabLogin').className = login ? 'btn' : 'ghost';
+    document.getElementById('cabTabRegister').className = login ? 'ghost' : 'btn';
+    document.getElementById('cabAuthTitle').textContent = login ? 'Войдите в аккаунт' : 'Создайте аккаунт';
+    document.getElementById('cabAuthMsg').textContent = '';
+  };
+
+  window.cabDoLogin = async function(e){
+    e.preventDefault();
+    const msg = document.getElementById('cabAuthMsg');
+    msg.style.color = '#f87171'; msg.textContent = '';
+    const body = {
+      username: document.getElementById('cabLoginUser').value.trim(),
+      password: document.getElementById('cabLoginPass').value
+    };
+    const r = await fetch('/api/player/login', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify(body)});
+    const d = await r.json();
+    if(r.ok && d.ok){ await window.refreshCabinet(); }
+    else { msg.textContent = d.message || 'Ошибка входа'; }
+  };
+
+  window.cabDoRegister = async function(e){
+    e.preventDefault();
+    const msg = document.getElementById('cabAuthMsg');
+    msg.style.color = '#f87171'; msg.textContent = '';
+    const body = {
+      username: document.getElementById('cabRegUser').value.trim(),
+      email: document.getElementById('cabRegEmail').value.trim(),
+      password: document.getElementById('cabRegPass').value
+    };
+    const r = await fetch('/api/player/register', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify(body)});
+    const d = await r.json();
+    if(r.ok && d.ok){ await window.refreshCabinet(); }
+    else { msg.textContent = d.message || 'Ошибка регистрации'; }
+  };
+
+  window.cabLogout = async function(){
+    await fetch('/api/player/logout', {method:'POST', credentials:'same-origin'});
+    await window.refreshCabinet();
+  };
+
+  window.refreshCabinet = async function(){
+    const authBlock = document.getElementById('cabAuthBlock');
+    const accBlock = document.getElementById('cabAccountBlock');
+    try{
+      // Prefer unified /api/player/me (session), fallback to /api/player/cabinet
+      let u = null;
+      let r = await fetch('/api/player/me', {credentials:'same-origin'});
+      let d = await r.json();
+      if(r.ok && d.ok && d.player){
+        const p = d.player;
+        const sub = p.subscription;
+        u = {
+          uid: p.uid,
+          username: p.username,
+          email: p.email,
+          role: p.role,
+          clients: p.clients || 0,
+          subscription: sub ? (sub.duration || 'Active') : 'No subscription',
+          hwid: (sub && sub.hwid_bound) ? 'Bound' : 'Not bound'
+        };
+      } else {
+        r = await fetch('/api/player/cabinet', {credentials:'same-origin'});
+        d = await r.json();
+        if(r.ok && d.ok && d.user) u = d.user;
+      }
+
+      if(!u){
+        document.getElementById('cabinetUsernameMini').textContent = 'Guest';
+        document.getElementById('cabinetRoleMini').textContent = 'User';
+        if(authBlock) authBlock.style.display = 'block';
+        if(accBlock) accBlock.style.display = 'none';
+        return;
+      }
+
+      if(authBlock) authBlock.style.display = 'none';
+      if(accBlock) accBlock.style.display = 'block';
+      document.getElementById('cabinetUsernameMini').textContent = u.username;
+      document.getElementById('cabinetRoleMini').textContent = u.role;
+      document.getElementById('cabWelcome').textContent = u.username;
+      document.getElementById('cabUid').textContent = u.uid;
+      document.getElementById('cabUsername').textContent = u.username;
+      document.getElementById('cabRole').textContent = u.role;
+      document.getElementById('cabEmail').textContent = u.email;
+      document.getElementById('cabClients').textContent = u.clients || 0;
+      document.getElementById('cabSubscription').textContent = u.subscription || 'No subscription';
+      document.getElementById('cabHwid').textContent = u.hwid || 'Not bound';
+      const emailInp = document.getElementById('cabSettingsEmail');
+      if(emailInp) emailInp.value = u.email || '';
+      const adminBtn = document.getElementById('cabinetAdminBtn');
+      if(adminBtn) adminBtn.style.display = String(u.role).toLowerCase() === 'admin' ? 'block' : 'none';
+    }catch(e){
+      if(authBlock) authBlock.style.display = 'block';
+      if(accBlock) accBlock.style.display = 'none';
+    }
+  };
+
+  const refresh = document.getElementById("cabinetRefresh");
+  if(refresh) refresh.addEventListener("click", window.refreshCabinet);
+
+  const form = document.getElementById("cabSettingsForm");
+  if(form){
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("cabSettingsEmail").value.trim();
+      const r = await fetch("/api/player/profile", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({email})
+      });
+      const d = await r.json();
+      document.getElementById("cabSettingsMsg").textContent = d.message || (d.ok ? "Saved" : "Error");
+      if(d.ok) window.refreshCabinet();
+    });
+  }
+
+  window.refreshCabinet();
+})();
+
+/* ── Subscription / payment (Settings tab) ── */
+let CAB_PRODUCTS = [], CAB_PROMOS = {}, cabActivePromo = null, cabSelectedProduct = null, cabOrderN = Math.floor(Math.random()*40)+1;
+const CAB_DURATIONS = ['7 Days','30 Days','90 Days','Lifetime'];
+function cabFmt(n){ return Number(n).toLocaleString('ru-RU'); }
+
+async function cabLoadProducts(){
+  try{
+    const [pr, pm] = await Promise.all([
+      fetch('/api/products').then(r=>r.json()),
+      fetch('/api/promos').then(r=>r.json())
+    ]);
+    CAB_PRODUCTS = pr; CAB_PROMOS = pm;
+  }catch(e){ CAB_PRODUCTS = []; }
+  cabRenderBuyGrid();
+  cabRefreshStatus();
+}
+function cabRenderBuyGrid(){
+  const grid = document.getElementById('settingsBuyGrid');
+  if(!grid) return;
+  if(!CAB_PRODUCTS.length){ grid.innerHTML = '<p class="muted">No plans yet.</p>'; return; }
+  grid.innerHTML = CAB_PRODUCTS.map(p=>`
+    <div class="settings-buy-card">
+      <span class="tag">${CAB_DURATIONS.includes(p.title) ? 'Plan' : 'One-time'}</span>
+      <h4>${p.title}</h4>
+      <div class="price">${cabFmt(p.price)} ₽</div>
+      <button class="btn" style="padding:9px" onclick='cabOpenPayModal(${JSON.stringify(p.title)})'>Buy</button>
+    </div>
+  `).join('');
+}
+async function cabRefreshStatus(){
+  try{
+    const r = await fetch('/api/player/me', {credentials:'same-origin'});
+    const d = await r.json();
+    const label = document.getElementById('settingsStatusLabel');
+    const ver = document.getElementById('settingsStatusVer');
+    const note = document.getElementById('settingsStatusNote');
+    if(!label) return;
+    if(r.ok && d.ok && d.player.subscription){
+      const s = d.player.subscription;
+      label.textContent = 'Active'; label.style.color = '#34d399';
+      ver.textContent = s.duration === 'Lifetime' ? 'lifetime' : (s.expires_at ? 'until ' + new Date(s.expires_at).toLocaleDateString() : s.duration);
+      note.textContent = 'Thanks for supporting the project!';
+    } else {
+      label.textContent = 'Inactive'; label.style.color = '';
+      ver.textContent = '—';
+      note.textContent = 'You have no active subscription — purchase one below';
+    }
+  }catch(e){}
+}
+async function cabActivateKey(e){
+  e.preventDefault();
+  const msg = document.getElementById('settingsKeyMsg');
+  const key = document.getElementById('settingsKeyInput').value.trim();
+  if(!key) return;
+  msg.textContent = 'Activating…';
+  const r = await fetch('/api/player/activate-key', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body: JSON.stringify({key})});
+  const d = await r.json();
+  msg.style.color = d.ok ? 'var(--success)' : 'var(--danger)';
+  msg.textContent = d.message || (d.ok ? 'Activated' : 'Error');
+  if(d.ok){ cabRefreshStatus(); window.refreshCabinet(); }
+}
+
+function cabOpenPayModal(title){
+  cabSelectedProduct = CAB_PRODUCTS.find(p=>p.title===title) || CAB_PRODUCTS[0];
+  cabActivePromo = null;
+  document.getElementById('cabPromoInput').value = '';
+  document.getElementById('cabAgreeCheck').checked = false;
+  document.getElementById('cabPayOrder').textContent = 'ORDER #' + (cabOrderN++);
+  document.getElementById('cabPayMsg').textContent = '';
+
+  const isService = !CAB_DURATIONS.includes(title);
+  const wrap = document.getElementById('cabPayPeriods');
+  const lbl = document.getElementById('cabPeriodLabel');
+  if(isService){
+    wrap.innerHTML = ''; lbl.style.display = 'none';
+  } else {
+    lbl.style.display = 'block';
+    const durs = CAB_PRODUCTS.filter(p=>CAB_DURATIONS.includes(p.title));
+    wrap.innerHTML = durs.map(p=>`
+      <button type="button" class="period-btn ${p.title===cabSelectedProduct.title?'active':''}" data-title="${p.title}" onclick='cabSelectPeriod(${JSON.stringify(p.title)})'>${p.title} — ${cabFmt(p.price)} ₽</button>
+    `).join('');
+  }
+  cabUpdatePayPrice();
+  document.getElementById('cabPayOverlay').classList.add('active');
+}
+function closeCabPayModal(){ document.getElementById('cabPayOverlay').classList.remove('active'); }
+function cabSelectPeriod(title){
+  cabSelectedProduct = CAB_PRODUCTS.find(p=>p.title===title);
+  document.querySelectorAll('#cabPayPeriods .period-btn').forEach(b=>b.classList.toggle('active', b.dataset.title===title));
+  cabActivePromo = null; document.getElementById('cabPromoInput').value = '';
+  cabUpdatePayPrice();
+}
+function cabCurrentPrice(){
+  if(!cabSelectedProduct) return 0;
+  let price = cabSelectedProduct.price;
+  if(cabActivePromo) price = Math.round(price * (100-cabActivePromo)/100 * 100)/100;
+  return price;
+}
+function cabUpdatePayPrice(){
+  const price = cabCurrentPrice();
+  document.getElementById('cabPayPrice').innerHTML = cabFmt(price) + ' ₽ <span id="cabPayPeriodLabel">/ ' + cabSelectedProduct.title + '</span>';
+  const btn = document.getElementById('cabPayBtn');
+  btn.textContent = 'Pay ' + cabFmt(price) + ' ₽';
+  btn.disabled = !document.getElementById('cabAgreeCheck').checked;
+}
+document.getElementById('cabAgreeCheck')?.addEventListener('change', cabUpdatePayPrice);
+function cabApplyPromo(){
+  const code = document.getElementById('cabPromoInput').value.trim().toUpperCase();
+  const msg = document.getElementById('cabPayMsg');
+  if(!code){ cabActivePromo = null; cabUpdatePayPrice(); return; }
+  if(CAB_PROMOS[code] !== undefined){
+    cabActivePromo = CAB_PROMOS[code];
+    msg.className = 'pay-msg ok'; msg.textContent = 'Promo applied: -' + cabActivePromo + '%';
+  } else {
+    cabActivePromo = null;
+    msg.className = 'pay-msg err'; msg.textContent = 'Promo code not found';
+  }
+  cabUpdatePayPrice();
+}
+async function cabSubmitPayment(){
+  const btn = document.getElementById('cabPayBtn');
+  const msg = document.getElementById('cabPayMsg');
+  if(!document.getElementById('cabAgreeCheck').checked) return;
+  btn.disabled = true; btn.textContent = 'Processing…';
+  const code = document.getElementById('cabPromoInput').value.trim().toUpperCase();
+  try{
+    const r = await fetch('/api/player/checkout', {
+      method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin',
+      body: JSON.stringify({ product: cabSelectedProduct.title, promo: code })
+    });
+    const d = await r.json();
+    if(r.ok && d.ok){
+      msg.className='pay-msg ok'; msg.textContent = 'Payment accepted — key issued and activated: ' + d.key;
+      setTimeout(()=>{ closeCabPayModal(); cabRefreshStatus(); window.refreshCabinet(); }, 1500);
+    } else {
+      msg.className='pay-msg err'; msg.textContent = d.message || 'Order failed';
+      btn.disabled = false; cabUpdatePayPrice();
+    }
+  }catch(e){
+    msg.className='pay-msg err'; msg.textContent = 'Network error';
+    btn.disabled = false; cabUpdatePayPrice();
+  }
+}
+cabLoadProducts();
+</script>
+
+</main>
+
+<footer><div class="container footer-row"><span>© 2026 EUPHORIA CLIENT</span><span id="footerText">Minecraft является товарным знаком соответствующих правообладателей.</span></div></footer>
+
+<div class="player-modal" id="playerModal">
+<div class="player-box">
+<span class="close" onclick="closePlayerLogin()">×</span>
+<div class="player-visual">
+  <div class="glyph"><img src="/static/images/logo.png" alt="EUPHORIA"></div>
+  <h3>EUPHORIA <span style="color:var(--primary)">client</span></h3>
+  <p>Контроль, скорость и точность — всё уже внутри.</p>
+</div>
+<div class="player-form-side">
+  <h2 id="playerModalTitle">Вход</h2>
+  <p class="player-switch-line" id="playerSwitchLine">Нет аккаунта? <a onclick="setPlayerMode('register')">Регистрация</a></p>
+  <form id="playerAuthForm">
+    <div id="playerUsernameWrap">
+      <span class="player-field-label" id="playerUsernameLabel">Email или логин</span>
+      <div class="player-field-row"><span class="fld-ico">👤</span><input id="playerUsername" placeholder="you@mail.ru или логин" required></div>
+    </div>
+    <div id="playerEmailWrap" style="display:none">
+      <span class="player-field-label">Email</span>
+      <div class="player-field-row"><span class="fld-ico">✉</span><input id="playerEmail" type="email" placeholder="you@mail.ru"></div>
+    </div>
+    <div class="player-forgot-row">
+      <span class="player-field-label" style="margin:0">Пароль</span>
+      <a id="playerForgotLink" onclick="alert('Восстановление пароля скоро будет доступно.')">Забыли пароль?</a>
+    </div>
+    <div class="player-field-row">
+      <span class="fld-ico">🔒</span>
+      <input id="playerPassword" type="password" placeholder="••••••••" required>
+      <button type="button" class="fld-eye" onclick="togglePlayerPass()">👁</button>
+    </div>
+    <button class="btn player-submit-btn" id="playerSubmitBtn">Войти →</button>
+  </form>
+  <div id="playerAuthMessage" style="margin-top:10px"></div>
+</div>
+</div></div>
+
+<div class="pay-modal-overlay" id="cabPayOverlay">
+  <div class="pay-modal-box">
+    <div class="pay-top">
+      <span class="pay-order" id="cabPayOrder">ЗАКАЗ #1</span>
+      <button class="pay-close" onclick="closeCabPayModal()">✕</button>
+    </div>
+    <div class="pay-price" id="cabPayPrice">0 ₽ <span id="cabPayPeriodLabel">/ 30 Days</span></div>
+
+    <div class="pay-section-label" id="cabPeriodLabel">Tariff period</div>
+    <div class="pay-periods" id="cabPayPeriods"></div>
+
+    <div class="pay-section-label">Promo code</div>
+    <div class="promo-row">
+      <input class="input" id="cabPromoInput" placeholder="Enter promo code">
+      <button class="ghost" type="button" onclick="cabApplyPromo()">Apply</button>
+    </div>
+
+    <label class="agree-row">
+      <input type="checkbox" id="cabAgreeCheck" style="margin-top:3px">
+      <span>I agree to the terms of use and understand this purchase is non-refundable.</span>
+    </label>
+
+    <button class="btn" style="width:100%" id="cabPayBtn" onclick="cabSubmitPayment()" disabled>Pay —</button>
+    <p class="pay-msg" id="cabPayMsg"></p>
+  </div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="login-page">
+    <div class="login-card">
+      <button class="login-close" onclick="toggleModal()">×</button>
+      <div class="login-eyebrow">↪ <span id="loginEyebrow">Войдите в свой аккаунт EUPHORIA</span></div>
+      <h2 id="loginHeading">Давно не виделись,<br>кто же вы?</h2>
+
+      <form onsubmit="login(event)" class="login-form">
+        <label>♟ <span id="userLabel">Имя пользователя</span></label>
+        <input id="user" autocomplete="username" placeholder="Ваш логин">
+
+        <label>♙ <span id="passLabel">Пароль</span></label>
+        <div class="password-wrap">
+          <input id="pass" type="password" autocomplete="current-password" placeholder="************">
+          <button type="button" onclick="togglePassword()" class="eye">◉</button>
+        </div>
+
+        <div class="forgot" id="forgotText">Забыли пароль?</div>
+
+        <div class="fake-captcha">
+          <span class="captcha-check">✓</span>
+          <span>Success!</span>
+          <small>Cloudflare<br><u>Privacy</u> · <u>Help</u></small>
+        </div>
+
+        <div class="login-separator"><span id="separatorText">осталось только выбрать...</span></div>
+        <button class="login-submit" id="loginSubmit">Войти</button>
+        <button type="button" class="signup-btn" id="signupBtn" onclick="showSignup()">Нет аккаунта? Зарегистрироваться.</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const translations = {
+  ru: {
+    badge:"Клиент обновляется и развивается", hero:"Современный Minecraft Client с красивым интерфейсом, удобной системой тарифов и быстрым доступом к основным функциям.",
+    heroBtn:"Выбрать тариф", more:"Узнать больше", s1:"Поддерживаемые версии", s2:"Доступ к клиенту", s3:"Быстрый запуск",
+    ft:"Всё необходимое в одном месте", fs:"Чистый дизайн без лишнего визуального шума.", f1t:"Производительность", f1p:"Оптимизированный интерфейс и лёгкая структура сайта.",
+    f2t:"Современный дизайн", f2p:"Тёмная тема, мягкие градиенты и аккуратные карточки.", f3t:"Управление", f3p:"Тарифы и промокоды можно менять через админ-панель.", f4t:"Простота", f4p:"Минимум действий от выбора тарифа до покупки.",
+    pt:"Выбери свой доступ", ps:"Чем дольше срок — тем выгоднее тариф.", promo:"Введите промокод...", apply:"Применить", buy:"Купить", faq:"Частые вопросы",
+    q1:"Какая валюта используется?", a1:"Все цены на сайте указаны в российских рублях (₽).", q2:"Можно ли применить промокод?", a2:"Да. Введите код под тарифами.",
+    q3:"Как изменить тарифы?", a3:"Войдите в админ-панель для управления тарифами и промокодами.", cta:"Остались вопросы?", ct:"Свяжитесь с нами через поддержку.", support:"Связаться с поддержкой",
+    login:"Войти", logout:"Выйти", admin:"⚙ Админ-панель", adminSub:"Управление тарифами, промокодами и ключами.", addTariff:"Добавить тариф", addPromo:"Добавить промокод", delete:"Удалить", modal:"Вход администратора",
+    keyGen:"🔑 Генератор ключей", keyList:"Созданные ключи", duration:"Срок", amount:"Количество", uses:"Использований на ключ", generate:"Создать ключи", copy:"Копировать ключи", copied:"Ключи скопированы!", generated:"Создано ключей", disabled:"Отключён", disable:"Отключить", noKeys:"Ключей пока нет.", loginRequired:"Сначала войдите как Admin.",
+    resetHwid:"Сбросить HWID", notBound:"Не привязан", confirmResetHwid:"Сбросить HWID для этого ключа?",
+    noBans:"Активных банов нет.", permanent:"Навсегда", unban:"Разбанить", confirmUnban:"Разбанить этот IP?", noFingerprints:"Отпечатков пока нет.",
+    invalidPromo:"Неверный промокод!", choosePlan:"Сначала выберите тариф.", choosePayment:"Выберите способ оплаты.", paymentReady:"Интеграция оплаты готова к подключению: ", keyActivated:"Ключ активирован: ", keyError:"Не удалось активировать ключ."
+  },
+  en: {
+    badge:"The client keeps evolving", hero:"A modern Minecraft Client with a clean interface, simple pricing and quick access to key features.",
+    heroBtn:"Choose a plan", more:"Learn more", s1:"Supported versions", s2:"Client access", s3:"Fast launch",
+    ft:"Everything in one place", fs:"A clean design without unnecessary visual noise.", f1t:"Performance", f1p:"Optimized interface and lightweight site structure.",
+    f2t:"Modern design", f2p:"Dark theme, soft gradients and clean cards.", f3t:"Management", f3p:"Manage plans and promo codes from the admin panel.", f4t:"Simple", f4p:"Minimal steps from choosing a plan to purchase.",
+    pt:"Choose your access", ps:"Longer terms give you a better deal.", promo:"Enter promo code...", apply:"Apply", buy:"Buy", faq:"Frequently asked questions",
+    q1:"Which currency is used?", a1:"All prices are shown in Russian rubles (₽).", q2:"Can I use a promo code?", a2:"Yes. Enter it below the plans.",
+    q3:"How can I change plans?", a3:"Log in to the admin panel to manage plans and promo codes.", cta:"Still have questions?", ct:"Contact support.", support:"Contact support",
+    login:"Login", logout:"Logout", admin:"⚙ Admin Panel", adminSub:"Manage plans, promo codes and keys.", addTariff:"Add plan", addPromo:"Add promo code", delete:"Delete", modal:"Administrator login",
+    keyGen:"🔑 Key Generator", keyList:"Created Keys", duration:"Duration", amount:"Amount", uses:"Uses per key", generate:"Generate Keys", copy:"Copy Keys", copied:"Keys copied!", generated:"Generated", disabled:"Disabled", disable:"Disable", noKeys:"No keys yet.", loginRequired:"Login as Admin first.",
+    resetHwid:"Reset HWID", notBound:"Not bound", confirmResetHwid:"Reset HWID for this key?",
+    noBans:"No active bans.", permanent:"Permanent", unban:"Unban", confirmUnban:"Unban this IP?", noFingerprints:"No fingerprints logged yet.",
+    invalidPromo:"Invalid promo code!", choosePlan:"Choose a plan first.", choosePayment:"Choose a payment method.", paymentReady:"Payment integration ready to connect: ", keyActivated:"Key activated: ", keyError:"Could not activate key."
+  },
+  ka: {
+    badge:"კლიენტი მუდმივად ვითარდება", hero:"თანამედროვე Minecraft Client ლამაზი ინტერფეისით, მარტივი ტარიფებით და სწრაფი წვდომით მთავარ ფუნქციებზე.",
+    heroBtn:"ტარიფის არჩევა", more:"გაიგე მეტი", s1:"მხარდაჭერილი ვერსიები", s2:"კლიენტზე წვდომა", s3:"სწრაფი გაშვება",
+    ft:"ყველაფერი ერთ ადგილზე", fs:"სუფთა დიზაინი ზედმეტი ვიზუალური ხმაურის გარეშე.", f1t:"წარმადობა", f1p:"ოპტიმიზებული ინტერფეისი და მსუბუქი სტრუქტურა.",
+    f2t:"თანამედროვე დიზაინი", f2p:"მუქი თემა, რბილი გრადიენტები და სუფთა ბარათები.", f3t:"მართვა", f3p:"ტარიფებისა და პრომოკოდების მართვა ადმინ-პანელიდან.", f4t:"სიმარტივე", f4p:"მინიმალური ნაბიჯები ტარიფის არჩევიდან შეძენამდე.",
+    pt:"აირჩიე წვდომა", ps:"უფრო გრძელი ვადა — უფრო კარგი ფასი.", promo:"შეიყვანე პრომოკოდი...", apply:"გამოყენება", buy:"ყიდვა", faq:"ხშირი კითხვები",
+    q1:"რომელი ვალუტაა?", a1:"ყველა ფასი მითითებულია რუსულ რუბლებში (₽).", q2:"შეიძლება პრომოკოდის გამოყენება?", a2:"კი, შეიყვანე კოდი ტარიფების ქვემოთ.",
+    q3:"როგორ შევცვალო ტარიფები?", a3:"შედი ადმინ-პანელში ტარიფებისა და პრომოკოდების სამართავად.", cta:"კითხვები დაგრჩა?", ct:"დაგვიკავშირდი მხარდაჭერას.", support:"მხარდაჭერა",
+    login:"შესვლა", logout:"გამოსვლა", admin:"⚙ ადმინ-პანელი", adminSub:"ტარიფების, პრომოკოდების და გასაღებების მართვა.", addTariff:"ტარიფის დამატება", addPromo:"პრომოკოდის დამატება", delete:"წაშლა", modal:"ადმინისტრატორის შესვლა",
+    keyGen:"🔑 გასაღებების გენერატორი", keyList:"შექმნილი გასაღებები", duration:"ვადა", amount:"რაოდენობა", uses:"გამოყენება თითო გასაღებზე", generate:"გასაღებების შექმნა", copy:"გასაღებების კოპირება", copied:"გასაღებები დაკოპირდა!", generated:"შექმნილია", disabled:"გათიშული", disable:"გათიშვა", noKeys:"გასაღებები ჯერ არ არის.", loginRequired:"ჯერ შედი Admin-ში.",
+    resetHwid:"HWID-ის განულება", notBound:"არ არის მიბმული", confirmResetHwid:"განულდეს HWID ამ გასაღებისთვის?",
+    noBans:"აქტიური ბანები არ არის.", permanent:"სამუდამოდ", unban:"ბანის მოხსნა", confirmUnban:"მოეხსნას ბანი ამ IP-ს?", noFingerprints:"ფინგერპრინტები ჯერ არ არის.",
+    invalidPromo:"არასწორი პრომოკოდი!", choosePlan:"ჯერ აირჩიე ტარიფი.", choosePayment:"აირჩიე გადახდის მეთოდი.", paymentReady:"გადახდის ინტეგრაცია მზად არის დასაკავშირებლად: ", keyActivated:"გასაღები გააქტიურდა: ", keyError:"გასაღების გააქტიურება ვერ მოხერხდა."
+  },
+  uk: {
+    badge:"Клієнт постійно розвивається", hero:"Сучасний Minecraft Client із чистим інтерфейсом, зручними тарифами та швидким доступом до основних функцій.",
+    heroBtn:"Обрати тариф", more:"Дізнатися більше", s1:"Підтримувані версії", s2:"Доступ до клієнта", s3:"Швидкий запуск",
+    ft:"Усе необхідне в одному місці", fs:"Чистий дизайн без зайвого візуального шуму.", f1t:"Продуктивність", f1p:"Оптимізований інтерфейс і легка структура.",
+    f2t:"Сучасний дизайн", f2p:"Темна тема, м'які градієнти та акуратні картки.", f3t:"Керування", f3p:"Керуйте тарифами та промокодами в адмін-панелі.", f4t:"Простота", f4p:"Мінімум дій від вибору тарифу до покупки.",
+    pt:"Оберіть доступ", ps:"Довший термін — вигідніша ціна.", promo:"Введіть промокод...", apply:"Застосувати", buy:"Купити", faq:"Часті запитання",
+    q1:"Яка валюта використовується?", a1:"Усі ціни вказані в російських рублях (₽).", q2:"Чи можна використати промокод?", a2:"Так. Введіть код під тарифами.",
+    q3:"Як змінити тарифи?", a3:"Увійдіть в адмін-панель для керування тарифами та промокодами.", cta:"Залишилися питання?", ct:"Зв'яжіться з підтримкою.", support:"Підтримка",
+    login:"Увійти", logout:"Вийти", admin:"⚙ Адмін-панель", adminSub:"Керування тарифами, промокодами та ключами.", addTariff:"Додати тариф", addPromo:"Додати промокод", delete:"Видалити", modal:"Вхід адміністратора",
+    keyGen:"🔑 Генератор ключів", keyList:"Створені ключі", duration:"Термін", amount:"Кількість", uses:"Використань на ключ", generate:"Створити ключі", copy:"Копіювати ключі", copied:"Ключі скопійовано!", generated:"Створено", disabled:"Вимкнено", disable:"Вимкнути", noKeys:"Ключів ще немає.", loginRequired:"Спочатку увійдіть як Admin.",
+    resetHwid:"Скинути HWID", notBound:"Не привʼязано", confirmResetHwid:"Скинути HWID для цього ключа?",
+    noBans:"Активних банів немає.", permanent:"Назавжди", unban:"Розбанити", confirmUnban:"Розбанити цей IP?", noFingerprints:"Відбитків поки немає.",
+    invalidPromo:"Недійсний промокод!", choosePlan:"Спочатку оберіть тариф.", choosePayment:"Оберіть спосіб оплати.", paymentReady:"Інтеграція оплати готова до підключення: ", keyActivated:"Ключ активовано: ", keyError:"Не вдалося активувати ключ."
+  }
+};
+
+let lang="ru", isAdmin=false, discount=0, selectedPayment="", selectedProduct=null;
+let products=[];
+let promos={};
+
+function t(){return translations[lang]}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#039;"}[m]))}
+
+async function changeLanguage(){
+  lang=document.getElementById("lang").value; const x=t();
+  const textMap={badge:"badge",hero:"heroText",heroBtn:"heroBtn",more:"moreBtn",s1:"s1",s2:"s2",s3:"s3",ft:"featuresTitle",fs:"featuresSub",f1t:"f1t",f1p:"f1p",f2t:"f2t",f2p:"f2p",f3t:"f3t",f3p:"f3p",f4t:"f4t",f4p:"f4p",pt:"pricingTitle",ps:"pricingSub",promo:"promoInput",apply:"promoBtn",faq:"faqTitle",q1:"q1",a1:"a1",q2:"q2",a2:"a2",q3:"q3",a3:"a3",cta:"ctaTitle",ct:"ctaText",support:"supportBtn",admin:"adminTitle",adminSub:"adminSub",addTariff:"addTariffTitle",addPromo:"addPromoTitle"};
+  Object.entries(textMap).forEach(([k,id])=>{const e=document.getElementById(id); if(e) e.textContent=x[k]});
+  document.getElementById("promoInput").placeholder=x.promo;
+  document.getElementById("loginBtn").textContent=isAdmin?x.logout:x.login;
+  document.getElementById("keyGeneratorTitle").textContent=x.keyGen;
+  document.getElementById("keyListTitle").textContent=x.keyList;
+  document.getElementById("key-generate-btn").textContent=x.generate;
+  document.getElementById("copyKeysBtn").textContent=x.copy;
+  render();
+  if(isAdmin) renderKeys(await fetchAdminKeys());
+}
+
+async function loadInitial(){
+  try{const r=await fetch('/api/products');products=await r.json();}catch{products=[]}
+  try{const r=await fetch('/api/promos');promos=await r.json();}catch{promos={}}
+  render();
+}
+
+function render(){
+  const c=document.getElementById("cards"), x=t(); if(!c) return;
+  c.innerHTML=products.map(p=>{const price=(p.price*(1-discount/100)).toFixed(2).replace('.00','');return `<article class="price-card ${p.popular?'popular':''}">${p.popular?'<div class="popular-tag">POPULAR</div>':''}<h3>${esc(p.title)}</h3><div class="price">${price} ₽ <small>/ access</small></div><ul class="features-list"><li>Full access</li><li>Updates</li><li>Support</li></ul><button class="btn full" onclick="buy(${p.id})">${x.buy}</button></article>`}).join('');
+  renderPromoList();
+  if(isAdmin) renderAdminProducts();
+}
+
+function renderPromoList(){
+  const box=document.getElementById('promoList'); if(!box)return;
+  // Basic public map fallback; admin uses loadAdminPromos for full stats
+  box.innerHTML=Object.entries(promos).map(([code,p])=>`<div class="promo-row"><span><b>${esc(code)}</b> · -${p}%</span><button class="ghost" onclick="deletePromo('${esc(code)}')">${t().delete}</button></div>`).join('') || `<div class="muted">Нет промокодов</div>`;
+}
+
+async function loadAdminPromos(){
+  if(!isAdmin) return;
+  const box=document.getElementById('promoList'); if(!box)return;
+  try{
+    const r=await fetch('/api/admin/promos');
+    const d=await r.json();
+    if(!r.ok||!d.ok){ renderPromoList(); return; }
+    const rows=d.promos||[];
+    if(!rows.length){ box.innerHTML='<div class="muted">Нет промокодов</div>'; return; }
+    box.innerHTML = rows.map(p=>{
+      const max = p.max_uses==null ? '∞' : p.max_uses;
+      return `<div class="promo-row" style="flex-wrap:wrap;gap:8px">
+        <span><b>${esc(p.code)}</b> · <span style="color:#a78bfa">-${p.discount}%</span></span>
+        <span class="muted" style="font-size:12px">владелец: <b>${esc(p.created_by||'admin')}</b></span>
+        <span class="muted" style="font-size:12px">использовано: <b>${p.uses||0}</b> / ${max}</span>
+        <button class="ghost" onclick="deletePromo('${esc(p.code)}')">${t().delete}</button>
+      </div>`;
+    }).join('');
+  }catch(e){ renderPromoList(); }
+}
+
+function renderAdminProducts(){
+  const box=document.getElementById('productList'); if(!box)return;
+  box.innerHTML=products.map(p=>`<div class="promo-row"><span><b>${esc(p.title)}</b> · ${p.price} ₽</span><button class="ghost" onclick="deleteProduct(${p.id})">${t().delete}</button></div>`).join('');
+}
+
+function buy(id){
+  selectedProduct=products.find(p=>p.id===id); if(!selectedProduct)return;
+  discount=0; selectedPayment='';
+  document.getElementById('promoInput').value='';
+  document.getElementById('promoStatus').textContent='';
+  document.querySelectorAll('.pay-method').forEach(b=>b.classList.remove('selected'));
+  const price=selectedProduct.price.toFixed(2).replace('.00','');
+  document.getElementById('selectedPlanHint').textContent=`${t().selected || 'Selected'}: ${selectedProduct.title}`;
+  document.getElementById('checkoutProduct').textContent=selectedProduct.title;
+  document.getElementById('checkoutPrice').textContent=price+' ₽';
+  document.getElementById('checkoutTotal').textContent=price+' ₽';
+  document.getElementById('checkout').classList.add('active');
+  document.querySelector('.payment-box').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function applyPromo(){
+  if(!selectedProduct){alert(t().choosePlan);return;}
+  const code=document.getElementById('promoInput').value.trim().toUpperCase();
+  if(!promos[code]){discount=0;document.getElementById('promoStatus').textContent=t().invalidPromo;document.getElementById('promoStatus').style.color='var(--danger)';render();return;}
+  discount=Math.max(0,Math.min(100,Number(promos[code])));
+  const price=(selectedProduct.price*(1-discount/100)).toFixed(2).replace('.00','');
+  document.getElementById('promoStatus').textContent=`-${discount}%`;
+  document.getElementById('promoStatus').style.color='var(--success)';
+  document.getElementById('checkoutPrice').textContent=price+' ₽';
+  document.getElementById('checkoutTotal').textContent=price+' ₽';
+  render();
+}
+
+function selectPayment(method,el){
+  if(!selectedProduct){alert(t().choosePlan);return;}
+  selectedPayment=method;
+  document.querySelectorAll('.pay-method').forEach(b=>b.classList.remove('selected')); el.classList.add('selected');
+  document.getElementById('checkoutMethodValue').textContent=method;
+}
+
+function startPayment(){
+  if(!selectedProduct){alert(t().choosePlan);return;}
+  if(!selectedPayment){alert(t().choosePayment);return;}
+  alert(t().paymentReady+selectedPayment);
+}
+
+function toggleModal(){document.getElementById('modal').classList.toggle('active')}
+function togglePassword(){const i=document.getElementById('pass');i.type=i.type==='password'?'text':'password'}
+function showSignup(){openPlayerLogin();setPlayerMode('register');}
+
+async function collectBrowserFingerprint(){
+  const parts = [];
+  try {
+    parts.push('ua:' + (navigator.userAgent || ''));
+    parts.push('lang:' + (navigator.language || ''));
+    parts.push('langs:' + ((navigator.languages || []).join(',')));
+    parts.push('plat:' + (navigator.platform || ''));
+    parts.push('hc:' + (navigator.hardwareConcurrency || ''));
+    parts.push('mem:' + (navigator.deviceMemory || ''));
+    parts.push('touch:' + (navigator.maxTouchPoints || 0));
+    parts.push('tz:' + (Intl.DateTimeFormat().resolvedOptions().timeZone || ''));
+    parts.push('tzo:' + new Date().getTimezoneOffset());
+    parts.push('scr:' + [screen.width, screen.height, screen.colorDepth, screen.pixelDepth].join('x'));
+    parts.push('aw:' + [screen.availWidth, screen.availHeight].join('x'));
+    parts.push('cd:' + (window.devicePixelRatio || 1));
+    // Canvas
+    try {
+      const c = document.createElement('canvas');
+      c.width = 240; c.height = 60;
+      const ctx = c.getContext('2d');
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#f60';
+      ctx.fillRect(0, 0, 240, 60);
+      ctx.fillStyle = '#069';
+      ctx.fillText('EUPHORIA-FP-canvas', 2, 2);
+      ctx.fillStyle = 'rgba(102,204,0,0.7)';
+      ctx.fillText('EUPHORIA-FP-canvas', 4, 18);
+      parts.push('canvas:' + c.toDataURL().slice(-64));
+    } catch (e) { parts.push('canvas:err'); }
+    // WebGL
+    try {
+      const c = document.createElement('canvas');
+      const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+      if (gl) {
+        const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+        const vendor = dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR);
+        const renderer = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+        parts.push('webgl:' + vendor + '~' + renderer);
+      } else parts.push('webgl:none');
+    } catch (e) { parts.push('webgl:err'); }
+    // Audio (lightweight)
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      parts.push('audio:' + ac.sampleRate);
+      ac.close && ac.close();
+    } catch (e) { parts.push('audio:err'); }
+  } catch (e) {
+    parts.push('err:' + (e && e.message));
+  }
+  return parts.join('|');
+}
+
+async function login(e){
+  e.preventDefault();
+  const fingerprint = await collectBrowserFingerprint();
+  const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    username:document.getElementById('user').value.trim(),
+    password:document.getElementById('pass').value,
+    fingerprint
+  })});
+  const d=await r.json();
+  if(!r.ok||!d.ok){alert(d.message||'Invalid credentials');return;}
+  isAdmin=true; document.getElementById('adminPanel').classList.add('active'); document.getElementById('loginBtn').textContent=t().logout; toggleModal();
+  if(d.fp_short){ const el=document.getElementById('currentFp'); if(el) el.textContent=d.fp_short; }
+  await refreshAdmin();
+  setTimeout(()=>document.getElementById('adminPanel').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+async function logoutAdmin(){await fetch('/api/admin/logout',{method:'POST'});isAdmin=false;document.getElementById('adminPanel').classList.remove('active');document.getElementById('loginBtn').textContent=t().login}
+function loginButtonClick(){if(isAdmin) logoutAdmin(); else toggleModal()}
+
+document.getElementById('loginBtn').onclick=loginButtonClick;
+
+async function refreshAdmin(){
+  try{const r=await fetch('/api/products');products=await r.json()}catch{}
+  try{const r=await fetch('/api/promos');promos=await r.json()}catch{}
+  render();
+  const keys=await fetchAdminKeys(); renderKeys(keys);
+  await loadIpBans();
+  await loadFingerprints();
+  await loadPlayers();
+  await loadAdminPromos();
+}
+
+async function setPlayerRole(id, role){
+  const r=await fetch('/api/admin/players/'+id+'/role',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role})});
+  const d=await r.json();
+  if(!r.ok||!d.ok){alert(d.message||'Error'); await loadPlayers(); return;}
+}
+async function loadPlayers(){
+  if(!isAdmin) return;
+  const box = document.getElementById('playerList');
+  if(!box) return;
+  try{
+    const r = await fetch('/api/admin/players');
+    const d = await r.json();
+    if(!r.ok || !d.ok){
+      box.innerHTML = '<div class="muted">Login as admin to see players.</div>';
+      return;
+    }
+    const s = d.stats || {};
+    const elT = document.getElementById('statTotal');
+    const elA = document.getElementById('statActive');
+    const elH = document.getElementById('statHwid');
+    if(elT) elT.textContent = s.total_players ?? 0;
+    if(elA) elA.textContent = s.active_subscriptions ?? 0;
+    if(elH) elH.textContent = s.hwid_bound ?? 0;
+    const rows = d.players || [];
+    if(!rows.length){
+      box.innerHTML = '<div class="muted">No players registered yet.</div>';
+      return;
+    }
+    box.innerHTML = `
+      <div style="display:grid;grid-template-columns:70px 1fr 1.2fr 90px 110px 100px 120px;gap:8px;font-size:11px;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)">
+        <span>UID</span><span>Login</span><span>Email</span><span>Role</span><span>Subscription</span><span>HWID</span><span>HWID fp</span>
+      </div>` + rows.map(p => `
+      <div style="display:grid;grid-template-columns:70px 1fr 1.2fr 90px 110px 100px 120px;gap:8px;font-size:13px;padding:10px 8px;border-bottom:1px solid var(--line);align-items:center">
+        <strong>${p.uid||'—'}</strong>
+        <span>${p.username||'—'}</span>
+        <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis">${p.email||'—'}</span>
+        <select onchange="setPlayerRole(${p.id}, this.value)" style="background:#0a0d19;color:#fff;border:1px solid var(--line);border-radius:8px;padding:4px 6px;font-size:12px">
+          <option value="User" ${p.role==='User'?'selected':''}>User</option>
+          <option value="Media" ${p.role==='Media'?'selected':''}>Media</option>
+          <option value="Admin" ${p.role==='Admin'?'selected':''}>Admin</option>
+        </select>
+        <span style="color:${p.subscription_active?'#34d399':'#94a3b8'}">${p.subscription||'None'}</span>
+        <span style="color:${p.hwid==='Bound'?'#a78bfa':'#94a3b8'}">${p.hwid||'—'}</span>
+        <code style="font-size:11px">${p.hwid_fp||'—'}</code>
+      </div>`).join('');
+  }catch(e){
+    box.innerHTML = '<div class="muted">Failed to load players.</div>';
+  }
+}
+
+async function loadFingerprints(){
+  if(!isAdmin) return;
+  try{
+    const r=await fetch('/api/admin/fingerprints');
+    const d=await r.json();
+    if(!r.ok||!d.ok) return;
+    const box=document.getElementById('fpList');
+    if(!box) return;
+    if(!d.fingerprints||!d.fingerprints.length){
+      box.innerHTML=`<div class="muted">${t().noFingerprints||'No fingerprints logged yet.'}</div>`;
+      return;
+    }
+    box.innerHTML=d.fingerprints.map(f=>{
+      const when=f.created_at?new Date(f.created_at).toLocaleString():'';
+      const ev=f.event||'';
+      const ok=ev.indexOf('_ok')>=0;
+      return `<div class="promo-row">
+        <div>
+          <div class="key-code">${esc(f.fp_short||'—')}</div>
+          <div class="muted" style="font-size:12px">${esc(f.ip||'')} · ${esc(ev)} · ${when}</div>
+          <div class="muted" style="font-size:11px;max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((f.user_agent||'').slice(0,120))}</div>
+        </div>
+        <span class="${ok?'':'danger'}" style="font-size:12px;font-weight:700">${ok?'OK':'FAIL'}</span>
+      </div>`;
+    }).join('');
+  }catch(e){}
+}
+
+async function addPromo(e){
+  e.preventDefault();
+  const code=document.getElementById('newPromo').value.trim().toUpperCase();
+  const discountValue=Number(document.getElementById('newDiscount').value);
+  const maxEl=document.getElementById('newPromoMax');
+  const ownerEl=document.getElementById('newPromoOwner');
+  const max_uses = maxEl && maxEl.value ? Number(maxEl.value) : 0;
+  const created_by = ownerEl ? ownerEl.value.trim() : '';
+  const r=await fetch('/api/admin/promos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,discount:discountValue,max_uses,created_by})});
+  const d=await r.json();
+  if(!r.ok||!d.ok){alert(d.message||'Error');return;}
+  e.target.reset();
+  await refreshAdmin();
+}
+
+async function deletePromo(code){await fetch('/api/admin/promos/'+encodeURIComponent(code),{method:'DELETE'}); await loadInitial()}
+
+async function addProduct(e){
+  e.preventDefault(); const title=document.getElementById('newTitle').value.trim(); const price=Number(document.getElementById('newPrice').value);
+  const r=await fetch('/api/admin/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,price})}); const d=await r.json();
+  if(!r.ok||!d.ok){alert(d.message||'Error');return;} e.target.reset(); await refreshAdmin();
+}
+
+async function deleteProduct(id){await fetch('/api/admin/products/'+id,{method:'DELETE'});await refreshAdmin()}
+
+async function generateKeys(){
+  if(!isAdmin){document.getElementById('key-generator-message').textContent=t().loginRequired;document.getElementById('key-generator-message').className='danger';return;}
+  const duration=document.getElementById('key-duration').value; const amount=Number(document.getElementById('key-amount').value); const max_uses=Number(document.getElementById('key-max-uses').value); const message=document.getElementById('key-generator-message');
+  message.textContent='';
+  const r=await fetch('/api/admin/keys/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({duration,amount,max_uses})});
+  const d=await r.json();
+  if(!r.ok||!d.ok){message.textContent=d.message||'Key generation failed';message.className='danger';return;}
+  document.getElementById('generated-keys').value=d.keys.join('\n'); message.textContent=`${t().generated}: ${d.keys.length}`;message.className='success';
+  renderKeys(d.keys.length ? await fetchAdminKeys() : []);
+}
+
+async function fetchAdminKeys(){
+  if(!isAdmin)return [];
+  const r=await fetch('/api/admin/keys'); const d=await r.json(); return r.ok&&d.ok?d.keys:[];
+}
+
+function renderKeys(keys){
+  const box=document.getElementById('keyList'); if(!box)return;
+  if(!keys.length){box.innerHTML=`<div class="muted">${t().noKeys}</div>`;return;}
+  box.innerHTML=keys.map(k=>{
+    // Only short fingerprints are returned by the API (full hashes never leave the server)
+    const bound = k.bound || !!k.hwid_fp;
+    const hwidInfo = bound
+      ? `<div class="muted" style="font-size:11px;margin-top:4px">HWID: <code style="color:var(--cyan)">${esc(k.hwid_fp||'••••')}</code>${k.uid_fp?` · UID: <code>${esc(k.uid_fp)}</code>`:''}</div>`
+      : `<div class="muted" style="font-size:11px;margin-top:4px;color:var(--muted)">${t().notBound||'Not bound'}</div>`;
+    const actions = [];
+    if(k.active){
+      actions.push(`<button class="ghost" onclick="disableKey(${k.id})">${t().disable}</button>`);
+      if(bound){
+        actions.push(`<button class="ghost" style="color:#f59e0b" onclick="resetHwid(${k.id})">${t().resetHwid||'Reset HWID'}</button>`);
+      }
+    } else {
+      actions.push(`<span class="danger">${t().disabled}</span>`);
+    }
+    return `<div class="promo-row" style="flex-wrap:wrap;gap:8px">
+      <div style="flex:1;min-width:200px">
+        <div class="key-code">${esc(k.key)}</div>
+        <div class="muted">${esc(k.duration)} · ${k.uses}/${k.max_uses}</div>
+        ${hwidInfo}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${actions.join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+async function disableKey(id){await fetch('/api/admin/keys/'+id+'/disable',{method:'POST'});renderKeys(await fetchAdminKeys())}
+
+async function resetHwid(id){
+  if(!confirm(t().confirmResetHwid||'Reset HWID for this key?')) return;
+  const r=await fetch('/api/admin/keys/'+id+'/reset-hwid',{method:'POST'});
+  const d=await r.json();
+  if(!r.ok||!d.ok){alert(d.message||'Reset failed');return;}
+  renderKeys(await fetchAdminKeys());
+}
+
+async function loadIpBans(){
+  if(!isAdmin) return;
+  try{
+    const r=await fetch('/api/admin/ip-bans');
+    const d=await r.json();
+    if(!r.ok||!d.ok) return;
+    const yourIpEl=document.getElementById('yourIp');
+    if(yourIpEl) yourIpEl.textContent=d.your_ip||'—';
+    const box=document.getElementById('ipBanList');
+    if(!box) return;
+    if(!d.bans||!d.bans.length){
+      box.innerHTML=`<div class="muted">${t().noBans||'No active bans.'}</div>`;
+      return;
+    }
+    box.innerHTML=d.bans.map(b=>{
+      const exp=b.expires_at?new Date(b.expires_at).toLocaleString():(t().permanent||'Permanent');
+      const reason=b.reason?` · ${esc(b.reason)}`:'';
+      return `<div class="promo-row">
+        <div>
+          <div class="key-code">${esc(b.ip)}</div>
+          <div class="muted" style="font-size:12px">${exp}${reason}</div>
+        </div>
+        <button class="ghost" style="color:#22c55e" onclick="unbanIp(${b.id})">${t().unban||'Unban'}</button>
+      </div>`;
+    }).join('');
+  }catch(e){}
+}
+
+async function addIpBan(e){
+  e.preventDefault();
+  if(!isAdmin){alert(t().loginRequired);return;}
+  const ip=document.getElementById('banIp').value.trim();
+  const reason=document.getElementById('banReason').value.trim();
+  const days=Number(document.getElementById('banDays').value)||0;
+  const r=await fetch('/api/admin/ip-bans',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip,reason,days})});
+  const d=await r.json();
+  if(!r.ok||!d.ok){alert(d.message||'Ban failed');return;}
+  e.target.reset();
+  document.getElementById('banDays').value=0;
+  await loadIpBans();
+}
+
+async function unbanIp(id){
+  if(!confirm(t().confirmUnban||'Unban this IP?')) return;
+  const r=await fetch('/api/admin/ip-bans/'+id+'/unban',{method:'POST'});
+  const d=await r.json();
+  if(!r.ok||!d.ok){alert(d.message||'Unban failed');return;}
+  await loadIpBans();
+}
+
+function copyKeys(){const value=document.getElementById('generated-keys').value;if(!value)return;navigator.clipboard.writeText(value);document.getElementById('key-generator-message').textContent=t().copied;document.getElementById('key-generator-message').className='success'}
+
+function supportAlert(){alert('Support link can be connected here.')}
+
+loadInitial();
+
+// === PLAYER ACCOUNT UI ===
+let playerMode='login';
+function openPlayerLogin(){document.getElementById('playerModal').classList.add('active');setPlayerMode('login');}
+function closePlayerLogin(){document.getElementById('playerModal').classList.remove('active');}
+function setPlayerMode(mode){playerMode=mode;const reg=mode==='register';document.getElementById('playerEmailWrap').style.display=reg?'block':'none';document.getElementById('playerUsernameLabel').textContent=reg?'Имя пользователя':'Email или логин';document.getElementById('playerUsername').placeholder=reg?'Имя пользователя':'you@mail.ru или логин';document.getElementById('playerModalTitle').textContent=reg?'Регистрация':'Вход';document.getElementById('playerSwitchLine').innerHTML=reg?'Уже есть аккаунт? <a onclick="setPlayerMode(\'login\')">Вход</a>':'Нет аккаунта? <a onclick="setPlayerMode(\'register\')">Регистрация</a>';document.getElementById('playerForgotLink').style.display=reg?'none':'inline';document.getElementById('playerSubmitBtn').textContent=reg?'Создать аккаунт →':'Войти →';}
+function togglePlayerPass(){const f=document.getElementById('playerPassword');f.type=f.type==='password'?'text':'password';}
+async function loadPlayer(){try{const r=await fetch('/api/player/me');const d=await r.json();if(!r.ok||!d.ok){document.getElementById('accountDashboard').style.display='none';return;}const p=d.player;document.getElementById('accountDashboard').style.display='block';document.getElementById('accountUid').textContent=p.uid;document.getElementById('accountUsername').textContent=p.username;document.getElementById('accountRole').textContent=p.role;document.getElementById('accountEmail').textContent=p.email;document.getElementById('accountHwid').textContent=p.subscription&&p.subscription.hwid_bound?'Bound':'Not bound';document.getElementById('accountExpire').textContent=p.subscription?(p.subscription.duration==='Lifetime'?'Lifetime':(p.subscription.expires_at?new Date(p.subscription.expires_at).toLocaleDateString():'Active')):'No subscription';}catch(e){}}
+async function playerLogout(){await fetch('/api/player/logout',{method:'POST'});document.getElementById('accountDashboard').style.display='none';if(window.refreshCabinet)await window.refreshCabinet();}
+async function openPlayerKeyActivate(){const key=prompt('Enter your key');if(!key)return;const r=await fetch('/api/player/activate-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key})});const d=await r.json();alert(d.message||'Done');if(d.ok)await loadPlayer();}
+async function showAccountTab(tab){if(tab==='register'){openPlayerLogin();setPlayerMode('register');return;}if(tab==='account'){await loadPlayer();return;}const content=document.getElementById('accountTabContent');if(tab==='settings')content.innerHTML='<div class="account-head"><div class="account-title">⚙ Настройки</div></div><div class="account-card"><h3 style="margin-bottom:12px">Сменить пароль</h3><form id="accPassForm" onsubmit="accountChangePassword(event)" style="display:grid;gap:10px;max-width:360px"><input class="input" id="accPassCur" type="password" placeholder="Текущий пароль" required><input class="input" id="accPassNew" type="password" placeholder="Новый пароль (мин. 6)" required minlength="6"><input class="input" id="accPassNew2" type="password" placeholder="Повторите пароль" required minlength="6"><button class="btn" type="submit">Сменить пароль</button></form><div id="accPassMsg" class="muted" style="margin-top:10px"></div></div>';if(tab==='launcher')content.innerHTML='<div class="account-head"><div class="account-title">▣ Лаунчер</div></div><div class="account-card"><h3>EUPHORIA Launcher</h3><p class="muted">Здесь можно разместить скачивание лаунчера.</p></div>';document.querySelectorAll('.account-tab').forEach(b=>b.classList.remove('active'));}
+document.getElementById('playerAuthForm').addEventListener('submit',async function(e){e.preventDefault();const reg=playerMode==='register';const payload=reg?{username:document.getElementById('playerUsername').value.trim(),email:document.getElementById('playerEmail').value.trim(),password:document.getElementById('playerPassword').value}:{username:document.getElementById('playerUsername').value.trim(),password:document.getElementById('playerPassword').value};const url=reg?'/api/player/register':'/api/player/login';const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();const m=document.getElementById('playerAuthMessage');if(!r.ok||!d.ok){m.textContent=d.message||'Error';m.className='danger';return;}m.textContent='';closePlayerLogin();await loadPlayer();if(window.refreshCabinet)await window.refreshCabinet();if(window.cabRefreshStatus)await window.cabRefreshStatus();});
+loadPlayer();
+
+</script>
+</body>
+</html>
