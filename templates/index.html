@@ -595,8 +595,22 @@ async function doReg(){const m=document.getElementById('modMsg');m.className='pm
 // Products
 let prods=[],activePromo=null,selProd=null,selPayM=null;
 async function loadProds(){try{const r=await fetch('/api/products');prods=await r.json();renderCards();}catch(e){}}
-function renderCards(){const g=document.getElementById('cards');if(!g)return;const dc=activePromo?activePromo.discount:0;if(!prods.length){g.innerHTML='<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:20px">Тарифы скоро появятся.</p>';return;}const mx=Math.max(...prods.map(p=>p.price),1);g.innerHTML=prods.map((p,i)=>{const o=p.price;const f=dc?Math.round(o*(100-dc)/100):o;const isp=o>=mx;return`<div class="pc${isp?' pop':''}"><div class="ptag" style="${isp?'':'display:none'}">🔥 Выгодно</div><h3>${p.title}</h3><div class="pb">${f}₽<small>${dc?` (−${dc}%) было ${o}₽`:''}</small></div><ul class="fl"><li>Доступ к клиенту</li><li>Поддержка 24/7</li><li>Все обходы</li>${isp?'<li>Приоритет</li>':''}</ul><button class="btn btn-full" onclick="sPlan(${i})">${selProd===i?'✓ Выбрано':'Выбрать тариф'}</button></div>`; }).join('');}
-function sPlan(i){selProd=i;renderCards();const p=prods[i];const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;const h=document.getElementById('planHint');if(h)h.textContent=`Выбрано: ${p.title} · ${f}₽`;upCo();}
+function renderCards(){const g=document.getElementById('cards');if(!g)return;const dc=activePromo?activePromo.discount:0;if(!prods.length){g.innerHTML='<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:20px">Тарифы скоро появятся.</p>';return;}const mx=Math.max(...prods.map(p=>p.price),1);g.innerHTML=prods.map((p,i)=>{const o=p.price;const f=dc?Math.round(o*(100-dc)/100):o;const isp=o>=mx;return`<div class="pc${isp?' pop':''}" onclick="sPlan(${i})" style="cursor:pointer"><div class="ptag" style="${isp?'':'display:none'}">🔥 Выгодно</div><h3>${p.title}</h3><div class="pb">${f}₽<small>${dc?` (−${dc}%) было ${o}₽`:''}</small></div><ul class="fl"><li>Доступ к клиенту</li><li>Поддержка 24/7</li><li>Все обходы</li>${isp?'<li>Приоритет</li>':''}</ul><button class="btn btn-full" type="button" onclick="event.stopPropagation();sPlan(${i})">${selProd===i?'✓ Купить':'Купить'}</button></div>`; }).join('');}
+function sPlan(i){
+  selProd=i;
+  if(!selPayM){
+    const firstPm = document.querySelector('.pm');
+    if(firstPm) firstPm.click();
+  }
+  renderCards();
+  const p=prods[i];
+  const dc=activePromo?activePromo.discount:0;
+  const f=dc?Math.round(p.price*(100-dc)/100):p.price;
+  const h=document.getElementById('planHint');
+  if(h)h.textContent=`Выбрано: ${p.title} · ${f}₽`;
+  upCo();
+  document.querySelector('.paybox')?.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
 async function applyPromo(){const code=document.getElementById('promoInput').value.trim().toUpperCase();const st=document.getElementById('promoStatus');if(!code){activePromo=null;renderCards();if(st)st.textContent='';return;}try{const r=await fetch('/api/promos');const pm=await r.json();if(pm[code]){activePromo={code,discount:pm[code]};if(st){st.textContent=`✓ ${code}: −${pm[code]}%`;st.style.color='#34d399';}renderCards();}else{activePromo=null;if(st){st.textContent='✕ Промокод не найден';st.style.color='#ef4444';}renderCards();}}catch(e){}}
 function selPay(m,b){selPayM=m;document.querySelectorAll('.pm').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');const lb={'funpay':'FunPay','yumoney':'ЮMoney','card':'Банковская карта','visa':'Visa','mc':'Mastercard'};const mv=document.getElementById('coMethod');if(mv)mv.textContent=lb[m]||m;upCo();}
 function upCo(){const co=document.getElementById('checkout');if(selProd===null||selProd===undefined){if(co)co.classList.remove('on');return;}if(!selPayM)return;const p=prods[selProd];if(!p||!co)return;const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;co.classList.add('on');const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('coProd',p.title);se('coPrice',f+'₽');se('coTotal',f+'₽');}

@@ -541,22 +541,24 @@ function openPayModal(title){
   selectedProduct = PRODUCTS.find(p=>p.title===title) || PRODUCTS[0];
   activePromo = null;
   document.getElementById('promoInput').value = '';
-  document.getElementById('agreeCheck').checked = false;
+  document.getElementById('agreeCheck').checked = true;
   document.getElementById('payOrder').textContent = 'ЗАКАЗ #' + (orderCounter++);
   document.getElementById('payVisualTitle').textContent = selectedProduct.title === 'HWID Reset' ? 'Сброс HWID' : 'EUPHORIA';
   document.getElementById('payMsg').textContent = '';
 
-  const periodsWrap = document.getElementById('periodsWrap');
+  const periodsWrap = document.getElementById('payPeriods') || document.getElementById('periodsWrap');
   const periodLabel = document.getElementById('periodSectionLabel');
-  if(isService){
-    periodsWrap.innerHTML = '';
-    periodLabel.style.display = 'none';
-  } else {
-    periodLabel.style.display = 'block';
-    const durationProducts = PRODUCTS.filter(p=>DURATION_SET.includes(p.title));
-    periodsWrap.innerHTML = durationProducts.map(p=>`
-      <button type="button" class="period-btn ${p.title===selectedProduct.title?'active':''}" data-title="${p.title}" onclick='selectPeriod(${JSON.stringify(p.title)})'>${ruDuration(p.title)} — ${fmt(p.price)} ₽</button>
-    `).join('');
+  if(periodsWrap){
+    if(isService){
+      periodsWrap.innerHTML = '';
+      if(periodLabel) periodLabel.style.display = 'none';
+    } else {
+      if(periodLabel) periodLabel.style.display = 'block';
+      const durationProducts = PRODUCTS.filter(p=>DURATION_SET.includes(p.title));
+      periodsWrap.innerHTML = durationProducts.map(p=>`
+        <button type="button" class="period-btn ${p.title===selectedProduct.title?'active':''}" data-title="${p.title}" onclick='selectPeriod(${JSON.stringify(p.title)})'>${ruDuration(p.title)} — ${fmt(p.price)} ₽</button>
+      `).join('');
+    }
   }
   updatePayPrice();
   document.getElementById('payOverlay').classList.add('active');
@@ -583,7 +585,7 @@ function updatePayPrice(){
   document.getElementById('payPrice').innerHTML = fmt(price) + ' ₽ <span id="payPeriodLabel">/ ' + ruDuration(selectedProduct.title) + '</span>';
   const btn = document.getElementById('payBtn');
   btn.textContent = 'Оплатить ' + fmt(price) + ' ₽ →';
-  btn.disabled = !document.getElementById('agreeCheck').checked;
+  btn.disabled = false;
 }
 document.getElementById('agreeCheck').addEventListener('change', updatePayPrice);
 
