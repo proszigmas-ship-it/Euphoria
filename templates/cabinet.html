@@ -360,7 +360,8 @@ h1.page-title{font-size:26px;margin-bottom:4px}
         <div class="pay-method-group">
           <span class="grp-label">Способ оплаты</span>
           <div class="pay-method-row">
-            <button class="pm-btn active" data-method="sbp" onclick="selectMethod('sbp')">📲 СБП (Система быстрых платежей)</button>
+            <button class="pm-btn active" data-method="sbp" onclick="selectMethod('sbp')">📲 СБП (₽)</button>
+            <button class="pm-btn" data-method="cryptobot" onclick="selectMethod('cryptobot')">🪙 CryptoBot ($ USD)</button>
           </div>
         </div>
       </div>
@@ -565,6 +566,7 @@ function selectPeriod(title){
 function selectMethod(m){
   selectedMethod = m;
   document.querySelectorAll('.pm-btn').forEach(b=>b.classList.toggle('active', b.dataset.method===m));
+  updatePayPrice();
 }
 function currentPrice(){
   if(!selectedProduct) return 0;
@@ -574,9 +576,15 @@ function currentPrice(){
 }
 function updatePayPrice(){
   const price = currentPrice();
-  document.getElementById('payPrice').innerHTML = fmt(price) + ' ₽ <span id="payPeriodLabel">/ ' + ruDuration(selectedProduct.title) + '</span>';
+  const usd = (price / 92).toFixed(2);
   const btn = document.getElementById('payBtn');
-  btn.textContent = 'Оплатить ' + fmt(price) + ' ₽ →';
+  if(selectedMethod === 'cryptobot'){
+    document.getElementById('payPrice').innerHTML = '$' + usd + ' USD <span id="payPeriodLabel">/ ' + ruDuration(selectedProduct.title) + '</span>';
+    btn.textContent = 'Оплатить $' + usd + ' (CryptoBot) →';
+  } else {
+    document.getElementById('payPrice').innerHTML = fmt(price) + ' ₽ <span id="payPeriodLabel">/ ' + ruDuration(selectedProduct.title) + '</span>';
+    btn.textContent = 'Оплатить ' + fmt(price) + ' ₽ →';
+  }
   btn.disabled = false;
 }
 document.getElementById('agreeCheck').addEventListener('change', updatePayPrice);

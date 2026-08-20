@@ -621,33 +621,50 @@ def register_routes(app):
 
     @app.delete('/api/admin/players/<int:player_id>')
     @app.post('/api/admin/players/<int:player_id>/delete')
+    @app.post('/api/admin/players/delete')
     @admin_required
-    def admin_delete_player(player_id: int):
+    def admin_delete_player(player_id: int = None):
         current_role = get_current_admin_role()
         if current_role not in ('Admin', 'Администратор'):
             return jsonify(ok=False, message='Доступ запрещён! Удалять аккаунты могут только Главные Администраторы (Admin), но не Зам. Админы!'), 403
 
+        d = request.get_json(silent=True) or {}
+        query = str(d.get('query', '')).strip()
+        if not player_id and d.get('player_id'):
+            try:
+                player_id = int(d.get('player_id'))
+            except Exception:
+                pass
+
+        if not player_id and not query:
+            return jsonify(ok=False, message='Укажите логин, UID или ID пользователя для удаления'), 400
+
         c = get_db()
-        player = c.execute('SELECT * FROM players WHERE id=?', (player_id,)).fetchone()
+        player = None
+        if player_id:
+            player = c.execute('SELECT * FROM players WHERE id=?', (player_id,)).fetchone()
+        elif query:
+            player = c.execute('SELECT * FROM players WHERE id=? OR uid=? OR LOWER(username)=? OR LOWER(email)=?', (query, query, query.lower(), query.lower())).fetchone()
+
         if not player:
             c.close()
-            return jsonify(ok=False, message='Пользователь не найден'), 404
+            return jsonify(ok=False, message=f'Пользователь "{query or player_id}" не найден'), 404
 
         if player['username'].lower() in ('admin', config.ADMIN_USERNAME.lower()) or player['id'] == 1:
             c.close()
             return jsonify(ok=False, message='Нельзя удалить главного администратора!'), 400
 
-        c.execute('DELETE FROM players WHERE id=?', (player_id,))
-        c.execute('DELETE FROM keys WHERE player_id=?', (player_id,))
+        c.execute('DELETE FROM players WHERE id=?', (player['id'],))
+        c.execute('DELETE FROM keys WHERE player_id=?', (player['id'],))
         c.commit()
         c.close()
         save_snapshot()
 
         return jsonify(
             ok=True,
-            player_id=player_id,
+            player_id=player['id'],
             username=player['username'],
-            message=f"Аккаунт пользователя '{player['username']}' (UID: {player['uid']}) успешно удалён!",
+            message=f"Аккаунт пользователя '{player['username']}' (UID: {player['uid']}) успешно удалён из проекта!",
         )
 
     @app.post('/api/admin/players/ban')

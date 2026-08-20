@@ -289,9 +289,10 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
     <div class="paybox">
       <h3>2. Способ оплаты</h3>
       <div id="planHint" style="color:var(--muted);font-size:13px;margin-bottom:14px">1. Выберите тариф → 2. Оплата</div>
-      <div class="pms" style="grid-template-columns: 1fr 1fr;">
-        <button class="pm sel" onclick="selPay('sbp',this)">&#9889; СБП<small>Система быстрых платежей</small></button>
-        <button class="pm" onclick="selPay('funpay',this)">&#128176; FunPay<small>Маркетплейс</small></button>
+      <div class="pms" style="grid-template-columns: 1fr 1fr 1fr;">
+        <button class="pm sel" onclick="selPay('sbp',this)">&#9889; СБП<small>Быстрые платежи (₽)</small></button>
+        <button class="pm" onclick="selPay('cryptobot',this)">&#129689; CryptoBot<small>USDT, TON ($ USD)</small></button>
+        <button class="pm" onclick="selPay('funpay',this)">&#128176; FunPay<small>Маркетплейс (₽)</small></button>
       </div>
 
       <div class="co" id="checkout">
@@ -429,6 +430,21 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
             <div class="cc"><span class="cl">&#128187; Привязано HWID</span><strong id="statHwid" style="font-size:22px;color:#38bdf8">0</strong></div>
           </div>
 
+          <!-- Account Deletion Box for Admins -->
+          <div class="cc wide" style="margin-bottom:16px;border-color:rgba(239,68,68,0.35)">
+            <span class="cl" style="color:#f87171">&#128465; Удаление аккаунтов (Только Главный Админ)</span>
+            <h3 style="font-size:16px;margin:6px 0 12px;color:#f87171">Удалить аккаунт пользователя из проекта навсегда</h3>
+            <p style="color:var(--muted);font-size:12px;margin-bottom:10px">Безвозвратно удаляет аккаунт, все ключи и привязки. Доступно только Администраторам (Admin).</p>
+            <form onsubmit="deletePlayerQueryAdmin(event)" style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-bottom:8px">
+              <div>
+                <label style="font-size:12px;color:var(--muted)">Логин, UID или ID аккаунта</label>
+                <input id="delUserQuery" class="ai" placeholder="Например: DarkPlayer или 268410" required style="margin-top:4px;border-color:rgba(239,68,68,0.4)">
+              </div>
+              <button class="btn" type="submit" style="background:#ef4444;border-color:#ef4444">&#128465; Удалить аккаунт</button>
+            </form>
+            <div id="playerDeleteStatus" style="font-size:13px;margin-bottom:8px"></div>
+          </div>
+
           <!-- Players Table & Ban Form -->
           <div class="cc wide" style="margin-bottom:16px">
             <span class="cl">&#128683; Блокировка аккаунтов игроков</span>
@@ -446,7 +462,7 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
             </form>
             <div id="playerBanStatus" style="font-size:13px;margin-bottom:12px"></div>
 
-            <h3 style="font-size:16px;margin:16px 0 12px">&#128101; Список пользователей (Игроки, роли, пароли и бан)</h3>
+            <h3 style="font-size:16px;margin:16px 0 12px">&#128101; Список пользователей (Игроки, роли, пароли, бан и удаление)</h3>
             <div id="playerList" style="max-height:420px;overflow-y:auto;display:grid;gap:8px"></div>
           </div>
 
@@ -732,15 +748,42 @@ function selPay(m,b){
   selPayM=m;
   document.querySelectorAll('.pm').forEach(x=>x.classList.remove('sel'));
   b.classList.add('sel');
-  const lb={'sbp':'СБП (Система быстрых платежей)','funpay':'FunPay'};
+  const lb={
+    'sbp':'СБП (Система быстрых платежей)',
+    'cryptobot':'CryptoBot (Telegram / USDT, TON, BTC)',
+    'funpay':'FunPay'
+  };
   const mv=document.getElementById('coMethod');
   if(mv)mv.textContent=lb[m]||m;
   upCo();
 }
-function upCo(){const co=document.getElementById('checkout');if(selProd===null||selProd===undefined){if(co)co.classList.remove('on');return;}if(!selPayM)return;const p=prods[selProd];if(!p||!co)return;const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;co.classList.add('on');const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('coProd',p.title);se('coPrice',f+'₽');se('coTotal',f+'₽');}
+function upCo(){
+  const co=document.getElementById('checkout');
+  if(selProd===null||selProd===undefined){if(co)co.classList.remove('on');return;}
+  if(!selPayM)return;
+  const p=prods[selProd];
+  if(!p||!co)return;
+  const dc=activePromo?activePromo.discount:0;
+  const f=dc?Math.round(p.price*(100-dc)/100):p.price;
+  const usd=(f/92).toFixed(2);
+  co.classList.add('on');
+  const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  se('coProd',p.title);
+  if(selPayM==='cryptobot'){
+    se('coPrice', '$' + usd + ' USD (' + f + ' ₽)');
+    se('coTotal', '$' + usd + ' USD (' + f + ' ₽)');
+    const pb=document.getElementById('payBtn');
+    if(pb)pb.textContent='Оплатить через CryptoBot ($' + usd + ') →';
+  } else {
+    se('coPrice', f + ' ₽');
+    se('coTotal', f + ' ₽');
+    const pb=document.getElementById('payBtn');
+    if(pb)pb.textContent='Перейти к оплате →';
+  }
+}
 function startPay(){
   if(selProd===null){alert('Пожалуйста, сначала выберите тариф выше!');return;}
-  if(!selPayM){alert('Пожалуйста, выберите способ оплаты (СБП или FunPay)');return;}
+  if(!selPayM){alert('Пожалуйста, выберите способ оплаты (СБП, CryptoBot или FunPay)');return;}
   const p=prods[selProd];
   if(selPayM==='funpay'){
     window.open('https://funpay.com/users/12165454/','_blank');
@@ -748,6 +791,30 @@ function startPay(){
   }
   const promo=activePromo?activePromo.code:'';
   window.location.href=`/payment?product=${encodeURIComponent(p.title)}&promo=${encodeURIComponent(promo)}&method=${encodeURIComponent(selPayM)}`;
+}
+async function deletePlayerQueryAdmin(e){
+  e.preventDefault();
+  const query=document.getElementById('delUserQuery').value.trim();
+  const st=document.getElementById('playerDeleteStatus');
+  if(!query)return;
+  if(!confirm(`Вы уверены, что хотите НАВСЕГДА удалить аккаунт "${query}" из проекта? Это действие невозможно отменить!`)) return;
+  try{
+    const r=await fetch('/api/admin/players/delete',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:query})
+    });
+    const d=await r.json();
+    if(d.ok){
+      if(st){st.textContent='✅ '+d.message;st.style.color='#34d399';}
+      document.getElementById('delUserQuery').value='';
+      loadAdmin();
+    }else{
+      if(st){st.textContent='❌ '+(d.message||'Ошибка');st.style.color='#ef4444';}
+    }
+  }catch(err){
+    if(st){st.textContent='Ошибка сети';st.style.color='#ef4444';}
+  }
 }
 function supAlert(){alert('Поддержка:\n📩 Telegram: @euphoria_support\n💬 Discord: discord.gg/euphoria');}
 // Admin
