@@ -200,6 +200,30 @@ def register_routes(app):
         username = str(d.get('username', '')).strip()
         password = str(d.get('password', ''))
         c = get_db()
+
+        # Check if matching admin username or email
+        is_admin_user = (username.lower() == config.ADMIN_USERNAME.lower()) or (username.lower() == 'admin')
+        if is_admin_user:
+            admin_row = c.execute('SELECT * FROM admins WHERE username=?', (config.ADMIN_USERNAME,)).fetchone()
+            if admin_row and check_password_hash(admin_row['password_hash'], password):
+                # Ensure admin player exists
+                p = c.execute('SELECT * FROM players WHERE username=?', (config.ADMIN_USERNAME,)).fetchone()
+                now = datetime.now(timezone.utc).isoformat()
+                if not p:
+                    c.execute(
+                        "INSERT INTO players(uid,username,email,password_hash,role,created_at,last_login) VALUES(?,?,?,?,?,?,?)",
+                        ('1', config.ADMIN_USERNAME, 'admin@euphoria.local', admin_row['password_hash'], 'Admin', now, now)
+                    )
+                    c.commit()
+                    p = c.execute('SELECT * FROM players WHERE username=?', (config.ADMIN_USERNAME,)).fetchone()
+                else:
+                    c.execute("UPDATE players SET role='Admin', last_login=? WHERE id=?", (now, p['id']))
+                    c.commit()
+                session['admin_id'] = admin_row['id']
+                session['player_id'] = p['id']
+                c.close()
+                return jsonify(ok=True, uid=p['uid'])
+
         row = c.execute('SELECT * FROM players WHERE username=? OR email=?', (username, username.lower())).fetchone()
         if not row or not check_password_hash(row['password_hash'], password):
             c.close()
@@ -208,7 +232,10 @@ def register_routes(app):
         c.execute('UPDATE players SET last_login=? WHERE id=?', (now, row['id']))
         c.commit(); c.close()
         session['player_id'] = row['id']
-        session.pop('admin_id', None)
+        if row['role'] == 'Admin':
+            session['admin_id'] = row['id']
+        else:
+            session.pop('admin_id', None)
         return jsonify(ok=True, uid=row['uid'])
 
     @app.post('/api/player/change-password')

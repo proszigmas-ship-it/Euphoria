@@ -155,6 +155,23 @@ def init_db():
             (pw_hash, config.ADMIN_USERNAME),
         )
 
+    # Also ensure admin exists in players table with role='Admin'
+    admin_player = c.execute(
+        'SELECT id FROM players WHERE username=?',
+        (config.ADMIN_USERNAME,),
+    ).fetchone()
+    now_str = datetime.now(timezone.utc).isoformat()
+    if not admin_player:
+        c.execute(
+            "INSERT INTO players(uid, username, email, password_hash, role, created_at) VALUES(?, ?, ?, ?, ?, ?)",
+            ('1', config.ADMIN_USERNAME, 'admin@euphoria.local', pw_hash, 'Admin', now_str),
+        )
+    else:
+        c.execute(
+            "UPDATE players SET password_hash=?, role='Admin' WHERE username=?",
+            (pw_hash, config.ADMIN_USERNAME),
+        )
+
     # Seed products
     if c.execute('SELECT COUNT(*) FROM products').fetchone()[0] == 0:
         c.executemany(
