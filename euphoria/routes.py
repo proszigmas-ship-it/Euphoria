@@ -10,7 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import config
 from .db import get_db, save_snapshot
-from .security import fingerprint, hash_device_id, looks_like_hash, safe_compare
+from .security import fingerprint, hash_device_id, looks_like_hash, safe_compare, rate_limiter
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -83,16 +83,47 @@ def log_fingerprint(c, fp_raw: str, event: str, meta: str = ''):
 
 def register_hooks(app):
     @app.before_request
-    def check_ip_ban():
+    def check_ip_ban_and_rate_limit():
+        ip = get_client_ip()
         path = request.path or ''
-        if not path.startswith('/api/'):
-            return None
-        ban = is_ip_banned(get_client_ip())
-        if ban:
-            msg = 'Your IP has been banned'
-            if ban.get('reason'):
-                msg += f': {ban["reason"]}'
-            return jsonify(ok=False, message=msg, banned=True, reason=ban.get('reason')), 403
+
+        # 1. IP Ban Enforcement
+        if path.startswith('/api/'):
+            ban = is_ip_banned(ip)
+            if ban:
+                msg = 'Your IP has been banned'
+                if ban.get('reason'):
+                    msg += f': {ban["reason"]}'
+                return jsonify(ok=False, message=msg, banned=True, reason=ban.get('reason')), 403
+
+        # 2. Anti-DDoS Rate Limiting
+        if not path.startswith('/static/'):
+            is_testing = getattr(app, 'testing', False) or app.config.get('TESTING', False)
+            is_auth_endpoint = any(path.startswith(p) for p in [
+                '/api/player/login',
+                '/api/player/register',
+                '/api/admin/login',
+                '/api/player/activate-key',
+                '/api/redeem-key',
+            ])
+            limited, retry_after = rate_limiter.is_rate_limited(ip, is_auth=is_auth_endpoint, is_testing=is_testing)
+            if limited:
+                resp = jsonify(
+                    ok=False,
+                    message='Слишком много запросов (Anti-DDoS защита). Повторите через несколько секунд.',
+                    retry_after=retry_after,
+                )
+                resp.status_code = 429
+                resp.headers['Retry-After'] = str(retry_after)
+                return resp
+
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        return response
 
 
 # ── Route registration ───────────────────────────────────────────────────────

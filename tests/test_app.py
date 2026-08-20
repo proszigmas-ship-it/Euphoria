@@ -200,6 +200,25 @@ class EuphoriaAppTests(unittest.TestCase):
         plist_after = self.client.get('/api/admin/players').get_json()['players']
         self.assertFalse(any(p['id'] == pid for p in plist_after))
 
+    def test_security_headers_present(self):
+        resp = self.client.get('/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.headers.get('X-Content-Type-Options'), 'nosniff')
+        self.assertEqual(resp.headers.get('X-Frame-Options'), 'SAMEORIGIN')
+        self.assertEqual(resp.headers.get('X-XSS-Protection'), '1; mode=block')
+
+    def test_anti_ddos_rate_limiting(self):
+        from euphoria.security import rate_limiter
+        test_ip = '198.51.100.99'
+        # Emulate repeated calls
+        for _ in range(20):
+            limited, _ = rate_limiter.is_rate_limited(test_ip, is_auth=True)
+            self.assertFalse(limited)
+        # 21st call should trigger rate limiter
+        limited, retry_after = rate_limiter.is_rate_limited(test_ip, is_auth=True)
+        self.assertTrue(limited)
+        self.assertGreater(retry_after, 0)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -38,3 +38,52 @@ def looks_like_hash(value) -> bool:
     if len(value) != 64:
         return False
     return all(c in '0123456789abcdef' for c in value)
+
+
+import time
+import threading
+from collections import defaultdict, deque
+
+
+class RateLimiter:
+    """Sliding-window IP rate limiter to prevent HTTP flood & DDoS attacks."""
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._requests = defaultdict(deque)
+        self._auth_requests = defaultdict(deque)
+
+    def reset(self):
+        with self._lock:
+            self._requests.clear()
+            self._auth_requests.clear()
+
+    def is_rate_limited(self, ip: str, is_auth: bool = False, is_testing: bool = False) -> tuple[bool, int]:
+        """
+        Checks if an IP exceeds rate limits.
+        Limits:
+        - General: 120 req / 60s
+        - Auth & sensitive APIs: 20 req / 60s
+        Returns (is_limited: bool, retry_after_seconds: int)
+        """
+        if is_testing:
+            return False, 0
+
+        now = time.time()
+        window = 60.0
+        limit = 20 if is_auth else 120
+        queue = self._auth_requests[ip] if is_auth else self._requests[ip]
+
+        with self._lock:
+            while queue and queue[0] < now - window:
+                queue.popleft()
+
+            if len(queue) >= limit:
+                oldest = queue[0]
+                retry_after = max(1, int(window - (now - oldest)))
+                return True, retry_after
+
+            queue.append(now)
+            return False, 0
+
+
+rate_limiter = RateLimiter()
