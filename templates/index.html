@@ -290,17 +290,28 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
       <h3>2. Способ оплаты</h3>
       <div id="planHint" style="color:var(--muted);font-size:13px;margin-bottom:14px">1. Выберите тариф → 2. Оплата</div>
       <div class="pms">
-        <button class="pm" onclick="selPay('funpay',this)">&#128176; FunPay<small>&#1052;&#1072;&#1088;&#1082;&#1077;&#1090;&#1087;&#1083;&#1077;&#1081;&#1089;</small></button>
-        <button class="pm" onclick="selPay('yumoney',this)">&#127505; &#1070;Money<small>&#1050;&#1086;&#1096;&#1077;&#1083;&#1105;&#1082;</small></button>
-        <button class="pm" onclick="selPay('card',this)">&#128179; &#1050;&#1072;&#1088;&#1090;&#1072;<small>&#1041;&#1072;&#1085;&#1082;&#1086;&#1074;&#1089;&#1082;&#1072;&#1103;</small></button>
+        <button class="pm" onclick="selPay('funpay',this)">&#128176; FunPay<small>Маркетплейс</small></button>
+        <button class="pm" onclick="selPay('card',this)">&#128179; Карта РФ / СБП<small>Прямой перевод</small></button>
+        <button class="pm" onclick="selPay('yumoney',this)">&#127505; ЮMoney<small>Кошелёк</small></button>
         <button class="pm" onclick="selPay('visa',this)">&#128309; Visa<small>Card payment</small></button>
-        <button class="pm" onclick="selPay('mc',this)">&#128308; MC<small>Card payment</small></button>
+        <button class="pm" onclick="selPay('mc',this)">&#128308; Mastercard<small>Card payment</small></button>
       </div>
+
+      <!-- Card details box for direct payment -->
+      <div id="cardDetailsBox" style="display:none;background:#0d1124;border:1px solid #3b82f6;border-radius:12px;padding:14px;margin-top:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Реквизиты для оплаты картой / СБП:</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <span style="font-size:18px;font-weight:700;letter-spacing:1.5px;color:#38bdf8;font-family:monospace">2200 2082 2574 8764</span>
+          <button class="btn ghost small" type="button" onclick="navigator.clipboard.writeText('2200208225748764');alert('Номер карты 2200208225748764 скопирован!');">&#128203; Скопировать</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px">После перевода подписка активируется автоматически на ваш аккаунт!</div>
+      </div>
+
       <div class="co" id="checkout">
-        <div class="cr"><span id="coProd">&#1058;&#1072;&#1088;&#1080;&#1092;</span><b id="coPrice">0 &#8381;</b></div>
-        <div class="cr"><span>&#1054;&#1087;&#1083;&#1072;&#1090;&#1072;</span><b id="coMethod">&#8212;</b></div>
-        <div class="cr tot"><span>К оплате</span><span id="coTotal">0 &#8381;</span></div>
-        <button class="btn btn-full" style="margin-top:12px" onclick="startPay()" id="payBtn">Перейти к оплате</button>
+        <div class="cr"><span id="coProd">Тариф</span><b id="coPrice">0 ₽</b></div>
+        <div class="cr"><span>Оплата</span><b id="coMethod">&#8212;</b></div>
+        <div class="cr tot"><span>К оплате</span><span id="coTotal">0 ₽</span></div>
+        <button class="btn btn-full" style="margin-top:12px" onclick="startPay()" id="payBtn">Оплатить и активировать</button>
       </div>
     </div>
   </div>
@@ -661,7 +672,44 @@ async function doReg(){const m=document.getElementById('modMsg');m.className='pm
 // Products
 let prods=[],activePromo=null,selProd=null,selPayM=null;
 async function loadProds(){try{const r=await fetch('/api/products');prods=await r.json();renderCards();}catch(e){}}
-function renderCards(){const g=document.getElementById('cards');if(!g)return;const dc=activePromo?activePromo.discount:0;if(!prods.length){g.innerHTML='<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:20px">Тарифы скоро появятся.</p>';return;}const mx=Math.max(...prods.map(p=>p.price),1);g.innerHTML=prods.map((p,i)=>{const o=p.price;const f=dc?Math.round(o*(100-dc)/100):o;const isp=o>=mx;return`<div class="pc${isp?' pop':''}" onclick="sPlan(${i})" style="cursor:pointer"><div class="ptag" style="${isp?'':'display:none'}">🔥 Выгодно</div><h3>${p.title}</h3><div class="pb">${f}₽<small>${dc?` (−${dc}%) было ${o}₽`:''}</small></div><ul class="fl"><li>Доступ к клиенту</li><li>Поддержка 24/7</li><li>Все обходы</li>${isp?'<li>Приоритет</li>':''}</ul><button class="btn btn-full" type="button" onclick="event.stopPropagation();sPlan(${i})">${selProd===i?'✓ Купить':'Купить'}</button></div>`; }).join('');}
+function renderCards(){
+  const g=document.getElementById('cards');
+  if(!g)return;
+  const dc=activePromo?activePromo.discount:0;
+  if(!prods.length){
+    g.innerHTML='<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:20px">Тарифы скоро появятся.</p>';
+    return;
+  }
+  g.innerHTML=prods.filter(p=>p.title!=='HWID Reset').map((p,i)=>{
+    const o=p.price;
+    const f=dc?Math.round(o*(100-dc)/100):o;
+    const is365=p.title.includes('365');
+    const isLife=p.title.toLowerCase().includes('life')||p.title.toLowerCase().includes('навсегда');
+    let badgeText = is365 ? '🔥 Хит продаж' : (isLife ? '💎 Лучшая цена' : '');
+    const isPopular = is365 || isLife;
+
+    let displayTitle = p.title;
+    if(p.title==='30 Days') displayTitle='30 Дней';
+    else if(p.title==='90 Days') displayTitle='90 Дней';
+    else if(p.title==='365 Days') displayTitle='365 Дней (1 Год)';
+    else if(p.title==='Lifetime') displayTitle='Навсегда (Lifetime)';
+
+    return `
+      <div class="pc${isPopular?' pop':''}" onclick="sPlan(${i})" style="cursor:pointer">
+        ${badgeText ? `<div class="ptag">${badgeText}</div>` : ''}
+        <h3>${displayTitle}</h3>
+        <div class="pb">${f}₽<small>${dc?` (−${dc}%) было ${o}₽`:''}</small></div>
+        <ul class="fl">
+          <li>✓ Полный доступ к клиенту</li>
+          <li>✓ Быстрые обновления и обходы</li>
+          <li>✓ Круглосуточная поддержка 24/7</li>
+          ${isPopular?'<li style="color:#38bdf8">★ Моментальная автоактивация</li>':''}
+        </ul>
+        <button class="btn btn-full" type="button" onclick="event.stopPropagation();sPlan(${i})">${selProd===i?'✓ Выбрано':'Купить'}</button>
+      </div>
+    `;
+  }).join('');
+}
 function sPlan(i){
   selProd=i;
   if(!selPayM){
@@ -670,6 +718,7 @@ function sPlan(i){
   }
   renderCards();
   const p=prods[i];
+  if(!p)return;
   const dc=activePromo?activePromo.discount:0;
   const f=dc?Math.round(p.price*(100-dc)/100):p.price;
   const h=document.getElementById('planHint');
@@ -678,7 +727,23 @@ function sPlan(i){
   document.querySelector('.paybox')?.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 async function applyPromo(){const code=document.getElementById('promoInput').value.trim().toUpperCase();const st=document.getElementById('promoStatus');if(!code){activePromo=null;renderCards();if(st)st.textContent='';return;}try{const r=await fetch('/api/promos');const pm=await r.json();if(pm[code]){activePromo={code,discount:pm[code]};if(st){st.textContent=`✓ ${code}: −${pm[code]}%`;st.style.color='#34d399';}renderCards();}else{activePromo=null;if(st){st.textContent='✕ Промокод не найден';st.style.color='#ef4444';}renderCards();}}catch(e){}}
-function selPay(m,b){selPayM=m;document.querySelectorAll('.pm').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');const lb={'funpay':'FunPay','yumoney':'ЮMoney','card':'Банковская карта','visa':'Visa','mc':'Mastercard'};const mv=document.getElementById('coMethod');if(mv)mv.textContent=lb[m]||m;upCo();}
+function selPay(m,b){
+  selPayM=m;
+  document.querySelectorAll('.pm').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel');
+  const lb={'funpay':'FunPay','yumoney':'ЮMoney','card':'Карта РФ / СБП','visa':'Visa','mc':'Mastercard'};
+  const mv=document.getElementById('coMethod');
+  if(mv)mv.textContent=lb[m]||m;
+  const cb=document.getElementById('cardDetailsBox');
+  if(cb){
+    if(m==='card'||m==='visa'||m==='mc'){
+      cb.style.display='block';
+    }else{
+      cb.style.display='none';
+    }
+  }
+  upCo();
+}
 function upCo(){const co=document.getElementById('checkout');if(selProd===null||selProd===undefined){if(co)co.classList.remove('on');return;}if(!selPayM)return;const p=prods[selProd];if(!p||!co)return;const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;co.classList.add('on');const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('coProd',p.title);se('coPrice',f+'₽');se('coTotal',f+'₽');}
 async function startPay(){
   if(selProd===null){alert('Пожалуйста, сначала выберите тариф выше!');return;}

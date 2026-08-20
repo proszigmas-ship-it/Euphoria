@@ -382,6 +382,15 @@ h1.page-title{font-size:26px;margin-bottom:4px}
         <button class="btn ghost small" type="button" onclick="applyPromo()">Применить</button>
       </div>
 
+      <!-- Card details box for direct payment -->
+      <div id="cabCardDetailsBox" style="background:#0d1124;border:1px solid #3b82f6;border-radius:12px;padding:12px;margin:12px 0">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Реквизиты для оплаты (Карта / СБП):</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+          <span style="font-size:16px;font-weight:700;letter-spacing:1px;color:#38bdf8;font-family:monospace">2200 2082 2574 8764</span>
+          <button class="btn ghost small" type="button" onclick="navigator.clipboard.writeText('2200208225748764');alert('Номер карты 2200208225748764 скопирован!');">&#128203; Скопировать</button>
+        </div>
+      </div>
+
       <label class="agree-row">
         <input type="checkbox" id="agreeCheck" style="margin-top:3px">
         <span>Я согласен с <a href="#" onclick="return false">условиями использования</a> и понимаю, что покупка не подлежит возврату.</span>
@@ -403,11 +412,11 @@ let selectedMethod = 'sbp';
 let selectedProduct = null;
 let orderCounter = Math.floor(Math.random()*40)+1;
 
-const DURATION_SET = ['7 Days','30 Days','90 Days','Lifetime'];
+const DURATION_SET = ['30 Days','90 Days','365 Days','Lifetime'];
 
 function fmt(n){ return Number(n).toLocaleString('ru-RU'); }
 function ruDuration(d){
-  return {'7 Days':'7 дней','30 Days':'30 дней','90 Days':'90 дней','Lifetime':'навсегда','HWID Reset':'разово'}[d] || d;
+  return {'30 Days':'30 дней','90 Days':'90 дней','365 Days':'365 дней (1 год)','Lifetime':'навсегда','HWID Reset':'разово'}[d] || d;
 }
 
 async function boot(){

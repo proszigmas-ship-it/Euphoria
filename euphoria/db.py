@@ -246,33 +246,15 @@ def init_db():
         )
 
     # Seed products
-    if c.execute('SELECT COUNT(*) FROM products').fetchone()[0] == 0:
-        c.executemany(
-            'INSERT INTO products(title, price, popular) VALUES(?, ?, ?)',
-            config.DEFAULT_PRODUCTS,
-        )
-    else:
-        # Keep the built-in plans in sync after an upgrade, while leaving any
-        # administrator-created products untouched.
-        for title, price, popular in config.DEFAULT_PRODUCTS:
-            c.execute(
-                'UPDATE products SET price=?, popular=? WHERE title=?',
-                (price, popular, title),
-            )
-            if c.execute('SELECT changes()').fetchone()[0] == 0:
-                c.execute(
-                    'INSERT INTO products(title, price, popular) VALUES(?, ?, ?)',
-                    (title, price, popular),
-                )
-        exists = c.execute(
-            "SELECT id FROM products WHERE title=?",
-            ('HWID Reset',),
-        ).fetchone()
-        if not exists:
-            c.execute(
-                'INSERT INTO products(title, price, popular) VALUES(?, ?, ?)',
-                ('HWID Reset', 250, 0),
-            )
+    for title, price, popular in config.DEFAULT_PRODUCTS:
+        row = c.execute('SELECT id FROM products WHERE title=?', (title,)).fetchone()
+        if row:
+            c.execute('UPDATE products SET price=?, popular=? WHERE id=?', (price, popular, row['id']))
+        else:
+            c.execute('INSERT INTO products(title, price, popular) VALUES(?, ?, ?)', (title, price, popular))
+
+    # Remove obsolete 7 Days if present
+    c.execute("DELETE FROM products WHERE title='7 Days'")
 
     # Seed promo
     if c.execute('SELECT COUNT(*) FROM promos').fetchone()[0] == 0:

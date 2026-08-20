@@ -31,12 +31,14 @@ SECRET_KEY = os.environ.get('EUPHORIA_SECRET', 'CHANGE_THIS_SECRET')
 ADMIN_USERNAME = os.environ.get('EUPHORIA_ADMIN_USER', 'admin')
 ADMIN_PASSWORD = os.environ.get('EUPHORIA_ADMIN_PASSWORD', 'Euphoria#2026!Sec9X_Admin')
 
+CARD_NUMBER = os.environ.get('EUPHORIA_CARD', '2200208225748764')
+
 DEFAULT_PRODUCTS = [
-    ('7 Days', 100, 0),
-    ('30 Days', 320, 1),
-    ('90 Days', 750, 0),
-    ('Lifetime', 1200, 0),
-    ('HWID Reset', 250, 0),
+    ('30 Days', 159, 0),
+    ('90 Days', 259, 0),
+    ('365 Days', 459, 1),
+    ('Lifetime', 699, 0),
+    ('HWID Reset', 199, 0),
 ]
 
 PLAYER_UID_BASE = 0
@@ -46,6 +48,7 @@ KEY_DURATIONS = {
     '7 Days': 7,
     '30 Days': 30,
     '90 Days': 90,
+    '365 Days': 365,
     'Lifetime': None,
 }
 

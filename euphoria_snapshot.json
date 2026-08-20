@@ -1,12 +1,12 @@
 {
-  "saved_at": "2026-08-20T20:04:44.969703+00:00",
+  "saved_at": "2026-08-20T20:11:56.937643+00:00",
   "players": [
     {
       "id": 1,
       "uid": "1",
       "username": "admin",
       "email": "admin@euphoria.local",
-      "password_hash": "scrypt:32768:8:1$NYpnox5IBeuNhgxx$61af28809d56b81e86974bec26760c7ded746aab3e6545f6002b9ac5c84a388118a87c99d193cafcbefd35fdbde8fd51cf9834637fcb05ab24c0f2588e2a8038",
+      "password_hash": "scrypt:32768:8:1$GmNGDhCgfU0eUOoQ$432e73f508fa44d542982953539dccc361e741a2facac085c95a12ce1d3e4868f29f46f97e6fce2ea4c8a67c5ee294ec9a6f255f0719d64692bf87eb7450b8ce",
       "password_plain": "Euphoria#2026!Sec9X_Admin",
       "role": "Admin",
       "created_at": "2026-08-20T20:00:46.882225+00:00",
@@ -27,34 +27,34 @@
   ],
   "products": [
     {
-      "id": 1,
-      "title": "7 Days",
-      "price": 100.0,
-      "popular": 0
-    },
-    {
       "id": 2,
       "title": "30 Days",
-      "price": 320.0,
-      "popular": 1
+      "price": 159.0,
+      "popular": 0
     },
     {
       "id": 3,
       "title": "90 Days",
-      "price": 750.0,
+      "price": 259.0,
       "popular": 0
     },
     {
       "id": 4,
       "title": "Lifetime",
-      "price": 1200.0,
+      "price": 699.0,
       "popular": 0
     },
     {
       "id": 5,
       "title": "HWID Reset",
-      "price": 250.0,
+      "price": 199.0,
       "popular": 0
+    },
+    {
+      "id": 6,
+      "title": "365 Days",
+      "price": 459.0,
+      "popular": 1
     }
   ]
 }
