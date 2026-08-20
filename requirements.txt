@@ -1,3 +1,5 @@
 Flask>=3.0,<4.0
 Werkzeug>=3.0,<4.0
 gunicorn>=23,<24
+psycopg2-binary>=2.9.9
+pg8000>=1.30.0

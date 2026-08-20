@@ -26,6 +26,7 @@ TEMPLATES_DIR = ROOT / 'templates'
 STATIC_DIR = ROOT / 'static'
 DB_PATH = ROOT / 'euphoria.db'
 
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 SECRET_KEY = os.environ.get('EUPHORIA_SECRET', 'CHANGE_THIS_SECRET')
 ADMIN_USERNAME = os.environ.get('EUPHORIA_ADMIN_USER', 'admin')
 ADMIN_PASSWORD = os.environ.get('EUPHORIA_ADMIN_PASSWORD', 'Euphoria#2026!Sec9X_Admin')

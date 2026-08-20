@@ -510,6 +510,28 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
             </form>
             <div id="banList" class="pl" style="max-height:200px;overflow-y:auto"></div>
           </div>
+
+          <!-- Database Storage & Backup -->
+          <div class="cc wide" style="margin-top:16px">
+            <span class="cl">&#128190; База данных</span>
+            <h3 style="font-size:16px;margin:6px 0 12px">Хранилище данных и Резервные копии</h3>
+            <div style="background:#0d1124;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+                <div>
+                  <div style="font-size:12px;color:var(--muted)">Статус хранилища:</div>
+                  <strong id="dbStatusBadge" style="color:#38bdf8;font-size:15px">Загрузка...</strong>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn ghost small" type="button" onclick="exportDatabase()">&#128229; Скачать бэкап (JSON)</button>
+                  <label class="btn ghost small" style="cursor:pointer;margin:0">
+                    &#128228; Восстановить из файла
+                    <input type="file" id="dbImportFile" accept=".json" style="display:none" onchange="importDatabase(event)">
+                  </label>
+                </div>
+              </div>
+              <p id="dbStatusDesc" style="color:var(--muted);font-size:12.5px;margin-top:10px;margin-bottom:0">Для гарантированного сохранения всех пользователей навсегда подключите PostgreSQL на Render.</p>
+            </div>
+          </div>
         </section>
       </main>
     </div>
@@ -720,7 +742,63 @@ async function loadAdmin(){
     const f=await fR.json().catch(()=>({}));
     rkl(k.keys||[]);rpl(p.promos||[]);rpd(pd);rplayer(pl);rban(b);rfp(f.fingerprints||[]);
     if(b.your_ip){const e=document.getElementById('yourIp');if(e)e.textContent=b.your_ip;}
+    loadDbStatus();
   }catch(e){}
+}
+async function loadDbStatus(){
+  try{
+    const r=await fetch('/api/admin/database/status');
+    const d=await r.json();
+    const b=document.getElementById('dbStatusBadge');
+    const desc=document.getElementById('dbStatusDesc');
+    if(d.ok){
+      if(d.is_postgres){
+        if(b){b.textContent='🟢 PostgreSQL (Постоянная облачная база данных)';b.style.color='#34d399';}
+        if(desc)desc.textContent='Данные пользователей, ключей и тарифов хранятся в постоянном облаке и никогда не сбросятся!';
+      } else {
+        if(b){b.textContent='🟡 SQLite (Локальная база)';b.style.color='#fbbf24';}
+        if(desc)desc.textContent='Сейчас используется локальный файл. Чтобы база никогда не стиралась при деплоях, создайте бесплатный PostgreSQL на Render и добавьте переменную DATABASE_URL.';
+      }
+    }
+  }catch(e){}
+}
+async function exportDatabase(){
+  try{
+    const r=await fetch('/api/admin/database/export');
+    const d=await r.json();
+    if(d.ok){
+      const blob=new Blob([JSON.stringify(d.data, null, 2)], {type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=`euphoria_backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }catch(e){
+    alert('Ошибка экспорта базы данных');
+  }
+}
+async function importDatabase(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      const r=await fetch('/api/admin/database/import',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({data})
+      });
+      const d=await r.json();
+      alert(d.message||'Бэкап успешно восстановлен!');
+      loadAdmin();
+    }catch(err){
+      alert('Ошибка при импорте файла бэкапа');
+    }
+  };
+  reader.readAsText(file);
 }
 function rkl(keys){const e=document.getElementById('keyList');if(!e)return;e.innerHTML=keys.map(k=>`<div class="pr"><span style="font-family:monospace;font-size:13px">${k.key}</span><span style="color:var(--muted);font-size:12px">${k.duration}·${k.uses}/${k.max_uses}</span><small style="color:${k.active?'#34d399':'#ef4444'}">${k.active?'Active':'Disabled'}</small>${k.active?`<button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="disKey(${k.id})">Disable</button>`:''}${k.bound?`<button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="resHwid(${k.id})">Reset HWID</button>`:''}</div>`).join('')||'<p style="color:var(--muted);padding:12px">Нет ключей</p>';}
 function rpl(promos){const e=document.getElementById('promoList');if(!e)return;e.innerHTML=promos.map(p=>`<div class="pr"><span>${p.code}</span><small>-${p.discount}%·${p.uses}/${p.max_uses||'∞'}</small><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="delPromo('${p.code}')">✕</button></div>`).join('');}

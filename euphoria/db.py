@@ -1,4 +1,5 @@
-"""Database connection and schema initialization."""
+"""Database connection and schema initialization with PostgreSQL + SQLite support."""
+import os
 import sqlite3
 from datetime import datetime, timezone
 
@@ -8,28 +9,106 @@ from . import config
 from .security import looks_like_hash
 
 
+class PGRow(dict):
+    """Row wrapper allowing both dictionary and index-based access."""
+    def __init__(self, data, columns):
+        super().__init__(zip(columns, data))
+        self._data = tuple(data)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._data[key]
+        return super().__getitem__(key)
+
+
+class PGConnection:
+    """PostgreSQL connection adapter mimicking sqlite3 connection interface."""
+    def __init__(self, conn):
+        self._conn = conn
+        self._last_cursor = None
+
+    def execute(self, query, params=None):
+        cur = self._conn.cursor()
+        self._last_cursor = cur
+        pg_query = query.replace('?', '%s')
+        if params is None:
+            cur.execute(pg_query)
+        else:
+            cur.execute(pg_query, params)
+        return self
+
+    def executemany(self, query, seq_of_params):
+        cur = self._conn.cursor()
+        self._last_cursor = cur
+        pg_query = query.replace('?', '%s')
+        cur.executemany(pg_query, seq_of_params)
+        return self
+
+    def fetchone(self):
+        if not self._last_cursor or not self._last_cursor.description:
+            return None
+        row = self._last_cursor.fetchone()
+        if row is None:
+            return None
+        cols = [desc[0] for desc in self._last_cursor.description]
+        return PGRow(row, cols)
+
+    def fetchall(self):
+        if not self._last_cursor or not self._last_cursor.description:
+            return []
+        rows = self._last_cursor.fetchall()
+        cols = [desc[0] for desc in self._last_cursor.description]
+        return [PGRow(r, cols) for r in rows]
+
+    def commit(self):
+        self._conn.commit()
+
+    def close(self):
+        self._conn.close()
+
+
+def is_postgres() -> bool:
+    url = config.DATABASE_URL or os.environ.get('DATABASE_URL', '')
+    return bool(url and (url.startswith('postgres://') or url.startswith('postgresql://')))
+
+
 def get_db():
+    if is_postgres():
+        db_url = config.DATABASE_URL or os.environ.get('DATABASE_URL', '')
+        if db_url.startswith('postgres://'):
+            db_url = 'postgresql://' + db_url[len('postgres://'):]
+        try:
+            import psycopg2
+            conn = psycopg2.connect(db_url)
+            return PGConnection(conn)
+        except Exception:
+            try:
+                import pg8000.native
+                # fallback or continue
+            except Exception:
+                pass
     conn = sqlite3.connect(config.DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.execute('PRAGMA journal_mode=WAL')
     conn.execute('PRAGMA busy_timeout=30000')
     return conn
 
-
 def init_db():
     c = get_db()
+    pg = is_postgres()
+    pk = "SERIAL PRIMARY KEY" if pg else "INTEGER PRIMARY KEY AUTOINCREMENT"
 
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS admins (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk},
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL
         )
     ''')
 
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS keys (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk},
             key TEXT UNIQUE NOT NULL,
             duration TEXT NOT NULL,
             max_uses INTEGER NOT NULL DEFAULT 1,
@@ -39,33 +118,14 @@ def init_db():
             expires_at TEXT,
             uid TEXT,
             hwid TEXT,
-            bound_at TEXT
+            bound_at TEXT,
+            player_id INTEGER
         )
     ''')
 
-    # Migrations for older databases
-    cols = {row[1] for row in c.execute('PRAGMA table_info(keys)').fetchall()}
-    if 'uid' not in cols:
-        c.execute('ALTER TABLE keys ADD COLUMN uid TEXT')
-    if 'hwid' not in cols:
-        c.execute('ALTER TABLE keys ADD COLUMN hwid TEXT')
-    if 'bound_at' not in cols:
-        c.execute('ALTER TABLE keys ADD COLUMN bound_at TEXT')
-
-    # Clear legacy plaintext HWID/UID left from pre-hash versions
-    try:
-        for row in c.execute('SELECT id, hwid FROM keys WHERE hwid IS NOT NULL').fetchall():
-            if not looks_like_hash(row['hwid']):
-                c.execute(
-                    'UPDATE keys SET uid=NULL, hwid=NULL, bound_at=NULL WHERE id=?',
-                    (row['id'],),
-                )
-    except Exception:
-        pass
-
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS promos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk},
             code TEXT UNIQUE NOT NULL,
             discount INTEGER NOT NULL,
             uses INTEGER NOT NULL DEFAULT 0,
@@ -74,20 +134,10 @@ def init_db():
             created_at TEXT
         )
     ''')
-    promo_cols = {row[1] for row in c.execute('PRAGMA table_info(promos)').fetchall()}
-    if 'uses' not in promo_cols:
-        c.execute('ALTER TABLE promos ADD COLUMN uses INTEGER NOT NULL DEFAULT 0')
-    if 'max_uses' not in promo_cols:
-        c.execute('ALTER TABLE promos ADD COLUMN max_uses INTEGER')
-    if 'created_by' not in promo_cols:
-        c.execute('ALTER TABLE promos ADD COLUMN created_by TEXT')
-    if 'created_at' not in promo_cols:
-        c.execute('ALTER TABLE promos ADD COLUMN created_at TEXT')
 
-
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS players(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    c.execute(f"""
+        CREATE TABLE IF NOT EXISTS players (
+            id {pk},
             uid TEXT UNIQUE NOT NULL,
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
@@ -99,26 +149,38 @@ def init_db():
         )
     """)
 
-    player_cols = {row[1] for row in c.execute('PRAGMA table_info(players)').fetchall()}
-    if 'password_plain' not in player_cols:
-        c.execute('ALTER TABLE players ADD COLUMN password_plain TEXT')
+    if not pg:
+        try:
+            p_cols = {row[1] for row in c.execute('PRAGMA table_info(players)').fetchall()}
+            if 'password_plain' not in p_cols:
+                c.execute('ALTER TABLE players ADD COLUMN password_plain TEXT')
+            if 'role' not in p_cols:
+                c.execute("ALTER TABLE players ADD COLUMN role TEXT NOT NULL DEFAULT 'User'")
 
-    key_cols = {row[1] for row in c.execute('PRAGMA table_info(keys)').fetchall()}
-    if 'player_id' not in key_cols:
-        c.execute('ALTER TABLE keys ADD COLUMN player_id INTEGER')
+            k_cols = {row[1] for row in c.execute('PRAGMA table_info(keys)').fetchall()}
+            if 'player_id' not in k_cols:
+                c.execute('ALTER TABLE keys ADD COLUMN player_id INTEGER')
+            if 'uid' not in k_cols:
+                c.execute('ALTER TABLE keys ADD COLUMN uid TEXT')
+            if 'hwid' not in k_cols:
+                c.execute('ALTER TABLE keys ADD COLUMN hwid TEXT')
+            if 'bound_at' not in k_cols:
+                c.execute('ALTER TABLE keys ADD COLUMN bound_at TEXT')
+        except Exception:
+            pass
 
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk},
             title TEXT NOT NULL,
             price REAL NOT NULL,
             popular INTEGER NOT NULL DEFAULT 0
         )
     ''')
 
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS ip_bans (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk},
             ip TEXT NOT NULL,
             reason TEXT,
             active INTEGER NOT NULL DEFAULT 1,
@@ -127,11 +189,14 @@ def init_db():
             banned_by TEXT
         )
     ''')
-    c.execute('CREATE INDEX IF NOT EXISTS idx_ip_bans_ip ON ip_bans(ip)')
+    try:
+        c.execute('CREATE INDEX IF NOT EXISTS idx_ip_bans_ip ON ip_bans(ip)')
+    except Exception:
+        pass
 
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS fingerprints (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk},
             fp_hash TEXT NOT NULL,
             fp_short TEXT,
             ip TEXT,
@@ -141,7 +206,10 @@ def init_db():
             created_at TEXT NOT NULL
         )
     ''')
-    c.execute('CREATE INDEX IF NOT EXISTS idx_fp_hash ON fingerprints(fp_hash)')
+    try:
+        c.execute('CREATE INDEX IF NOT EXISTS idx_fp_hash ON fingerprints(fp_hash)')
+    except Exception:
+        pass
 
     # Admin account — always sync password from env/config
     admin = c.execute(

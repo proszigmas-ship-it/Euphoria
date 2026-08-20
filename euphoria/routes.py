@@ -918,3 +918,74 @@ def register_routes(app):
             uses_left=row['max_uses'] - new_uses,
             bound=bool(stored_hwid or hwid_h),
         )
+
+    # ── Database management (Postgres status, export, import) ─────────────
+
+    @app.get('/api/admin/database/status')
+    @admin_required
+    def admin_db_status():
+        from .db import is_postgres
+        pg = is_postgres()
+        c = get_db()
+        player_count = c.execute('SELECT COUNT(*) FROM players').fetchone()[0]
+        key_count = c.execute('SELECT COUNT(*) FROM keys').fetchone()[0]
+        c.close()
+        return jsonify(
+            ok=True,
+            is_postgres=pg,
+            driver='PostgreSQL' if pg else 'SQLite',
+            persistent=pg,
+            player_count=player_count,
+            key_count=key_count,
+            message='Постоянная облачная база данных активна (данные не сотрутся)' if pg else 'Локальная база SQLite (для постоянного хранения подключите PostgreSQL)',
+        )
+
+    @app.get('/api/admin/database/export')
+    @admin_required
+    def admin_db_export():
+        c = get_db()
+        players = [dict(r) for r in c.execute('SELECT id, uid, username, email, password_hash, password_plain, role, created_at, last_login FROM players').fetchall()]
+        keys = [dict(r) for r in c.execute('SELECT id, key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id FROM keys').fetchall()]
+        promos = [dict(r) for r in c.execute('SELECT id, code, discount, uses, max_uses, created_by, created_at FROM promos').fetchall()]
+        products = [dict(r) for r in c.execute('SELECT id, title, price, popular FROM products').fetchall()]
+        c.close()
+        export_data = {
+            'version': '1.0',
+            'exported_at': datetime.now(timezone.utc).isoformat(),
+            'players': players,
+            'keys': keys,
+            'promos': promos,
+            'products': products,
+        }
+        return jsonify(ok=True, data=export_data)
+
+    @app.post('/api/admin/database/import')
+    @admin_required
+    def admin_db_import():
+        d = request.get_json(silent=True) or {}
+        data = d.get('data') or d
+        players = data.get('players', [])
+        keys = data.get('keys', [])
+        promos = data.get('promos', [])
+        c = get_db()
+        imported_players = 0
+        imported_keys = 0
+        for p in players:
+            existing = c.execute('SELECT id FROM players WHERE LOWER(username)=? OR LOWER(email)=?', (p['username'].lower(), p['email'].lower())).fetchone()
+            if not existing:
+                c.execute(
+                    'INSERT INTO players(uid, username, email, password_hash, password_plain, role, created_at, last_login) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
+                    (p.get('uid', '1'), p['username'], p['email'], p['password_hash'], p.get('password_plain'), p.get('role', 'User'), p.get('created_at'), p.get('last_login')),
+                )
+                imported_players += 1
+        for k in keys:
+            existing = c.execute('SELECT id FROM keys WHERE key=?', (k['key'],)).fetchone()
+            if not existing:
+                c.execute(
+                    'INSERT INTO keys(key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    (k['key'], k['duration'], k.get('max_uses', 1), k.get('uses', 0), k.get('active', 1), k.get('created_at'), k.get('expires_at'), k.get('uid'), k.get('hwid'), k.get('bound_at'), k.get('player_id')),
+                )
+                imported_keys += 1
+        c.commit()
+        c.close()
+        return jsonify(ok=True, message=f'Импорт завершён: добавлено {imported_players} игроков и {imported_keys} ключей.')
