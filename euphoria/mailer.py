@@ -4,11 +4,11 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-SMTP_HOST = os.environ.get('SMTP_HOST', '')
+SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.mail.ru')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', '465'))
-SMTP_USER = os.environ.get('SMTP_USER', '')
+SMTP_USER = os.environ.get('SMTP_USER', 'euphoria.auth@mail.ru')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-SMTP_FROM = os.environ.get('SMTP_FROM', SMTP_USER or 'noreply@euphoria-project.com')
+SMTP_FROM = os.environ.get('SMTP_FROM', 'euphoria.auth@mail.ru')
 SMTP_SSL = os.environ.get('SMTP_SSL', '1') == '1'
 
 
