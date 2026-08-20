@@ -1,4 +1,5 @@
 """Regression checks for the core admin, plans, and licence flows."""
+import secrets
 import tempfile
 import unittest
 from pathlib import Path
@@ -222,7 +223,7 @@ class EuphoriaAppTests(unittest.TestCase):
     def test_registration_email_validation(self):
         # Invalid email should fail with 400
         bad_resp = self.client.post('/api/player/register', json={
-            'username': 'email_test_bad',
+            'username': f'bad_email_{secrets.token_hex(4)}',
             'email': 'not-an-email',
             'password': 'Password123!'
         })
@@ -231,16 +232,16 @@ class EuphoriaAppTests(unittest.TestCase):
 
         # Valid email should succeed
         ok_resp = self.client.post('/api/player/register', json={
-            'username': 'email_test_ok',
-            'email': 'player_good@example.com',
+            'username': f'good_email_{secrets.token_hex(4)}',
+            'email': f'good_{secrets.token_hex(4)}@example.com',
             'password': 'Password123!'
         })
         self.assertEqual(ok_resp.status_code, 200)
 
     def test_forgot_and_reset_password_flow(self):
         # 1. Register a test player
-        uname = 'pw_reset_user'
-        email = 'reset_me@domain.org'
+        uname = f'pw_user_{secrets.token_hex(4)}'
+        email = f'reset_{secrets.token_hex(4)}@domain.org'
         orig_pw = 'OldPassword123!'
         self.client.post('/api/player/register', json={
             'username': uname,
@@ -282,6 +283,28 @@ class EuphoriaAppTests(unittest.TestCase):
             'password': new_pw
         })
         self.assertEqual(login_resp.status_code, 200)
+
+    def test_admin_can_inspect_password_reset_codes(self):
+        # 1. Register and request code
+        uname = f'user_res_{secrets.token_hex(4)}'
+        email = f'{uname}@example.com'
+        self.client.post('/api/player/register', json={
+            'username': uname,
+            'email': email,
+            'password': 'Password123!'
+        })
+        self.client.post('/api/player/forgot-password', json={'login_or_email': uname})
+
+        # 2. Login as admin
+        self.client.post('/api/admin/login', json={'username': config.ADMIN_USERNAME, 'password': config.ADMIN_PASSWORD})
+
+        # 3. Fetch resets log
+        r = self.client.get('/api/admin/password-resets')
+        self.assertEqual(r.status_code, 200)
+        data = r.get_json()
+        self.assertTrue(data['ok'])
+        found = any(x['username'] == uname for x in data['resets'])
+        self.assertTrue(found)
 
 
 if __name__ == '__main__':

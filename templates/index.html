@@ -539,6 +539,19 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
             <div id="banList" class="pl" style="max-height:200px;overflow-y:auto"></div>
           </div>
 
+          <!-- Password Reset & Email Codes Inspection -->
+          <div class="cc wide" style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div>
+                <span class="cl">&#128273; Email &amp; Коды сброса паролей</span>
+                <h3 style="font-size:16px;margin:4px 0 0">Журнал запросов на сброс паролей</h3>
+              </div>
+              <button class="btn ghost small" onclick="loadPasswordResets()">&#128260; Обновить</button>
+            </div>
+            <p style="color:var(--muted);font-size:12px;margin-bottom:12px">Здесь отображаются все сгенерированные 6-значные коды. Вы всегда можете перепроверить любой код или сообщить его пользователю при обращении в поддержку.</p>
+            <div id="resetCodesList" class="pl" style="max-height:220px;overflow-y:auto"></div>
+          </div>
+
           <!-- Database Storage & Backup -->
           <div class="cc wide" style="margin-top:16px">
             <span class="cl">&#128190; База данных</span>
@@ -996,7 +1009,37 @@ async function loadAdmin(){
     rkl(k.keys||[]);rpl(p.promos||[]);rpd(pd);rplayer(pl);rban(b);rfp(f.fingerprints||[]);
     if(b.your_ip){const e=document.getElementById('yourIp');if(e)e.textContent=b.your_ip;}
     loadDbStatus();
+    loadPasswordResets();
   }catch(e){}
+}
+async function loadPasswordResets(){
+  const e=document.getElementById('resetCodesList');
+  if(!e)return;
+  try{
+    const r=await fetch('/api/admin/password-resets');
+    const d=await r.json();
+    if(d.ok&&d.resets){
+      if(!d.resets.length){
+        e.innerHTML='<p style="color:var(--muted);padding:10px">Нет активных запросов на сброс пароля.</p>';
+        return;
+      }
+      e.innerHTML=d.resets.map(res=>`
+        <div class="pr" style="flex-wrap:wrap;gap:10px;align-items:center;background:#0d1124;padding:10px 14px;border-radius:10px;border:1px solid var(--line);margin-bottom:6px">
+          <div>
+            <strong style="color:#fff;font-size:14px">${res.username||'Пользователь'}</strong>
+            <span style="color:var(--muted);font-size:12px;display:block">${res.email}</span>
+          </div>
+          <div style="background:#141933;padding:4px 10px;border-radius:6px;border:1px solid rgba(56,189,248,0.3)">
+            <span style="color:var(--muted);font-size:11px">Код:</span> <strong style="color:#38bdf8;font-family:monospace;font-size:15px;letter-spacing:1px">${res.code}</strong>
+          </div>
+          <div style="font-size:12px;color:${res.status==='Активен'?'#34d399':(res.status==='Использован'?'#94a3b8':'#ef4444')}">
+            ● ${res.status}
+          </div>
+          <small style="color:var(--muted);font-size:11px">${res.created_at?new Date(res.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):''}</small>
+        </div>
+      `).join('');
+    }
+  }catch(err){}
 }
 async function loadDbStatus(){
   try{

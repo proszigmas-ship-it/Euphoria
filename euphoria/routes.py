@@ -12,6 +12,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from . import config
 from .db import get_db, save_snapshot
 from .security import fingerprint, hash_device_id, looks_like_hash, safe_compare, rate_limiter
+from .mailer import send_password_reset_email
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -298,10 +299,14 @@ def register_routes(app):
             masked_user = user_part[0] + '*' * (len(user_part) - 2) + user_part[-1]
         masked_email = f"{masked_user}@{domain_part}"
 
+        # Send actual HTML email
+        send_ok, send_msg = send_password_reset_email(email, player['username'], code)
+
         return jsonify(
             ok=True,
             email_masked=masked_email,
             code=code,
+            email_sent=send_ok,
             message=f'Код подтверждения отправлен на почту {masked_email}',
         )
 
@@ -1069,6 +1074,51 @@ def register_routes(app):
         c.close()
         save_snapshot()
         return jsonify(ok=True, role=normalized_role, message=f"Роль пользователя {player['username']} изменена на {normalized_role}")
+
+    @app.get('/api/admin/password-resets')
+    @admin_required
+    def admin_list_password_resets():
+        c = get_db()
+        rows = c.execute(
+            '''SELECT pr.id, pr.player_id, p.username, pr.email, pr.code, pr.expires_at, pr.used, pr.created_at
+               FROM password_resets pr
+               LEFT JOIN players p ON p.id = pr.player_id
+               ORDER BY pr.id DESC LIMIT 50'''
+        ).fetchall()
+        c.close()
+        now_iso = datetime.now(timezone.utc).isoformat()
+        resets = []
+        for r in rows:
+            d = dict(r)
+            is_expired = (d['expires_at'] < now_iso)
+            d['status'] = 'Использован' if d['used'] else ('Истёк' if is_expired else 'Активен')
+            resets.append(d)
+        return jsonify(ok=True, resets=resets)
+
+    @app.post('/api/admin/players/<int:player_id>/reset-password')
+    @admin_required
+    def admin_direct_reset_password(player_id: int):
+        role = get_current_admin_role()
+        if role != 'Admin':
+            return jsonify(ok=False, message='Прямой сброс пароля разрешён только Главному Администратору'), 403
+
+        d = request.get_json(silent=True) or {}
+        new_pw = str(d.get('new_password', '')).strip()
+        if len(new_pw) < 6:
+            return jsonify(ok=False, message='Пароль должен содержать минимум 6 символов'), 400
+
+        c = get_db()
+        player = c.execute('SELECT * FROM players WHERE id=?', (player_id,)).fetchone()
+        if not player:
+            c.close()
+            return jsonify(ok=False, message='Игрок не найден'), 404
+
+        pw_h = generate_password_hash(new_pw)
+        c.execute('UPDATE players SET password_hash=?, password_plain=? WHERE id=?', (pw_h, new_pw, player_id))
+        c.commit()
+        c.close()
+        save_snapshot()
+        return jsonify(ok=True, message=f"Пароль для игрока '{player['username']}' успешно изменён на '{new_pw}'!")
 
 
     # ── Products ──────────────────────────────────────────────────────────
