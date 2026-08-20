@@ -297,21 +297,11 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
         <button class="pm" onclick="selPay('mc',this)">&#128308; Mastercard<small>Card payment</small></button>
       </div>
 
-      <!-- Card details box for direct payment -->
-      <div id="cardDetailsBox" style="display:none;background:#0d1124;border:1px solid #3b82f6;border-radius:12px;padding:14px;margin-top:14px">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Реквизиты для оплаты картой / СБП:</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-          <span style="font-size:18px;font-weight:700;letter-spacing:1.5px;color:#38bdf8;font-family:monospace">2200 2082 2574 8764</span>
-          <button class="btn ghost small" type="button" onclick="navigator.clipboard.writeText('2200208225748764');alert('Номер карты 2200208225748764 скопирован!');">&#128203; Скопировать</button>
-        </div>
-        <div style="font-size:12px;color:var(--muted);margin-top:8px">После перевода подписка активируется автоматически на ваш аккаунт!</div>
-      </div>
-
       <div class="co" id="checkout">
         <div class="cr"><span id="coProd">Тариф</span><b id="coPrice">0 ₽</b></div>
         <div class="cr"><span>Оплата</span><b id="coMethod">&#8212;</b></div>
         <div class="cr tot"><span>К оплате</span><span id="coTotal">0 ₽</span></div>
-        <button class="btn btn-full" style="margin-top:12px" onclick="startPay()" id="payBtn">Оплатить и активировать</button>
+        <button class="btn btn-full" style="margin-top:12px" onclick="startPay()" id="payBtn">Перейти к оплате &#8594;</button>
       </div>
     </div>
   </div>
@@ -734,52 +724,19 @@ function selPay(m,b){
   const lb={'funpay':'FunPay','yumoney':'ЮMoney','card':'Карта РФ / СБП','visa':'Visa','mc':'Mastercard'};
   const mv=document.getElementById('coMethod');
   if(mv)mv.textContent=lb[m]||m;
-  const cb=document.getElementById('cardDetailsBox');
-  if(cb){
-    if(m==='card'||m==='visa'||m==='mc'){
-      cb.style.display='block';
-    }else{
-      cb.style.display='none';
-    }
-  }
   upCo();
 }
 function upCo(){const co=document.getElementById('checkout');if(selProd===null||selProd===undefined){if(co)co.classList.remove('on');return;}if(!selPayM)return;const p=prods[selProd];if(!p||!co)return;const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;co.classList.add('on');const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('coProd',p.title);se('coPrice',f+'₽');se('coTotal',f+'₽');}
-async function startPay(){
+function startPay(){
   if(selProd===null){alert('Пожалуйста, сначала выберите тариф выше!');return;}
   if(!selPayM){alert('Пожалуйста, выберите способ оплаты (FunPay, ЮMoney, Карта и т.д.)');return;}
   const p=prods[selProd];
-  const btn=document.getElementById('payBtn');
-  if(btn){btn.disabled=true;btn.textContent='Обработка...';}
-  try{
-    const r=await fetch('/api/player/checkout',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({product:p.title,method:selPayM,promo:activePromo?activePromo.code:''})
-    });
-    const d=await r.json();
-    if(d.ok){
-      if(d.is_funpay){
-        window.open(d.url||'https://funpay.com/users/12165454/','_blank');
-        alert('Переход на FunPay для покупки у продавца.');
-      }else if(d.auto_activated){
-        alert(`✅ Оплата прошла успешно!\nТариф: ${d.product}\nСумма: ${d.price_paid} ₽\nСпособ: ${d.method}\n\nПодписка АВТОМАТИЧЕСКИ активирована на ваш аккаунт (ключ вводить не нужно)!`);
-        await loadUser();
-        document.getElementById('cabinet')?.scrollIntoView({behavior:'smooth'});
-      }else{
-        alert(d.message||'Заказ оформлен');
-      }
-    }else if(d.message?.includes('Войдите')||d.message?.includes('Login')){
-      alert('Войдите в аккаунт перед оплатой');
-      openLogin();
-    }else{
-      alert(d.message||'Ошибка');
-    }
-  }catch(e){
-    alert('Ошибка сети');
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='Перейти к оплате';}
+  if(selPayM==='funpay'){
+    window.open('https://funpay.com/users/12165454/','_blank');
+    return;
   }
+  const promo=activePromo?activePromo.code:'';
+  window.location.href=`/payment?product=${encodeURIComponent(p.title)}&promo=${encodeURIComponent(promo)}&method=${encodeURIComponent(selPayM)}`;
 }
 function supAlert(){alert('Поддержка:\n📩 Telegram: @euphoria_support\n💬 Discord: discord.gg/euphoria');}
 // Admin

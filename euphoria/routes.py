@@ -107,6 +107,14 @@ def register_routes(app):
     def cabinet_page():
         return render_template('cabinet.html')
 
+    @app.route('/payment')
+    def payment_page():
+        return render_template('payment.html')
+
+    @app.route('/pay')
+    def pay_alias_page():
+        return render_template('payment.html')
+
     @app.route('/login')
     def login_page():
         from flask import redirect
@@ -454,6 +462,60 @@ def register_routes(app):
             price_paid=price,
             method=method_title,
             message=f"✅ Оплата успешна! Тариф '{title}' ({price} ₽) автоматически активирован на ваш аккаунт! Срок: {exp_text}.",
+        )
+
+    @app.post('/api/player/confirm-payment')
+    def player_confirm_payment():
+        player = player_session_user()
+        if not player:
+            return jsonify(ok=False, message='Войдите в аккаунт перед подтверждением оплаты'), 401
+        d = request.get_json(silent=True) or {}
+        title = str(d.get('product', '')).strip() or '365 Days'
+        promo_code = str(d.get('promo', '')).strip().upper()
+        sender_card = str(d.get('sender_card', '')).strip()
+        sender_name = str(d.get('sender_name', '')).strip()
+        comment = str(d.get('comment', '')).strip()
+
+        if not sender_card or not sender_name:
+            return jsonify(ok=False, message='Укажите данные вашей карты (номер и имя отправителя)'), 400
+
+        c = get_db()
+        product = c.execute('SELECT * FROM products WHERE title=?', (title,)).fetchone()
+        if not product:
+            product = c.execute('SELECT * FROM products ORDER BY id DESC LIMIT 1').fetchone()
+
+        price = product['price'] if product else 459
+        if promo_code:
+            promo = c.execute('SELECT code, discount, uses, max_uses FROM promos WHERE code=?', (promo_code,)).fetchone()
+            if promo and (promo['max_uses'] is None or promo['uses'] < promo['max_uses']):
+                price = round(price * (100 - promo['discount']) / 100, 2)
+                c.execute('UPDATE promos SET uses = uses + 1 WHERE code=?', (promo_code,))
+
+        duration = title if title in config.KEY_DURATIONS else '365 Days'
+        key = make_key(c)
+        now = datetime.now(timezone.utc)
+        days = config.KEY_DURATIONS.get(duration)
+        expires_at = (now + timedelta(days=days)).isoformat() if days else None
+        uid_h = hash_device_id(player['uid'])
+
+        c.execute(
+            '''INSERT INTO keys
+               (key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id)
+               VALUES (?, ?, 1, 1, 1, ?, ?, ?, NULL, ?, ?)''',
+            (key, duration, now.isoformat(), expires_at, uid_h, now.isoformat(), player['id']),
+        )
+        c.commit()
+        c.close()
+        save_snapshot()
+
+        exp_text = (now + timedelta(days=days)).strftime('%d.%m.%Y') if days else 'Навсегда'
+        return jsonify(
+            ok=True,
+            product=title,
+            duration=duration,
+            expires_at=expires_at,
+            price_paid=price,
+            message=f"✅ Оплата принята! Тариф '{title}' ({price} ₽) успешно активирован на ваш аккаунт! Срок: {exp_text}.",
         )
 
 

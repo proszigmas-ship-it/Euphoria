@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EUPHORIA · Оплата заказа</title>
+<link rel="icon" type="image/png" href="/static/images/logo.png">
+<style>
+:root {
+  --bg: #070913;
+  --panel: #0d1122;
+  --card: #12182e;
+  --primary: #38bdf8;
+  --primary-glow: rgba(56, 189, 248, 0.35);
+  --accent: #818cf8;
+  --success: #34d399;
+  --danger: #f87171;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --line: rgba(255, 255, 255, 0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: Inter, Segoe UI, Roboto, sans-serif; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.15), transparent 70%);
+}
+.header {
+  height: 72px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  backdrop-filter: blur(12px);
+  background: rgba(7, 9, 19, 0.8);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 800;
+  font-size: 20px;
+}
+.brand img {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.back-btn {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  transition: all .2s;
+}
+.back-btn:hover {
+  color: #fff;
+  border-color: var(--primary);
+}
+.container {
+  max-width: 960px;
+  margin: 36px auto;
+  padding: 0 20px;
+  width: 100%;
+  flex: 1;
+}
+.page-title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.page-title h1 {
+  font-size: 30px;
+  font-weight: 800;
+  color: #fff;
+}
+.page-title p {
+  color: var(--muted);
+  font-size: 14.5px;
+  margin-top: 6px;
+}
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.box {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+}
+.box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.box-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.badge-order {
+  font-size: 12px;
+  font-family: monospace;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--primary);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.card-visual {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 14px;
+  padding: 20px;
+  margin: 16px 0 20px;
+  box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.2);
+}
+.chip {
+  width: 38px;
+  height: 28px;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  border-radius: 5px;
+  margin-bottom: 16px;
+}
+.card-num {
+  font-family: monospace;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #fff;
+  margin-bottom: 12px;
+}
+.card-foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+}
+.card-foot strong {
+  display: block;
+  color: #fff;
+  font-size: 13.5px;
+  margin-top: 2px;
+}
+.copy-btn {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid var(--primary);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  transition: all .2s;
+}
+.copy-btn:hover {
+  background: var(--primary);
+  color: #000;
+}
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.order-row strong {
+  color: #fff;
+}
+.order-row.total {
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+.order-row.total .price {
+  font-size: 22px;
+  color: var(--primary);
+  font-weight: 800;
+}
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.form-group label span {
+  color: var(--danger);
+}
+.input-field {
+  width: 100%;
+  background: #080b18;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 13.5px;
+  outline: none;
+  transition: all .2s;
+}
+.input-field:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #38bdf8, #3b82f6);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all .2s;
+  margin-top: 8px;
+}
+.submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(56, 189, 248, 0.4);
+}
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+.status-banner {
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  display: none;
+}
+.status-banner.success {
+  display: block;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #34d399;
+}
+.status-banner.error {
+  display: block;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #f87171;
+}
+@media(max-width: 768px) {
+  .checkout-grid { grid-template-columns: 1fr; }
+  .header { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="/" class="brand">
+    <img src="/static/images/logo.png" alt="Euphoria" onerror="this.style.display='none'">
+    <span>EUPHORIA</span>
+  </a>
+  <a href="/cabinet" class="back-btn">← В кабинет</a>
+</header>
+
+<div class="container">
+  <div class="page-title">
+    <h1>Оплата и подтверждение заказа</h1>
+    <p>Переведите точную сумму на карту ниже и заполните данные для мгновенной автоактивации</p>
+  </div>
+
+  <div id="statusBanner" class="status-banner"></div>
+
+  <div class="checkout-grid">
+    <!-- Левая колонка: Наши реквизиты -->
+    <div class="box">
+      <div class="box-header">
+        <h3>💳 Реквизиты для оплаты</h3>
+        <span class="badge-order" id="orderIdBadge">ЗАКАЗ #EUPH-7491</span>
+      </div>
+
+      <div class="card-visual">
+        <div class="chip"></div>
+        <div class="card-num" id="cardDisplay">2200 2082 2574 8764</div>
+        <div class="card-foot">
+          <div><span>Получатель</span><strong>EUPHORIA CLIENT</strong></div>
+          <div><span>Банк / СБП</span><strong>Т-Банк / СБП / Мир</strong></div>
+        </div>
+      </div>
+
+      <button type="button" class="copy-btn" onclick="copyCard()">📋 Скопировать номер карты</button>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+        <h4 style="font-size:13.5px;color:#fff;margin-bottom:10px">Сводка заказа:</h4>
+        <div class="order-list">
+          <div class="order-row"><span>Тариф:</span><strong id="summaryPlan">365 Дней (1 Год)</strong></div>
+          <div class="order-row"><span>Аккаунт:</span><strong id="summaryUser">Загрузка...</strong></div>
+          <div class="order-row"><span>UID:</span><strong id="summaryUid">—</strong></div>
+          <div class="order-row" id="promoRow" style="display:none"><span>Промокод:</span><strong id="summaryPromo" style="color:var(--success)">-0%</strong></div>
+          <div class="order-row total"><span>К оплате:</span><span class="price" id="summaryTotal">459 ₽</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Правая колонка: Форма отправителя -->
+    <div class="box">
+      <div class="box-header">
+        <h3>📝 Ваши реквизиты</h3>
+        <span style="font-size:12px;color:var(--muted)">Шаг 2 из 2</span>
+      </div>
+
+      <form id="paymentForm" onsubmit="confirmPayment(event)">
+        <div class="form-group">
+          <label>Номер вашей карты или последние 4 цифры <span>*</span></label>
+          <input type="text" id="senderCard" class="input-field" placeholder="Например: *4819 или 2200 1234 ..." required>
+        </div>
+
+        <div class="form-group">
+          <label>Имя / ФИО владельца карты отправителя <span>*</span></label>
+          <input type="text" id="senderName" class="input-field" placeholder="Например: Иван И." required>
+        </div>
+
+        <div class="form-group">
+          <label>Комментарий / Чек (опционально)</label>
+          <input type="text" id="senderComment" class="input-field" placeholder="Время перевода или код чека">
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">✅ Я оплатил — Активировать подписку</button>
+        <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:12px">🛡 После нажатия кнопки подписка будет автоматически привязана к вашему аккаунту!</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const CARD_NUMBER = "2200208225748764";
+let ME = null, currentPlan = "365 Days", currentPrice = 459, activePromo = null;
+const params = new URLSearchParams(window.location.search);
+const planParam = params.get("product") || params.get("plan") || "365 Days";
+const promoParam = params.get("promo") || "";
+
+function fmt(n) { return Number(n).toLocaleString("ru-RU"); }
+function ruTitle(t) {
+  if (t === "30 Days") return "30 Дней";
+  if (t === "90 Days") return "90 Дней";
+  if (t === "365 Days") return "365 Дней (1 Год)";
+  if (t === "Lifetime") return "Навсегда (Lifetime)";
+  if (t === "HWID Reset") return "Сброс HWID";
+  return t;
+}
+
+function copyCard() {
+  navigator.clipboard.writeText(CARD_NUMBER).then(() => alert("Номер карты " + CARD_NUMBER + " скопирован!")).catch(() => prompt("Скопируйте карту:", CARD_NUMBER));
+}
+
+async function init() {
+  const orderNum = Math.floor(1000 + Math.random() * 9000);
+  document.getElementById("orderIdBadge").textContent = "ЗАКАЗ #EUPH-" + orderNum;
+
+  try {
+    const r = await fetch("/api/player/me");
+    const d = await r.json();
+    if (d.ok && d.player) {
+      ME = d.player;
+      document.getElementById("summaryUser").textContent = ME.username;
+      document.getElementById("summaryUid").textContent = ME.uid;
+    } else {
+      document.getElementById("summaryUser").innerHTML = "<a href='/cabinet' style='color:var(--primary)'>Войдите в аккаунт</a>";
+    }
+  } catch(e) {}
+
+  try {
+    const r = await fetch("/api/products");
+    const products = await r.json();
+    const prod = products.find(p => p.title.toLowerCase() === planParam.toLowerCase()) || products[0];
+    if (prod) { currentPlan = prod.title; currentPrice = prod.price; }
+  } catch(e) {}
+
+  if (promoParam) {
+    try {
+      const r = await fetch("/api/promos");
+      const promos = await r.json();
+      if (promos[promoParam.toUpperCase()]) {
+        activePromo = { code: promoParam.toUpperCase(), discount: promos[promoParam.toUpperCase()] };
+        currentPrice = Math.round(currentPrice * (100 - activePromo.discount) / 100);
+        document.getElementById("promoRow").style.display = "flex";
+        document.getElementById("summaryPromo").textContent = "-" + activePromo.discount + "% (" + activePromo.code + ")";
+      }
+    } catch(e) {}
+  }
+
+  document.getElementById("summaryPlan").textContent = ruTitle(currentPlan);
+  document.getElementById("summaryTotal").textContent = fmt(currentPrice) + " ₽";
+}
+
+async function confirmPayment(e) {
+  e.preventDefault();
+  const btn = document.getElementById("submitBtn");
+  const banner = document.getElementById("statusBanner");
+  const sCard = document.getElementById("senderCard").value.trim();
+  const sName = document.getElementById("senderName").value.trim();
+  const sComment = document.getElementById("senderComment").value.trim();
+
+  if (!sCard || !sName) { alert("Заполните номер карты и имя отправителя!"); return; }
+  btn.disabled = true; btn.textContent = "Проверка и активация...";
+
+  try {
+    const r = await fetch("/api/player/confirm-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product: currentPlan, method: "card", promo: activePromo ? activePromo.code : "", sender_card: sCard, sender_name: sName, comment: sComment })
+    });
+    const d = await r.json();
+
+    if (r.ok && d.ok) {
+      banner.className = "status-banner success";
+      banner.textContent = d.message || "✅ Оплата принята! Подписка успешно активирована!";
+      setTimeout(() => window.location.href = "/cabinet", 1400);
+    } else if (d.message && (d.message.includes("Login") || d.message.includes("Войдите"))) {
+      banner.className = "status-banner error";
+      banner.textContent = "Пожалуйста, войдите в аккаунт перед оплатой!";
+      setTimeout(() => window.location.href = "/cabinet", 1600);
+    } else {
+      banner.className = "status-banner error";
+      banner.textContent = d.message || "Ошибка обработки платежа";
+      btn.disabled = false; btn.textContent = "✅ Я оплатил — Активировать подписку";
+    }
+  } catch(err) {
+    banner.className = "status-banner error"; banner.textContent = "Ошибка сети. Попробуйте снова.";
+    btn.disabled = false; btn.textContent = "✅ Я оплатил — Активировать подписку";
+  }
+}
+
+window.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

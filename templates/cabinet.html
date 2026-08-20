@@ -382,21 +382,12 @@ h1.page-title{font-size:26px;margin-bottom:4px}
         <button class="btn ghost small" type="button" onclick="applyPromo()">Применить</button>
       </div>
 
-      <!-- Card details box for direct payment -->
-      <div id="cabCardDetailsBox" style="background:#0d1124;border:1px solid #3b82f6;border-radius:12px;padding:12px;margin:12px 0">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Реквизиты для оплаты (Карта / СБП):</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-          <span style="font-size:16px;font-weight:700;letter-spacing:1px;color:#38bdf8;font-family:monospace">2200 2082 2574 8764</span>
-          <button class="btn ghost small" type="button" onclick="navigator.clipboard.writeText('2200208225748764');alert('Номер карты 2200208225748764 скопирован!');">&#128203; Скопировать</button>
-        </div>
-      </div>
-
       <label class="agree-row">
         <input type="checkbox" id="agreeCheck" style="margin-top:3px">
         <span>Я согласен с <a href="#" onclick="return false">условиями использования</a> и понимаю, что покупка не подлежит возврату.</span>
       </label>
 
-      <button class="btn full-btn" id="payBtn" onclick="submitPayment()" disabled>Оплатить —</button>
+      <button class="btn full-btn" id="payBtn" onclick="submitPayment()" disabled>Перейти к оплате —</button>
       <button class="btn teal full-btn" onclick="payViaFunPay()">Оплатить через FunPay →</button>
       <p class="pay-msg" id="payMsg"></p>
     </div>
@@ -614,40 +605,11 @@ function applyPromo(){
   updatePayPrice();
 }
 
-async function submitPayment(){
-  const btn = document.getElementById('payBtn');
-  const msg = document.getElementById('payMsg');
+function submitPayment(){
   if(!document.getElementById('agreeCheck').checked) return;
-  btn.disabled = true; btn.textContent = 'Обработка…';
+  if(!selectedProduct) return;
   const code = document.getElementById('promoInput').value.trim().toUpperCase();
-  try{
-    const r = await fetch('/api/player/checkout', {
-      method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin',
-      body: JSON.stringify({ product: selectedProduct.title, promo: code, method: selectedMethod })
-    });
-    const d = await r.json();
-    if(r.ok && d.ok){
-      if(d.is_funpay){
-        window.open(d.url || 'https://funpay.com/users/12165454/', '_blank');
-        msg.className='pay-msg ok';
-        msg.textContent = 'Переход на FunPay для покупки у продавца...';
-      } else if(d.auto_activated){
-        msg.className='pay-msg ok';
-        msg.textContent = `✅ Оплата успешна! Тариф '${d.product}' автоматически активирован на ваш аккаунт!`;
-        setTimeout(()=>location.reload(), 1400);
-      } else {
-        msg.className='pay-msg ok';
-        msg.textContent = d.message;
-      }
-    } else {
-      msg.className='pay-msg err';
-      msg.textContent = d.message || 'Не удалось оформить заказ';
-      btn.disabled = false; updatePayPrice();
-    }
-  }catch(e){
-    msg.className='pay-msg err'; msg.textContent = 'Ошибка сети';
-    btn.disabled = false; updatePayPrice();
-  }
+  window.location.href = `/payment?product=${encodeURIComponent(selectedProduct.title)}&promo=${encodeURIComponent(code)}&method=${encodeURIComponent(selectedMethod)}`;
 }
 function payViaFunPay(){
   window.open('https://funpay.com/users/12165454/', '_blank');

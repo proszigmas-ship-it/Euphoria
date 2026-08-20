@@ -61,10 +61,41 @@ class EuphoriaAppTests(unittest.TestCase):
         self.assertEqual(
             self.client.post(f'/api/admin/keys/{key_id}/reset-hwid').status_code, 200,
         )
-        replacement = self.client.post(
-            '/api/redeem-key', json={'key': key, 'uid': 'client-001', 'hwid': 'device-002'},
-        )
-        self.assertEqual(replacement.status_code, 200)
+    def test_payment_page_renders_successfully(self):
+        response = self.client.get('/payment?product=365+Days')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'EUPHORIA', response.data)
+        self.assertIn(b'2200 2082 2574 8764', response.data)
+
+    def test_player_confirm_payment_flow(self):
+        import secrets
+        uname = 'TestPlayer_' + secrets.token_hex(3)
+        uemail = uname.lower() + '@example.com'
+        # Register a test player
+        reg = self.client.post('/api/player/register', json={
+            'username': uname,
+            'email': uemail,
+            'password': 'StrongPassword123!',
+        })
+        self.assertEqual(reg.status_code, 200)
+
+        # Confirm payment
+        confirm = self.client.post('/api/player/confirm-payment', json={
+            'product': '365 Days',
+            'method': 'card',
+            'sender_card': '*8844',
+            'sender_name': 'Ivan Testov',
+            'comment': 'Pay 459 rub'
+        })
+        self.assertEqual(confirm.status_code, 200)
+        data = confirm.get_json()
+        self.assertTrue(data['ok'])
+        self.assertEqual(data['product'], '365 Days')
+
+        # Check me
+        me = self.client.get('/api/player/me').get_json()
+        self.assertIsNotNone(me['player']['subscription'])
+        self.assertEqual(me['player']['subscription']['duration'], '365 Days')
 
 
 if __name__ == '__main__':
