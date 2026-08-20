@@ -326,68 +326,6 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
     </div>
   </div>
 </section>
-<section id="adminPanel" class="admin-p container">
-  <h2 style="font-size:25px">&#9881; Админ-панель</h2>
-  <p style="color:var(--muted);margin:8px 0 20px">Управление тарифами и промокодами.</p>
-  <div class="ag">
-    <div class="ab"><h3>&#128273; Key Generator</h3>
-      <label style="font-size:12px;color:var(--muted)">Duration</label>
-      <select id="key-duration" class="ai"><option value="7 Days">7 Days</option><option value="30 Days">30 Days</option><option value="90 Days">90 Days</option><option value="Lifetime">Lifetime</option></select>
-      <label style="font-size:12px;color:var(--muted)">Amount</label>
-      <input type="number" id="key-amount" min="1" max="500" value="1" class="ai" placeholder="How many keys?">
-      <label style="font-size:12px;color:var(--muted)">Max uses per key</label>
-      <input type="number" id="key-max-uses" min="1" value="1" class="ai">
-      <button class="btn" type="button" onclick="genKeys()">Generate Keys</button>
-      <textarea id="gen-keys" rows="6" class="ai" readonly style="margin-top:8px;resize:vertical"></textarea>
-      <button class="btn" type="button" onclick="copyKeys()" style="margin-top:4px">Copy Keys</button>
-      <div id="kg-msg" style="margin-top:6px;font-size:13px"></div>
-    </div>
-    <div class="ab"><h3>Добавить тариф</h3>
-      <form onsubmit="addProd(event)" style="display:grid;gap:8px">
-        <input id="newTitle" class="ai" placeholder="Название тарифа">
-        <input id="newPrice" type="number" step="0.01" class="ai" placeholder="Цена в ₽">
-        <button class="btn" type="submit">Добавить</button>
-      </form>
-      <div class="pl" id="productList"></div>
-    </div>
-    <div class="ab"><h3>&#127915; Создать промокод</h3>
-      <form onsubmit="addPromoAdmin(event)" style="display:grid;gap:8px">
-        <input id="newPromo" class="ai" placeholder="Код, например EUPHORIA20">
-        <input id="newDiscount" type="number" min="1" max="100" class="ai" placeholder="Скидка %, например 20">
-        <input id="newPromoMax" type="number" min="0" class="ai" placeholder="Макс. использований (0 = ∞)">
-        <input id="newPromoOwner" class="ai" placeholder="Владелец / Media (необязательно)">
-        <button class="btn" type="submit">Создать промокод</button>
-      </form>
-      <div class="pl" id="promoList"></div>
-    </div>
-    <div class="ab" style="grid-column:1/-1"><h3>Created Keys</h3><div id="keyList"></div></div>
-    <div class="ab" style="grid-column:1/-1">
-      <h3>&#128101; Players</h3>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-        <div style="background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">Total</div><div style="font-size:22px;font-weight:800" id="statTotal">0</div></div>
-        <div style="background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">Active sub</div><div style="font-size:22px;font-weight:800;color:#34d399" id="statActive">0</div></div>
-        <div style="background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase">HWID bound</div><div style="font-size:22px;font-weight:800;color:#a78bfa" id="statHwid">0</div></div>
-      </div>
-      <div id="playerList" style="max-height:360px;overflow:auto"></div>
-    </div>
-    <div class="ab" style="grid-column:1/-1">
-      <h3>&#128683; IP Ban System</h3>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Your IP: <code id="yourIp">&#8212;</code></p>
-      <form onsubmit="addBan(event)" style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end;margin-bottom:16px">
-        <div><label style="font-size:12px;color:var(--muted)">IP Address</label><input id="banIp" class="ai" placeholder="1.2.3.4" required style="margin-top:4px"></div>
-        <div><label style="font-size:12px;color:var(--muted)">Reason</label><input id="banReason" class="ai" placeholder="Spam / abuse" style="margin-top:4px"></div>
-        <div><label style="font-size:12px;color:var(--muted)">Days (0=perm)</label><input id="banDays" type="number" min="0" value="0" class="ai" style="width:90px;margin-top:4px"></div>
-        <button class="btn" type="submit">Ban IP</button>
-      </form>
-      <div id="banList" class="pl"></div>
-    </div>
-    <div class="ab" style="grid-column:1/-1">
-      <h3>&#129518; Browser Fingerprints</h3>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Current: <code id="currentFp">&#8212;</code></p>
-      <div id="fpList" class="pl"></div>
-    </div>
-  </div>
-</section>
 <section id="cabinet" class="cab-sec">
   <div class="container">
     <div class="cab-shell">
@@ -447,7 +385,7 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
           </div>
         </section>
         <section class="cp" data-p="launcher" style="display:none">
-          <div class="cc wide"><span class="cl">Launcher</span><h3 style="margin-bottom:8px">Загрузка / Запуск</h3><p style="color:var(--muted);font-size:13px;margin-bottom:16px">Ссылка для загрузки лаунчера будет здесь.</p><button class="btn" onclick="alert('Launcher download link here')">Скачать лаунчер</button></div>
+          <div class="cc wide"><span class="cl">Launcher</span><h3 style="margin-bottom:8px">Загрузка и запуск</h3><p style="color:var(--muted);font-size:13px;margin-bottom:16px">Официальный лаунчер EUPHORIA Client для запуска игры.</p><button class="btn" onclick="alert('Скачивание клиента начнется после загрузки файлов сборки.')">&#128640; Скачать лаунчер EUPHORIA</button></div>
         </section>
         <section class="cp" data-p="settings" style="display:none">
           <div class="cc wide">
@@ -480,7 +418,98 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
           </div>
         </section>
         <section class="cp" data-p="admin" style="display:none">
-          <div class="cc wide"><span class="cl">Admin</span><h3 style="margin-bottom:8px">Админ-панель</h3><button class="btn" onclick="document.getElementById('adminPanel').scrollIntoView({behavior:'smooth'})">Открыть Админ-панель</button></div>
+          <div class="cc wide" style="margin-bottom:14px">
+            <span class="cl">&#128081; Панель администратора</span>
+            <h3 style="font-size:20px;margin-bottom:4px">Управление EUPHORIA</h3>
+            <p style="color:var(--muted);font-size:13px">Управление игроками, ролями, паролями, ключами и тарифами.</p>
+          </div>
+
+          <!-- Stats -->
+          <div class="cg" style="margin-bottom:16px">
+            <div class="cc"><span class="cl">&#128101; Всего игроков</span><strong id="statTotal" style="font-size:22px">0</strong></div>
+            <div class="cc"><span class="cl">&#128142; Активных подписок</span><strong id="statActive" style="font-size:22px;color:#34d399">0</strong></div>
+            <div class="cc"><span class="cl">&#128187; Привязано HWID</span><strong id="statHwid" style="font-size:22px;color:#38bdf8">0</strong></div>
+          </div>
+
+          <!-- Players Table -->
+          <div class="cc wide" style="margin-bottom:16px">
+            <span class="cl">&#128101; Список пользователей</span>
+            <h3 style="font-size:16px;margin:6px 0 12px">Игроки, их роли и пароли</h3>
+            <div id="playerList" style="max-height:420px;overflow-y:auto;display:grid;gap:8px"></div>
+          </div>
+
+          <!-- Key Generator & Key List -->
+          <div class="cg" style="margin-bottom:16px">
+            <div class="cc">
+              <span class="cl">&#128273; Генератор ключей</span>
+              <h3 style="font-size:16px;margin:6px 0 12px">Создать ключи</h3>
+              <div style="display:grid;gap:10px">
+                <div>
+                  <label style="font-size:12px;color:var(--muted)">Длительность</label>
+                  <select id="key-duration" class="ai" style="margin-top:4px"><option value="7 Days">7 Days</option><option value="30 Days">30 Days</option><option value="90 Days">90 Days</option><option value="Lifetime">Lifetime</option></select>
+                </div>
+                <div>
+                  <label style="font-size:12px;color:var(--muted)">Количество ключей</label>
+                  <input type="number" id="key-amount" min="1" max="500" value="1" class="ai" style="margin-top:4px">
+                </div>
+                <div>
+                  <label style="font-size:12px;color:var(--muted)">Макс. использований</label>
+                  <input type="number" id="key-max-uses" min="1" value="1" class="ai" style="margin-top:4px">
+                </div>
+                <button class="btn" type="button" onclick="genKeys()">Сгенерировать</button>
+                <textarea id="gen-keys" rows="4" class="ai" readonly placeholder="Здесь появятся ключи..." style="resize:vertical"></textarea>
+                <button class="btn ghost small" type="button" onclick="copyKeys()">Скопировать</button>
+                <div id="kg-msg" style="font-size:12.5px"></div>
+              </div>
+            </div>
+
+            <div class="cc">
+              <span class="cl">&#128273; База ключей</span>
+              <h3 style="font-size:16px;margin:6px 0 12px">Список ключей</h3>
+              <div id="keyList" style="max-height:360px;overflow-y:auto;display:grid;gap:6px"></div>
+            </div>
+          </div>
+
+          <!-- Promos and Products -->
+          <div class="cg" style="margin-bottom:16px">
+            <div class="cc">
+              <span class="cl">&#127915; Промокоды</span>
+              <h3 style="font-size:16px;margin:6px 0 12px">Создать промокод</h3>
+              <form onsubmit="addPromoAdmin(event)" style="display:grid;gap:8px">
+                <input id="newPromo" class="ai" placeholder="Код (например: EUPHORIA20)" required>
+                <input id="newDiscount" type="number" min="1" max="100" class="ai" placeholder="Скидка %" required>
+                <input id="newPromoMax" type="number" min="0" class="ai" placeholder="Макс. использований (0 = ∞)">
+                <input id="newPromoOwner" class="ai" placeholder="Владелец / Media">
+                <button class="btn" type="submit">Создать</button>
+              </form>
+              <div class="pl" id="promoList" style="margin-top:12px;max-height:220px;overflow-y:auto"></div>
+            </div>
+
+            <div class="cc">
+              <span class="cl">&#128230; Тарифы</span>
+              <h3 style="font-size:16px;margin:6px 0 12px">Добавить тариф</h3>
+              <form onsubmit="addProd(event)" style="display:grid;gap:8px">
+                <input id="newTitle" class="ai" placeholder="Название тарифа" required>
+                <input id="newPrice" type="number" step="0.01" class="ai" placeholder="Цена в ₽" required>
+                <button class="btn" type="submit">Добавить</button>
+              </form>
+              <div class="pl" id="productList" style="margin-top:12px;max-height:220px;overflow-y:auto"></div>
+            </div>
+          </div>
+
+          <!-- IP Ban System -->
+          <div class="cc wide">
+            <span class="cl">&#128683; Блокировки по IP</span>
+            <h3 style="font-size:16px;margin:6px 0 12px">Управление блокировками</h3>
+            <p style="color:var(--muted);font-size:12px;margin-bottom:10px">Ваш IP: <code id="yourIp" style="color:#38bdf8">&#8212;</code></p>
+            <form onsubmit="addBan(event)" style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end;margin-bottom:14px">
+              <div><label style="font-size:12px;color:var(--muted)">IP-адрес</label><input id="banIp" class="ai" placeholder="1.2.3.4" required style="margin-top:4px"></div>
+              <div><label style="font-size:12px;color:var(--muted)">Причина</label><input id="banReason" class="ai" placeholder="Нарушение" style="margin-top:4px"></div>
+              <div><label style="font-size:12px;color:var(--muted)">Дней (0=навсегда)</label><input id="banDays" type="number" min="0" value="0" class="ai" style="width:100px;margin-top:4px"></div>
+              <button class="btn" type="submit">Забанить</button>
+            </form>
+            <div id="banList" class="pl" style="max-height:200px;overflow-y:auto"></div>
+          </div>
         </section>
       </main>
     </div>
@@ -538,7 +567,22 @@ function showSlide(i){if(i>=sl.length)cs=0;else if(i<0)cs=sl.length-1;else cs=i;
 function chSlide(d){showSlide(cs+d);}function goSlide(i){showSlide(i);}
 setInterval(()=>chSlide(1),5000);
 // Cabinet nav
-(function(){const navs=document.querySelectorAll('.cnb');const panels=document.querySelectorAll('.cp');const hd=document.getElementById('cabHead');navs.forEach(b=>{b.addEventListener('click',()=>{const t=b.dataset.p;navs.forEach(x=>x.classList.toggle('act',x===b));panels.forEach(p=>{p.style.display=p.dataset.p===t?'block':'none';});if(hd)hd.textContent=b.textContent.trim().replace(/^[^a-zA-Z\u0400-\u04FF]+/,'');});});})();
+(function(){
+  const navs=document.querySelectorAll('.cnb');
+  const panels=document.querySelectorAll('.cp');
+  const hd=document.getElementById('cabHead');
+  navs.forEach(b=>{
+    b.addEventListener('click',()=>{
+      const t=b.dataset.p;
+      navs.forEach(x=>x.classList.toggle('act',x===b));
+      panels.forEach(p=>{
+        p.style.display=p.dataset.p===t?'block':'none';
+      });
+      if(hd)hd.textContent=b.textContent.trim().replace(/^[^a-zA-Z\u0400-\u04FF]+/,'');
+      if(t==='admin')loadAdmin();
+    });
+  });
+})();
 function cabAuthTab(tab){const l=tab==='login';document.getElementById('cabLF').style.display=l?'grid':'none';document.getElementById('cabRF').style.display=l?'none':'grid';document.getElementById('cabTL').className=l?'btn':'btn ghost';document.getElementById('cabTR').className=l?'btn ghost':'btn';document.getElementById('cabAuthTitle').textContent=l?'войдите в аккаунт':'создайте аккаунт';document.getElementById('cabAuthMsg').textContent='';}
 async function loadUser(){
   try{
@@ -590,8 +634,8 @@ document.getElementById('cabRefresh')?.addEventListener('click',loadUser);
 function openLogin(){document.getElementById('pmod').classList.add('on');swMode('login');}
 function closeMod(){document.getElementById('pmod').classList.remove('on');}
 function swMode(m){const l=m==='login';document.getElementById('modLogin').style.display=l?'block':'none';document.getElementById('modReg').style.display=l?'none':'block';document.getElementById('modTitle').textContent=l?'Войдите в аккаунт':'Создайте аккаунт';const sl=document.querySelector('.psl');if(sl)sl.innerHTML=l?'Нет аккаунта? <a onclick="swMode(\'register\')">Регистрация</a>':'Уже есть аккаунт? <a onclick="swMode(\'login\')">Войти</a>';document.getElementById('modMsg').textContent='';}
-async function doLogin(){const m=document.getElementById('modMsg');m.className='pmsg';try{const r=await fetch('/api/player/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('mUser').value,password:document.getElementById('mPass').value})});const d=await r.json();if(d.ok){closeMod();await loadUser();}else{m.textContent=d.message||'Ошибка';m.className='pmsg err';}}catch(e){m.textContent='Ошибка сети';m.className='pmsg err';}}
-async function doReg(){const m=document.getElementById('modMsg');m.className='pmsg';try{const r=await fetch('/api/player/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('mRUser').value,email:document.getElementById('mREmail').value,password:document.getElementById('mRPass').value})});const d=await r.json();if(d.ok){closeMod();await loadUser();}else{m.textContent=d.message||'Ошибка';m.className='pmsg err';}}catch(e){m.textContent='Ошибка сети';m.className='pmsg err';}}
+async function doLogin(){const m=document.getElementById('modMsg');m.className='pmsg';try{const r=await fetch('/api/player/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('mUser').value,password:document.getElementById('mPass').value})});const d=await r.json();if(d.ok){closeMod();await loadUser();initAdmin();}else{m.textContent=d.message||'Ошибка';m.className='pmsg err';}}catch(e){m.textContent='Ошибка сети';m.className='pmsg err';}}
+async function doReg(){const m=document.getElementById('modMsg');m.className='pmsg';try{const r=await fetch('/api/player/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('mRUser').value,email:document.getElementById('mREmail').value,password:document.getElementById('mRPass').value})});const d=await r.json();if(d.ok){closeMod();await loadUser();initAdmin();}else{m.textContent=d.message||'Ошибка';m.className='pmsg err';}}catch(e){m.textContent='Ошибка сети';m.className='pmsg err';}}
 // Products
 let prods=[],activePromo=null,selProd=null,selPayM=null;
 async function loadProds(){try{const r=await fetch('/api/products');prods=await r.json();renderCards();}catch(e){}}
@@ -657,8 +701,8 @@ async function initAdmin(){
   if(!r)return;
   const d=await r.json().catch(()=>({}));
   if(d.ok&&d.player&&['Admin','Deputy Admin','Зам. админа','Администратор'].includes(d.player.role)){
-    const ap=document.getElementById('adminPanel');
-    if(ap)ap.classList.add('on');
+    const ab=document.getElementById('cabAdminBtn');
+    if(ab)ab.style.display='block';
     loadAdmin();
   }
 }
