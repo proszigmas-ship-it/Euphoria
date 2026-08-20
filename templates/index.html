@@ -539,12 +539,38 @@ setInterval(()=>chSlide(1),5000);
 // Cabinet nav
 (function(){const navs=document.querySelectorAll('.cnb');const panels=document.querySelectorAll('.cp');const hd=document.getElementById('cabHead');navs.forEach(b=>{b.addEventListener('click',()=>{const t=b.dataset.p;navs.forEach(x=>x.classList.toggle('act',x===b));panels.forEach(p=>{p.style.display=p.dataset.p===t?'block':'none';});if(hd)hd.textContent=b.textContent.trim().replace(/^[^a-zA-Z\u0400-\u04FF]+/,'');});});})();
 function cabAuthTab(tab){const l=tab==='login';document.getElementById('cabLF').style.display=l?'grid':'none';document.getElementById('cabRF').style.display=l?'none':'grid';document.getElementById('cabTL').className=l?'btn':'btn ghost';document.getElementById('cabTR').className=l?'btn ghost':'btn';document.getElementById('cabAuthTitle').textContent=l?'войдите в аккаунт':'создайте аккаунт';document.getElementById('cabAuthMsg').textContent='';}
-async function cabLogin(e){e.preventDefault();const m=document.getElementById('cabAuthMsg');m.textContent='';try{const r=await fetch('/api/player/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('cabLU').value,password:document.getElementById('cabLP').value})});const d=await r.json();if(d.ok){await loadUser();}else{m.textContent=d.message||'Ошибка';}}catch(e){m.textContent='Ошибка сети';}}
-async function cabRegister(e){e.preventDefault();const m=document.getElementById('cabAuthMsg');m.textContent='';try{const r=await fetch('/api/player/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('cabRU').value,email:document.getElementById('cabRE').value,password:document.getElementById('cabRP').value})});const d=await r.json();if(d.ok){await loadUser();}else{m.textContent=d.message||'Ошибка';}}catch(e){m.textContent='Ошибка сети';}}
-async function cabLogout(){await fetch('/api/player/logout',{method:'POST'});location.reload();}
-async function cabChPass(e){e.preventDefault();const m=document.getElementById('cabPassMsg');const np=document.getElementById('cabPN').value;const np2=document.getElementById('cabPN2').value;if(np!==np2){m.textContent='Пароли не совпадают';m.style.color='#ef4444';return;}const r=await fetch('/api/player/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current_password:document.getElementById('cabPC').value,new_password:np})});const d=await r.json();m.textContent=d.message||(d.ok?'Пароль изменён':'Ошибка');m.style.color=d.ok?'#34d399':'#ef4444';}
-async function cabActKey(e){e.preventDefault();const m=document.getElementById('keyMsg');const k=document.getElementById('keyInput').value.trim();const r=await fetch('/api/player/activate-key',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:k})});const d=await r.json();m.textContent=d.message||(d.ok?'Ключ активирован':'Ошибка');m.style.color=d.ok?'#34d399':'#ef4444';if(d.ok)loadUser();}
-async function loadUser(){try{const r=await fetch('/api/player/me');const d=await r.json();const auth=document.getElementById('cabAuth');const acc=document.getElementById('cabAcc');if(d.ok&&d.logged_in){if(auth)auth.style.display='none';if(acc)acc.style.display='block';const p=d.player;const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v||'—';};s('cabUid',p.uid);s('cabUser',p.username);s('cabRole2',p.role);s('cabEmail',p.email);s('cabWelcome',p.username);s('cabUserMini',p.username);s('cabRoleMini',p.role);const ab=document.getElementById('cabAdminBtn');if(ab)ab.style.display=(p.role==='Admin')?'block':'none';if(p.subscription){const sub=p.subscription;const exp=sub.expires_at?new Date(sub.expires_at).toLocaleDateString('ru-RU'):'∞';s('cabSub',sub.duration+' · до '+exp);s('subLabel','Активно');s('subVer',sub.duration);s('subNote','Подписка активна до '+exp);}}else{if(auth){auth.style.display='block';cabAuthTab('login');}if(acc)acc.style.display='none';}}catch(e){}}
+async function loadUser(){
+  try{
+    const r=await fetch('/api/player/me');
+    const d=await r.json();
+    const auth=document.getElementById('cabAuth');
+    const acc=document.getElementById('cabAcc');
+    const hacts=document.querySelector('.hacts');
+    if(d.ok&&d.logged_in){
+      if(auth)auth.style.display='none';
+      if(acc)acc.style.display='block';
+      const p=d.player;
+      const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v||'—';};
+      s('cabUid',p.uid);s('cabUser',p.username);s('cabRole2',p.role);s('cabEmail',p.email);s('cabWelcome',p.username);s('cabUserMini',p.username);s('cabRoleMini',p.role);
+      const ab=document.getElementById('cabAdminBtn');
+      if(ab)ab.style.display=(['Admin','Deputy Admin','Зам. админа','Администратор'].includes(p.role))?'block':'none';
+      if(p.subscription){
+        const sub=p.subscription;
+        const exp=sub.expires_at?new Date(sub.expires_at).toLocaleDateString('ru-RU'):'∞';
+        s('cabSub',sub.duration+' · до '+exp);s('subLabel','Активно');s('subVer',sub.duration);s('subNote','Подписка активна до '+exp);
+      }
+      if(hacts){
+        hacts.innerHTML=`<a href="/cabinet" class="hbtn hbtn-pri">👤 ${p.username} (${p.role})</a><button class="hbtn hbtn-sec" onclick="cabLogout()">Выйти</button><button class="burger" onclick="toggleMenu()">☰</button>`;
+      }
+    }else{
+      if(auth){auth.style.display='block';cabAuthTab('login');}
+      if(acc)acc.style.display='none';
+      if(hacts){
+        hacts.innerHTML=`<a href="/cabinet" class="hbtn hbtn-sec">→ Войти</a><a href="/cabinet" class="hbtn hbtn-pri">👤 Регистрация</a><button class="burger" onclick="toggleMenu()">☰</button>`;
+      }
+    }
+  }catch(e){}
+}
 document.getElementById('cabRefresh')?.addEventListener('click',loadUser);
 // Modal
 function openLogin(){document.getElementById('pmod').classList.add('on');swMode('login');}
@@ -555,20 +581,121 @@ async function doReg(){const m=document.getElementById('modMsg');m.className='pm
 // Products
 let prods=[],activePromo=null,selProd=null,selPayM=null;
 async function loadProds(){try{const r=await fetch('/api/products');prods=await r.json();renderCards();}catch(e){}}
-function renderCards(){const g=document.getElementById('cards');if(!g)return;const dc=activePromo?activePromo.discount:0;if(!prods.length){g.innerHTML='<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:20px">Тарифы скоро появятся.</p>';return;}const mx=Math.max(...prods.map(p=>p.price),1);g.innerHTML=prods.map((p,i)=>{const o=p.price;const f=dc?Math.round(o*(100-dc)/100):o;const isp=o>=mx;return`<div class="pc${isp?' pop':''}"><div class="ptag" style="${isp?'':'display:none'}">&#128293; Выгодно</div><h3>${p.title}</h3><div class="pb">${f}&#8381;<small>${dc?` (&#8722;${dc}%) было ${o}&#8381;`:''}</small></div><ul class="fl"><li>Доступ к клиенту</li><li>Поддержка 24/7</li><li>Все обходы</li>${isp?'<li>Приоритет</li>':''}</ul><button class="btn btn-full" onclick="sPlan(${i})">${selProd===i?'&#10003; Выбрано':'Выбрать тариф'}</button></div>`; }).join('');}
-function sPlan(i){selProd=i;renderCards();const p=prods[i];const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;const h=document.getElementById('planHint');if(h)h.textContent=`Выбрано: ${p.title} · ${f}&#8381;`;upCo();}
-async function applyPromo(){const code=document.getElementById('promoInput').value.trim().toUpperCase();const st=document.getElementById('promoStatus');if(!code){activePromo=null;renderCards();if(st)st.textContent='';return;}try{const r=await fetch('/api/promos');const pm=await r.json();if(pm[code]){activePromo={code,discount:pm[code]};if(st){st.textContent=`&#10003; ${code}: &#8722;${pm[code]}%`;st.style.color='#34d399';}renderCards();}else{activePromo=null;if(st){st.textContent='&#10005; Промокод не найден';st.style.color='#ef4444';}renderCards();}}catch(e){}}
+function renderCards(){const g=document.getElementById('cards');if(!g)return;const dc=activePromo?activePromo.discount:0;if(!prods.length){g.innerHTML='<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:20px">Тарифы скоро появятся.</p>';return;}const mx=Math.max(...prods.map(p=>p.price),1);g.innerHTML=prods.map((p,i)=>{const o=p.price;const f=dc?Math.round(o*(100-dc)/100):o;const isp=o>=mx;return`<div class="pc${isp?' pop':''}"><div class="ptag" style="${isp?'':'display:none'}">🔥 Выгодно</div><h3>${p.title}</h3><div class="pb">${f}₽<small>${dc?` (−${dc}%) было ${o}₽`:''}</small></div><ul class="fl"><li>Доступ к клиенту</li><li>Поддержка 24/7</li><li>Все обходы</li>${isp?'<li>Приоритет</li>':''}</ul><button class="btn btn-full" onclick="sPlan(${i})">${selProd===i?'✓ Выбрано':'Выбрать тариф'}</button></div>`; }).join('');}
+function sPlan(i){selProd=i;renderCards();const p=prods[i];const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;const h=document.getElementById('planHint');if(h)h.textContent=`Выбрано: ${p.title} · ${f}₽`;upCo();}
+async function applyPromo(){const code=document.getElementById('promoInput').value.trim().toUpperCase();const st=document.getElementById('promoStatus');if(!code){activePromo=null;renderCards();if(st)st.textContent='';return;}try{const r=await fetch('/api/promos');const pm=await r.json();if(pm[code]){activePromo={code,discount:pm[code]};if(st){st.textContent=`✓ ${code}: −${pm[code]}%`;st.style.color='#34d399';}renderCards();}else{activePromo=null;if(st){st.textContent='✕ Промокод не найден';st.style.color='#ef4444';}renderCards();}}catch(e){}}
 function selPay(m,b){selPayM=m;document.querySelectorAll('.pm').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');const lb={'funpay':'FunPay','yumoney':'ЮMoney','card':'Банковская карта','visa':'Visa','mc':'Mastercard'};const mv=document.getElementById('coMethod');if(mv)mv.textContent=lb[m]||m;upCo();}
 function upCo(){const co=document.getElementById('checkout');if(selProd===null||selProd===undefined){if(co)co.classList.remove('on');return;}if(!selPayM)return;const p=prods[selProd];if(!p||!co)return;const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;co.classList.add('on');const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('coProd',p.title);se('coPrice',f+'₽');se('coTotal',f+'₽');}
-async function startPay(){if(selProd===null||!selPayM){alert('Выберите тариф и способ оплаты');return;}const p=prods[selProd];const btn=document.getElementById('payBtn');if(btn){btn.disabled=true;btn.textContent='...';}try{const r=await fetch('/api/player/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:p.title,promo:activePromo?activePromo.code:''})});const d=await r.json();if(d.ok){alert(`✅ Заказ создан!\nКлюч: ${d.key}\nТариф: ${d.duration}\nОплачено: ${d.price_paid}₽`);loadUser();}else if(d.message?.includes('Login')){alert('Войдите в аккаунт');openLogin();}else{alert(d.message||'Ошибка');}}catch(e){alert('Ошибка сети');}finally{if(btn){btn.disabled=false;btn.textContent='Перейти к оплате';}}}
+async function startPay(){
+  if(selProd===null){alert('Пожалуйста, сначала выберите тариф выше!');return;}
+  if(!selPayM){alert('Пожалуйста, выберите способ оплаты (FunPay, ЮMoney, Карта и т.д.)');return;}
+  const p=prods[selProd];
+  const btn=document.getElementById('payBtn');
+  if(btn){btn.disabled=true;btn.textContent='Оформление...';}
+  try{
+    const r=await fetch('/api/player/checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({product:p.title,method:selPayM,promo:activePromo?activePromo.code:''})
+    });
+    const d=await r.json();
+    if(d.ok){
+      alert(`💳 Заказ #${d.order_id} оформлен!\nТариф: ${d.product}\nСумма: ${d.amount} ₽\nСпособ оплаты: ${d.method}\n\nДля завершения оплаты и получения ключа переведите средства или свяжитесь с поддержкой в Telegram: @euphoria_support`);
+    }else if(d.message?.includes('Войдите')||d.message?.includes('Login')){
+      alert('Войдите в аккаунт перед оформлением заказа');
+      openLogin();
+    }else{
+      alert(d.message||'Ошибка');
+    }
+  }catch(e){
+    alert('Ошибка сети');
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Перейти к оплате';}
+  }
+}
 function supAlert(){alert('Поддержка:\n📩 Telegram: @euphoria_support\n💬 Discord: discord.gg/euphoria');}
 // Admin
-async function initAdmin(){const r=await fetch('/api/player/me').catch(()=>null);if(!r)return;const d=await r.json().catch(()=>({}));if(d.ok&&d.player&&d.player.role==='Admin'){const ap=document.getElementById('adminPanel');if(ap)ap.classList.add('on');loadAdmin();}}
-async function loadAdmin(){try{const [kR,pR,pdR,plR,bR,fR]=await Promise.all([fetch('/api/admin/keys'),fetch('/api/admin/promos'),fetch('/api/products'),fetch('/api/admin/players'),fetch('/api/admin/ip-bans'),fetch('/api/admin/fingerprints')]);const k=await kR.json().catch(()=>({}));const p=await pR.json().catch(()=>({}));const pd=await pdR.json().catch(()=>[]);const pl=await plR.json().catch(()=>({}));const b=await bR.json().catch(()=>({}));const f=await fR.json().catch(()=>({}));rkl(k.keys||[]);rpl(p.promos||[]);rpd(pd);rplayer(pl);rban(b);rfp(f.fingerprints||[]);if(b.your_ip){const e=document.getElementById('yourIp');if(e)e.textContent=b.your_ip;}}catch(e){}}
+async function initAdmin(){
+  const r=await fetch('/api/player/me').catch(()=>null);
+  if(!r)return;
+  const d=await r.json().catch(()=>({}));
+  if(d.ok&&d.player&&['Admin','Deputy Admin','Зам. админа','Администратор'].includes(d.player.role)){
+    const ap=document.getElementById('adminPanel');
+    if(ap)ap.classList.add('on');
+    loadAdmin();
+  }
+}
+async function loadAdmin(){
+  try{
+    const [kR,pR,pdR,plR,bR,fR]=await Promise.all([
+      fetch('/api/admin/keys'),fetch('/api/admin/promos'),fetch('/api/products'),
+      fetch('/api/admin/players'),fetch('/api/admin/ip-bans'),fetch('/api/admin/fingerprints')
+    ]);
+    const k=await kR.json().catch(()=>({}));
+    const p=await pR.json().catch(()=>({}));
+    const pd=await pdR.json().catch(()=>[]);
+    const pl=await plR.json().catch(()=>({}));
+    const b=await bR.json().catch(()=>({}));
+    const f=await fR.json().catch(()=>({}));
+    rkl(k.keys||[]);rpl(p.promos||[]);rpd(pd);rplayer(pl);rban(b);rfp(f.fingerprints||[]);
+    if(b.your_ip){const e=document.getElementById('yourIp');if(e)e.textContent=b.your_ip;}
+  }catch(e){}
+}
 function rkl(keys){const e=document.getElementById('keyList');if(!e)return;e.innerHTML=keys.map(k=>`<div class="pr"><span style="font-family:monospace;font-size:13px">${k.key}</span><span style="color:var(--muted);font-size:12px">${k.duration}·${k.uses}/${k.max_uses}</span><small style="color:${k.active?'#34d399':'#ef4444'}">${k.active?'Active':'Disabled'}</small>${k.active?`<button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="disKey(${k.id})">Disable</button>`:''}${k.bound?`<button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="resHwid(${k.id})">Reset HWID</button>`:''}</div>`).join('')||'<p style="color:var(--muted);padding:12px">Нет ключей</p>';}
 function rpl(promos){const e=document.getElementById('promoList');if(!e)return;e.innerHTML=promos.map(p=>`<div class="pr"><span>${p.code}</span><small>-${p.discount}%·${p.uses}/${p.max_uses||'∞'}</small><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="delPromo('${p.code}')">✕</button></div>`).join('');}
 function rpd(pds){const e=document.getElementById('productList');if(!e)return;e.innerHTML=pds.map(p=>`<div class="pr"><span>${p.title}</span><small>${p.price}₽</small><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="delProd(${p.id})">✕</button></div>`).join('');}
-function rplayer(data){const e=document.getElementById('playerList');const st=id=>document.getElementById(id);if(data.stats){if(st('statTotal'))st('statTotal').textContent=data.stats.total_players||0;if(st('statActive'))st('statActive').textContent=data.stats.active_subscriptions||0;if(st('statHwid'))st('statHwid').textContent=data.stats.hwid_bound||0;}if(e&&data.players)e.innerHTML=(data.players||[]).map(p=>`<div class="pr" style="flex-wrap:wrap"><span style="font-weight:800">${p.username}</span><span style="color:var(--muted);font-size:12px">${p.uid}</span><span style="font-size:12px;color:${p.subscription_active?'#34d399':'var(--muted)'}">${p.subscription}</span><span style="font-size:11px;color:var(--muted)">${p.email}</span></div>`).join('');}
+function rplayer(data){
+  const e=document.getElementById('playerList');
+  const st=id=>document.getElementById(id);
+  if(data.stats){
+    if(st('statTotal'))st('statTotal').textContent=data.stats.total_players||0;
+    if(st('statActive'))st('statActive').textContent=data.stats.active_subscriptions||0;
+    if(st('statHwid'))st('statHwid').textContent=data.stats.hwid_bound||0;
+  }
+  if(!e||!data.players)return;
+  e.innerHTML=(data.players||[]).map(p=>`
+    <div class="pr" style="flex-wrap:wrap;gap:10px;align-items:center;background:#0d1124;padding:12px;border-radius:12px;margin-bottom:8px">
+      <div style="min-width:140px">
+        <strong style="font-size:15px;color:#fff">${p.username}</strong>
+        <span style="color:var(--muted);font-size:12px;display:block">UID: ${p.uid} · ${p.email}</span>
+      </div>
+      <div style="background:#141933;padding:6px 10px;border-radius:8px;border:1px solid var(--line);font-size:12px">
+        <span style="color:var(--muted)">🔑 Пароль:</span> <strong style="color:#a78bfa;font-family:monospace">${p.password||'—'}</strong>
+      </div>
+      <div style="font-size:12px;color:${p.subscription_active?'#34d399':'var(--muted)'}">
+        🛡 ${p.subscription}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:12px;color:var(--muted)">Роль:</span>
+        <select onchange="changeRole(${p.id},this.value)" class="ai" style="padding:6px 10px;margin-bottom:0;width:auto;font-size:12px;background:#181e3a">
+          <option value="User" ${p.role==='User'?'selected':''}>Юзер (User)</option>
+          <option value="Deputy Media" ${p.role==='Deputy Media'?'selected':''}>Зам. Медиа</option>
+          <option value="Media" ${p.role==='Media'?'selected':''}>Медиа</option>
+          <option value="Deputy Admin" ${p.role==='Deputy Admin'?'selected':''}>Зам. Админа</option>
+          <option value="Admin" ${p.role==='Admin'?'selected':''}>Админ (Admin)</option>
+        </select>
+      </div>
+    </div>
+  `).join('');
+}
+async function changeRole(playerId, newRole){
+  try{
+    const r=await fetch(`/api/admin/players/${playerId}/role`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role:newRole})
+    });
+    const d=await r.json();
+    if(d.ok){
+      alert(d.message||'Роль успешно обновлена!');
+      loadAdmin();
+    }else{
+      alert(d.message||'Ошибка изменения роли');
+    }
+  }catch(e){
+    alert('Ошибка сети при изменении роли');
+  }
+}
 function rban(data){const e=document.getElementById('banList');if(!e||!data.bans)return;e.innerHTML=(data.bans||[]).map(b=>`<div class="pr"><span>${b.ip}</span><span style="color:var(--muted);font-size:12px">${b.reason||'No reason'}</span><button class="btn ghost" style="padding:5px 10px;font-size:11px" onclick="unban(${b.id})">Unban</button></div>`).join('');}
 function rfp(fps){const e=document.getElementById('fpList');if(!e)return;e.innerHTML=fps.map(f=>`<div class="pr"><span style="font-family:monospace;font-size:12px">${f.fp_short}</span><span style="color:var(--muted);font-size:11px">${f.event}</span><span style="color:var(--muted);font-size:11px">${f.ip}</span></div>`).join('');}
 async function genKeys(){const dur=document.getElementById('key-duration').value;const amt=parseInt(document.getElementById('key-amount').value)||1;const mx=parseInt(document.getElementById('key-max-uses').value)||1;const r=await fetch('/api/admin/keys/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({duration:dur,amount:amt,max_uses:mx})});const d=await r.json();const ta=document.getElementById('gen-keys');const m=document.getElementById('kg-msg');if(d.ok&&ta){ta.value=(d.keys||[]).join('\n');if(m){m.textContent=`Создано: ${d.keys.length}`;m.style.color='#34d399';}loadAdmin();}else if(m){m.textContent=d.message||'Ошибка';m.style.color='#ef4444';}}

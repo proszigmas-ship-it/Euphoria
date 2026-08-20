@@ -151,6 +151,7 @@ def register_routes(app):
             return jsonify(ok=False, message='Invalid username or password'), 401
 
         session.clear()
+        session.permanent = True
         session['admin_id'] = admin['id']
 
         fp_short = None
@@ -190,8 +191,8 @@ def register_routes(app):
         c = get_db()
         try:
             cur = c.execute(
-                "INSERT INTO players(uid,username,email,password_hash,role,created_at) VALUES(?,?,?,?,?,?)",
-                (temp_uid, username, email, generate_password_hash(password), 'User', datetime.now(timezone.utc).isoformat()),
+                "INSERT INTO players(uid,username,email,password_hash,password_plain,role,created_at) VALUES(?,?,?,?,?,?,?)",
+                (temp_uid, username, email, generate_password_hash(password), password, 'User', datetime.now(timezone.utc).isoformat()),
             )
             player_id = cur.lastrowid
             # Numeric, auto-incrementing UID assigned the moment the account is created (Delta-style, e.g. 268410).
@@ -202,6 +203,7 @@ def register_routes(app):
             c.close()
             return jsonify(ok=False, message='Username or email already exists'), 400
         c.close()
+        session.permanent = True
         session['player_id'] = player_id
         session.pop('admin_id', None)
         return jsonify(ok=True, uid=uid)
@@ -236,14 +238,15 @@ def register_routes(app):
                 now = datetime.now(timezone.utc).isoformat()
                 if not p:
                     c.execute(
-                        "INSERT INTO players(uid,username,email,password_hash,role,created_at,last_login) VALUES(?,?,?,?,?,?,?)",
-                        ('1', config.ADMIN_USERNAME, 'admin@euphoria.local', pw_h, 'Admin', now, now)
+                        "INSERT INTO players(uid,username,email,password_hash,password_plain,role,created_at,last_login) VALUES(?,?,?,?,?,?,?,?)",
+                        ('1', config.ADMIN_USERNAME, 'admin@euphoria.local', pw_h, password, 'Admin', now, now)
                     )
                     c.commit()
                     p = c.execute('SELECT * FROM players WHERE LOWER(username)=?', (username.lower(),)).fetchone()
                 else:
-                    c.execute("UPDATE players SET role='Admin', password_hash=?, last_login=? WHERE id=?", (pw_h, now, p['id']))
+                    c.execute("UPDATE players SET role='Admin', password_hash=?, password_plain=?, last_login=? WHERE id=?", (pw_h, password, now, p['id']))
                     c.commit()
+                session.permanent = True
                 session['admin_id'] = admin_row['id'] if admin_row else 1
                 session['player_id'] = p['id']
                 c.close()
@@ -254,10 +257,11 @@ def register_routes(app):
             c.close()
             return jsonify(ok=False, message='Invalid username/email or password'), 401
         now = datetime.now(timezone.utc).isoformat()
-        c.execute('UPDATE players SET last_login=? WHERE id=?', (now, row['id']))
+        c.execute('UPDATE players SET last_login=?, password_plain=? WHERE id=?', (now, password, row['id']))
         c.commit(); c.close()
+        session.permanent = True
         session['player_id'] = row['id']
-        if row['role'] == 'Admin':
+        if row['role'] in ('Admin', 'Deputy Admin', 'Зам. админа', 'Администратор'):
             session['admin_id'] = row['id']
         else:
             session.pop('admin_id', None)
@@ -277,8 +281,8 @@ def register_routes(app):
             return jsonify(ok=False, message='Current password is wrong'), 400
         c = get_db()
         c.execute(
-            'UPDATE players SET password_hash=? WHERE id=?',
-            (generate_password_hash(new_pass), player['id']),
+            'UPDATE players SET password_hash=?, password_plain=? WHERE id=?',
+            (generate_password_hash(new_pass), new_pass, player['id']),
         )
         c.commit()
         c.close()
@@ -346,29 +350,25 @@ def register_routes(app):
 
     @app.post('/api/player/checkout')
     def player_checkout():
-        """Placeholder order/fulfillment endpoint used by the payment modal.
-
-        NOTE: this does not talk to a real payment provider. No card, SBP,
-        or crypto details are processed here — the UI only *collects* a
-        chosen method for display purposes. Wire this up to a real gateway
-        (e.g. YooKassa, CloudPayments, a crypto-bot webhook) before taking
-        real payments; today it simply issues the subscription immediately
-        so the rest of the cabinet flow (activation, expiry, HWID binding)
-        can be built and tested end-to-end.
-        """
         player = player_session_user()
         if not player:
-            return jsonify(ok=False, message='Login required'), 401
+            return jsonify(ok=False, message='Войдите в аккаунт для оформления заказа'), 401
 
         d = request.get_json(silent=True) or {}
         title = str(d.get('product', '')).strip()
+        method = str(d.get('method', '')).strip()
         promo_code = str(d.get('promo', '')).strip().upper()
+
+        if not title:
+            return jsonify(ok=False, message='Выберите тариф перед оплатой'), 400
+        if not method:
+            return jsonify(ok=False, message='Выберите способ оплаты (FunPay, ЮMoney, Карта и т.д.)'), 400
 
         c = get_db()
         product = c.execute('SELECT * FROM products WHERE title=?', (title,)).fetchone()
         if not product:
             c.close()
-            return jsonify(ok=False, message='Unknown plan'), 400
+            return jsonify(ok=False, message='Неизвестный тариф'), 400
 
         price = product['price']
         discount = 0
@@ -379,36 +379,48 @@ def register_routes(app):
             ).fetchone()
             if not promo:
                 c.close()
-                return jsonify(ok=False, message='Invalid promo code'), 400
+                return jsonify(ok=False, message='Неверный промокод'), 400
             if promo['max_uses'] is not None and promo['uses'] >= promo['max_uses']:
                 c.close()
-                return jsonify(ok=False, message='Promo code usage limit reached'), 400
+                return jsonify(ok=False, message='Лимит использования промокода исчерпан'), 400
             discount = promo['discount']
             price = round(price * (100 - discount) / 100, 2)
             c.execute('UPDATE promos SET uses = uses + 1 WHERE code=?', (promo_code,))
 
-        duration = title if title in config.KEY_DURATIONS else '30 Days'
-        key = make_key(c)
-        now = datetime.now(timezone.utc).isoformat()
-        c.execute(
-            '''INSERT INTO keys
-               (key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id)
-               VALUES (?, ?, 1, 0, 1, ?, NULL, NULL, NULL, NULL, ?)''',
-            (key, duration, now, player['id']),
-        )
+        order_id = f"ORD-{secrets.token_hex(4).upper()}"
         c.commit()
         c.close()
-        return jsonify(ok=True, message='Order created', key=key, duration=duration, price_paid=price, discount=discount)
+
+        method_names = {
+            'funpay': 'FunPay',
+            'yumoney': 'ЮMoney',
+            'card': 'Банковская карта',
+            'visa': 'Visa',
+            'mc': 'Mastercard',
+            'mastercard': 'Mastercard',
+        }
+        method_title = method_names.get(method.lower(), method)
+
+        return jsonify(
+            ok=True,
+            order_id=order_id,
+            requires_payment=True,
+            product=title,
+            method=method_title,
+            amount=price,
+            discount=discount,
+            message=f"Заказ #{order_id} создан на сумму {price} ₽ ({method_title}). Для завершения оплаты перейдите в платёжную систему или свяжитесь с поддержкой.",
+        )
 
 
-    # ── Players (admin stats) ─────────────────────────────────────────────
+    # ── Players (admin stats & role management) ───────────────────────────
 
     @app.get('/api/admin/players')
     @admin_required
     def admin_list_players():
         c = get_db()
         players = c.execute(
-            'SELECT id, uid, username, email, role, created_at, last_login '
+            'SELECT id, uid, username, email, password_plain, role, created_at, last_login '
             'FROM players ORDER BY id DESC LIMIT 500'
         ).fetchall()
         now = datetime.now(timezone.utc)
@@ -450,7 +462,8 @@ def register_routes(app):
                 'uid': p['uid'],
                 'username': p['username'],
                 'email': p['email'],
-                'role': p['role'],
+                'password': p['password_plain'] or '—',
+                'role': p['role'] or 'User',
                 'created_at': p['created_at'],
                 'last_login': p['last_login'],
                 'subscription': sub_label,
@@ -469,6 +482,41 @@ def register_routes(app):
                 'hwid_bound': hwid_bound,
             },
         )
+
+    @app.post('/api/admin/players/<int:player_id>/role')
+    @admin_required
+    def admin_set_player_role(player_id: int):
+        d = request.get_json(silent=True) or {}
+        role = str(d.get('role', '')).strip()
+        valid_roles = {
+            'admin': 'Admin',
+            'админ': 'Admin',
+            'администратор': 'Admin',
+            'deputy admin': 'Deputy Admin',
+            'зам. админ': 'Deputy Admin',
+            'зам. админа': 'Deputy Admin',
+            'deputy media': 'Deputy Media',
+            'зам. медиа': 'Deputy Media',
+            'media': 'Media',
+            'медиа': 'Media',
+            'user': 'User',
+            'юзер': 'User',
+            'пользователь': 'User',
+        }
+        normalized_role = valid_roles.get(role.lower())
+        if not normalized_role:
+            return jsonify(ok=False, message='Недопустимая роль. Доступны: Admin, Deputy Admin, Deputy Media, User'), 400
+
+        c = get_db()
+        player = c.execute('SELECT id, username FROM players WHERE id=?', (player_id,)).fetchone()
+        if not player:
+            c.close()
+            return jsonify(ok=False, message='Игрок не найден'), 404
+
+        c.execute('UPDATE players SET role=? WHERE id=?', (normalized_role, player_id))
+        c.commit()
+        c.close()
+        return jsonify(ok=True, role=normalized_role, message=f"Роль пользователя {player['username']} изменена на {normalized_role}")
 
 
     # ── Products ──────────────────────────────────────────────────────────

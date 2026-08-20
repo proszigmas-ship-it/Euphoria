@@ -617,8 +617,7 @@ async function submitPayment(){
     const d = await r.json();
     if(r.ok && d.ok){
       msg.className='pay-msg ok';
-      msg.textContent = 'Оплата принята — ключ выдан и активирован на ваш аккаунт: ' + d.key;
-      setTimeout(()=>location.reload(), 1600);
+      msg.textContent = `Заказ #${d.order_id} оформлен на сумму ${d.amount} ₽ (${d.method}). Для завершения оплаты и получения ключа переведите средства или свяжитесь с поддержкой.`;
     } else {
       msg.className='pay-msg err';
       msg.textContent = d.message || 'Не удалось оформить заказ';

@@ -21,13 +21,22 @@ def create_app() -> Flask:
             f'from the folder that contains templates/ and euphoria/'
         )
 
+    from datetime import timedelta
+
     app = Flask(
         __name__,
         template_folder=str(templates.resolve()),
         static_folder=str(static.resolve()) if static.is_dir() else None,
         static_url_path='/static',
     )
-    app.secret_key = config.SECRET_KEY
+    app.config.update(
+        SECRET_KEY=config.SECRET_KEY,
+        SESSION_COOKIE_NAME='euphoria_session',
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE='Lax',
+        SESSION_COOKIE_PATH='/',
+        PERMANENT_SESSION_LIFETIME=timedelta(days=30),
+    )
     app.root_path = str(config.ROOT)
 
     register_hooks(app)

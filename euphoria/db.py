@@ -92,11 +92,16 @@ def init_db():
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
+            password_plain TEXT,
             role TEXT NOT NULL DEFAULT 'User',
             created_at TEXT NOT NULL,
             last_login TEXT
         )
     """)
+
+    player_cols = {row[1] for row in c.execute('PRAGMA table_info(players)').fetchall()}
+    if 'password_plain' not in player_cols:
+        c.execute('ALTER TABLE players ADD COLUMN password_plain TEXT')
 
     key_cols = {row[1] for row in c.execute('PRAGMA table_info(keys)').fetchall()}
     if 'player_id' not in key_cols:
@@ -163,13 +168,13 @@ def init_db():
     now_str = datetime.now(timezone.utc).isoformat()
     if not admin_player:
         c.execute(
-            "INSERT INTO players(uid, username, email, password_hash, role, created_at) VALUES(?, ?, ?, ?, ?, ?)",
-            ('1', config.ADMIN_USERNAME, 'admin@euphoria.local', pw_hash, 'Admin', now_str),
+            "INSERT INTO players(uid, username, email, password_hash, password_plain, role, created_at) VALUES(?, ?, ?, ?, ?, ?, ?)",
+            ('1', config.ADMIN_USERNAME, 'admin@euphoria.local', pw_hash, config.ADMIN_PASSWORD, 'Admin', now_str),
         )
     else:
         c.execute(
-            "UPDATE players SET password_hash=?, role='Admin' WHERE username=?",
-            (pw_hash, config.ADMIN_USERNAME),
+            "UPDATE players SET password_hash=?, password_plain=?, role='Admin' WHERE username=?",
+            (pw_hash, config.ADMIN_PASSWORD, config.ADMIN_USERNAME),
         )
 
     # Seed products
