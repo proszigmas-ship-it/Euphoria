@@ -13,6 +13,7 @@ class EuphoriaAppTests(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.original_db_path = config.DB_PATH
         config.DB_PATH = Path(self.temp_dir.name) / 'euphoria-test.db'
+        config.IS_TESTING = True
         self.app = create_app()
         self.app.config.update(TESTING=True)
         self.client = self.app.test_client()
@@ -24,6 +25,7 @@ class EuphoriaAppTests(unittest.TestCase):
 
     def tearDown(self):
         config.DB_PATH = self.original_db_path
+        config.IS_TESTING = False
         self.temp_dir.cleanup()
 
     def generate_key(self, duration='90 Days'):

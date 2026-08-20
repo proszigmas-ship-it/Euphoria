@@ -304,6 +304,8 @@ def init_db():
 
 def save_snapshot():
     """Save all data to a persistent JSON snapshot file."""
+    if getattr(config, 'IS_TESTING', False) or os.environ.get('TESTING') == '1':
+        return
     try:
         import json
         c = get_db()
