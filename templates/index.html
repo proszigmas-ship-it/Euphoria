@@ -289,12 +289,9 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
     <div class="paybox">
       <h3>2. Способ оплаты</h3>
       <div id="planHint" style="color:var(--muted);font-size:13px;margin-bottom:14px">1. Выберите тариф → 2. Оплата</div>
-      <div class="pms">
+      <div class="pms" style="grid-template-columns: 1fr 1fr;">
+        <button class="pm sel" onclick="selPay('sbp',this)">&#9889; СБП<small>Система быстрых платежей</small></button>
         <button class="pm" onclick="selPay('funpay',this)">&#128176; FunPay<small>Маркетплейс</small></button>
-        <button class="pm" onclick="selPay('card',this)">&#128179; Карта РФ / СБП<small>Прямой перевод</small></button>
-        <button class="pm" onclick="selPay('yumoney',this)">&#127505; ЮMoney<small>Кошелёк</small></button>
-        <button class="pm" onclick="selPay('visa',this)">&#128309; Visa<small>Card payment</small></button>
-        <button class="pm" onclick="selPay('mc',this)">&#128308; Mastercard<small>Card payment</small></button>
       </div>
 
       <div class="co" id="checkout">
@@ -432,10 +429,24 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
             <div class="cc"><span class="cl">&#128187; Привязано HWID</span><strong id="statHwid" style="font-size:22px;color:#38bdf8">0</strong></div>
           </div>
 
-          <!-- Players Table -->
+          <!-- Players Table & Ban Form -->
           <div class="cc wide" style="margin-bottom:16px">
-            <span class="cl">&#128101; Список пользователей</span>
-            <h3 style="font-size:16px;margin:6px 0 12px">Игроки, их роли и пароли</h3>
+            <span class="cl">&#128683; Блокировка аккаунтов игроков</span>
+            <h3 style="font-size:16px;margin:6px 0 12px">Быстрый бан пользователя</h3>
+            <form onsubmit="banPlayerAdmin(event)" style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:14px">
+              <div>
+                <label style="font-size:12px;color:var(--muted)">Логин, UID или ID пользователя</label>
+                <input id="banUserQuery" class="ai" placeholder="Например: DarkPlayer или 268410" required style="margin-top:4px">
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--muted)">Причина бана</label>
+                <input id="banUserReason" class="ai" placeholder="Нарушение правил проекта" style="margin-top:4px">
+              </div>
+              <button class="btn" type="submit" style="background:#ef4444;border-color:#ef4444">&#128683; Забанить</button>
+            </form>
+            <div id="playerBanStatus" style="font-size:13px;margin-bottom:12px"></div>
+
+            <h3 style="font-size:16px;margin:16px 0 12px">&#128101; Список пользователей (Игроки, роли, пароли и бан)</h3>
             <div id="playerList" style="max-height:420px;overflow-y:auto;display:grid;gap:8px"></div>
           </div>
 
@@ -721,7 +732,7 @@ function selPay(m,b){
   selPayM=m;
   document.querySelectorAll('.pm').forEach(x=>x.classList.remove('sel'));
   b.classList.add('sel');
-  const lb={'funpay':'FunPay','yumoney':'ЮMoney','card':'Карта РФ / СБП','visa':'Visa','mc':'Mastercard'};
+  const lb={'sbp':'СБП (Система быстрых платежей)','funpay':'FunPay'};
   const mv=document.getElementById('coMethod');
   if(mv)mv.textContent=lb[m]||m;
   upCo();
@@ -729,7 +740,7 @@ function selPay(m,b){
 function upCo(){const co=document.getElementById('checkout');if(selProd===null||selProd===undefined){if(co)co.classList.remove('on');return;}if(!selPayM)return;const p=prods[selProd];if(!p||!co)return;const dc=activePromo?activePromo.discount:0;const f=dc?Math.round(p.price*(100-dc)/100):p.price;co.classList.add('on');const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('coProd',p.title);se('coPrice',f+'₽');se('coTotal',f+'₽');}
 function startPay(){
   if(selProd===null){alert('Пожалуйста, сначала выберите тариф выше!');return;}
-  if(!selPayM){alert('Пожалуйста, выберите способ оплаты (FunPay, ЮMoney, Карта и т.д.)');return;}
+  if(!selPayM){alert('Пожалуйста, выберите способ оплаты (СБП или FunPay)');return;}
   const p=prods[selProd];
   if(selPayM==='funpay'){
     window.open('https://funpay.com/users/12165454/','_blank');
@@ -835,10 +846,12 @@ function rplayer(data){
   }
   if(!e||!data.players)return;
   e.innerHTML=(data.players||[]).map(p=>`
-    <div class="pr" style="flex-wrap:wrap;gap:10px;align-items:center;background:#0d1124;padding:12px;border-radius:12px;margin-bottom:8px">
+    <div class="pr" style="flex-wrap:wrap;gap:10px;align-items:center;background:#0d1124;padding:12px;border-radius:12px;border:1px solid ${p.banned?'#ef4444':'var(--line)'};margin-bottom:8px">
       <div style="min-width:140px">
         <strong style="font-size:15px;color:#fff">${p.username}</strong>
+        ${p.banned ? `<span style="background:#ef4444;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px">ЗАБАНЕН</span>` : ''}
         <span style="color:var(--muted);font-size:12px;display:block">UID: ${p.uid} · ${p.email}</span>
+        ${p.banned && p.ban_reason ? `<span style="color:#f87171;font-size:11px;display:block">Причина: ${p.ban_reason}</span>` : ''}
       </div>
       <div style="background:#141933;padding:6px 10px;border-radius:8px;border:1px solid var(--line);font-size:12px">
         <span style="color:var(--muted)">🔑 Пароль:</span> <strong style="color:#a78bfa;font-family:monospace">${p.password||'—'}</strong>
@@ -846,7 +859,7 @@ function rplayer(data){
       <div style="font-size:12px;color:${p.subscription_active?'#34d399':'var(--muted)'}">
         🛡 ${p.subscription}
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <span style="font-size:12px;color:var(--muted)">Роль:</span>
         <select onchange="changeRole(${p.id},this.value)" class="ai" style="padding:6px 10px;margin-bottom:0;width:auto;font-size:12px;background:#181e3a">
           <option value="User" ${p.role==='User'?'selected':''}>Юзер (User)</option>
@@ -855,9 +868,53 @@ function rplayer(data){
           <option value="Deputy Admin" ${p.role==='Deputy Admin'?'selected':''}>Зам. Админа</option>
           <option value="Admin" ${p.role==='Admin'?'selected':''}>Админ (Admin)</option>
         </select>
+        ${p.banned ?
+          `<button class="btn" style="padding:6px 12px;font-size:11.5px;background:#34d399;border-color:#34d399" onclick="togglePlayerBan(${p.id},'unban')">✅ Разбанить</button>` :
+          `<button class="btn" style="padding:6px 12px;font-size:11.5px;background:#ef4444;border-color:#ef4444" onclick="togglePlayerBan(${p.id},'ban')">🚫 Забанить</button>`
+        }
       </div>
     </div>
   `).join('');
+}
+async function banPlayerAdmin(e){
+  e.preventDefault();
+  const query=document.getElementById('banUserQuery').value.trim();
+  const reason=document.getElementById('banUserReason').value.trim()||'Нарушение правил проекта';
+  const st=document.getElementById('playerBanStatus');
+  if(!query)return;
+  try{
+    const r=await fetch('/api/admin/players/ban',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:query,reason:reason,action:'ban'})
+    });
+    const d=await r.json();
+    if(d.ok){
+      if(st){st.textContent='✅ '+d.message;st.style.color='#34d399';}
+      document.getElementById('banUserQuery').value='';
+      loadAdmin();
+    }else{
+      if(st){st.textContent='❌ '+(d.message||'Ошибка');st.style.color='#ef4444';}
+    }
+  }catch(err){
+    if(st){st.textContent='Ошибка сети';st.style.color='#ef4444';}
+  }
+}
+async function togglePlayerBan(playerId, action){
+  const reason=action==='ban'?prompt('Укажите причину бана:','Нарушение правил проекта'):'';
+  if(action==='ban'&&reason===null)return;
+  try{
+    const r=await fetch('/api/admin/players/ban',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({player_id:playerId,action:action,reason:reason||'Нарушение правил проекта'})
+    });
+    const d=await r.json();
+    alert(d.message||'Успешно');
+    loadAdmin();
+  }catch(e){
+    alert('Ошибка сети');
+  }
 }
 async function changeRole(playerId, newRole){
   try{

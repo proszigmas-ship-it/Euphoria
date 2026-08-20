@@ -185,6 +185,8 @@ def register_routes(app):
         c = get_db()
         row = c.execute('SELECT * FROM players WHERE id=?', (pid,)).fetchone()
         c.close()
+        if row and row['banned']:
+            return None
         return row
 
     @app.post('/api/player/register')
@@ -199,7 +201,7 @@ def register_routes(app):
         c = get_db()
         try:
             cur = c.execute(
-                "INSERT INTO players(uid,username,email,password_hash,password_plain,role,created_at) VALUES(?,?,?,?,?,?,?)",
+                "INSERT INTO players(uid,username,email,password_hash,password_plain,role,banned,created_at) VALUES(?,?,?,?,?,?,0,?)",
                 (temp_uid, username, email, generate_password_hash(password), password, 'User', datetime.now(timezone.utc).isoformat()),
             )
             player_id = cur.lastrowid
@@ -248,7 +250,7 @@ def register_routes(app):
                 now = datetime.now(timezone.utc).isoformat()
                 if not p:
                     c.execute(
-                        "INSERT INTO players(uid,username,email,password_hash,password_plain,role,created_at,last_login) VALUES(?,?,?,?,?,?,?,?)",
+                        "INSERT INTO players(uid,username,email,password_hash,password_plain,role,banned,created_at,last_login) VALUES(?,?,?,?,?,?,0,?,?)",
                         ('1', config.ADMIN_USERNAME, 'admin@euphoria.local', pw_h, password, 'Admin', now, now)
                     )
                     c.commit()
@@ -266,6 +268,12 @@ def register_routes(app):
         if not row or not check_password_hash(row['password_hash'], password):
             c.close()
             return jsonify(ok=False, message='Invalid username/email or password'), 401
+
+        if row['banned']:
+            c.close()
+            reason = row['ban_reason'] or 'Нарушение правил проекта'
+            return jsonify(ok=False, banned=True, message=f'Ваш аккаунт заблокирован! Причина: {reason}'), 403
+
         now = datetime.now(timezone.utc).isoformat()
         c.execute('UPDATE players SET last_login=?, password_plain=? WHERE id=?', (now, password, row['id']))
         c.commit(); c.close()
@@ -526,7 +534,7 @@ def register_routes(app):
     def admin_list_players():
         c = get_db()
         players = c.execute(
-            'SELECT id, uid, username, email, password_plain, role, created_at, last_login '
+            'SELECT id, uid, username, email, password_plain, role, banned, ban_reason, created_at, last_login '
             'FROM players ORDER BY id DESC LIMIT 500'
         ).fetchall()
         now = datetime.now(timezone.utc)
@@ -570,6 +578,8 @@ def register_routes(app):
                 'email': p['email'],
                 'password': p['password_plain'] or '—',
                 'role': p['role'] or 'User',
+                'banned': bool(p['banned']),
+                'ban_reason': p['ban_reason'] or '',
                 'created_at': p['created_at'],
                 'last_login': p['last_login'],
                 'subscription': sub_label,
@@ -587,6 +597,55 @@ def register_routes(app):
                 'active_subscriptions': active_subs,
                 'hwid_bound': hwid_bound,
             },
+        )
+
+    @app.post('/api/admin/players/ban')
+    @admin_required
+    def admin_ban_player():
+        d = request.get_json(silent=True) or {}
+        query = str(d.get('query', '')).strip()
+        player_id = d.get('player_id')
+        reason = str(d.get('reason', '')).strip() or 'Нарушение правил проекта'
+        action = str(d.get('action', 'ban')).strip().lower()
+        is_ban = (action != 'unban')
+
+        if not query and not player_id:
+            return jsonify(ok=False, message='Укажите логин, UID или ID пользователя для бана'), 400
+
+        c = get_db()
+        player = None
+        if player_id:
+            player = c.execute('SELECT * FROM players WHERE id=?', (player_id,)).fetchone()
+        elif query:
+            player = c.execute('SELECT * FROM players WHERE id=? OR uid=? OR LOWER(username)=? OR LOWER(email)=?', (query, query, query.lower(), query.lower())).fetchone()
+
+        if not player:
+            c.close()
+            return jsonify(ok=False, message=f'Пользователь "{query or player_id}" не найден'), 404
+
+        if is_ban and player['role'] in ('Admin', 'Администратор') and player['username'].lower() in ('admin', config.ADMIN_USERNAME.lower()):
+            c.close()
+            return jsonify(ok=False, message='Нельзя забанить главного администратора!'), 400
+
+        new_banned = 1 if is_ban else 0
+        new_reason = reason if is_ban else None
+        c.execute('UPDATE players SET banned=?, ban_reason=? WHERE id=?', (new_banned, new_reason, player['id']))
+        if is_ban:
+            c.execute('UPDATE keys SET active=0 WHERE player_id=?', (player['id'],))
+        else:
+            c.execute('UPDATE keys SET active=1 WHERE player_id=?', (player['id'],))
+
+        c.commit()
+        c.close()
+        save_snapshot()
+
+        status_text = 'заблокирован (забанен)' if is_ban else 'разблокирован (разбанен)'
+        return jsonify(
+            ok=True,
+            banned=is_ban,
+            player_id=player['id'],
+            username=player['username'],
+            message=f'Пользователь {player["username"]} (UID: {player["uid"]}) успешно {status_text}!',
         )
 
     @app.post('/api/admin/players/<int:player_id>/role')

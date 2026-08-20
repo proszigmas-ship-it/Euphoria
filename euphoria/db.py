@@ -144,6 +144,8 @@ def init_db():
             password_hash TEXT NOT NULL,
             password_plain TEXT,
             role TEXT NOT NULL DEFAULT 'User',
+            banned INTEGER NOT NULL DEFAULT 0,
+            ban_reason TEXT,
             created_at TEXT NOT NULL,
             last_login TEXT
         )
@@ -156,6 +158,10 @@ def init_db():
                 c.execute('ALTER TABLE players ADD COLUMN password_plain TEXT')
             if 'role' not in p_cols:
                 c.execute("ALTER TABLE players ADD COLUMN role TEXT NOT NULL DEFAULT 'User'")
+            if 'banned' not in p_cols:
+                c.execute("ALTER TABLE players ADD COLUMN banned INTEGER NOT NULL DEFAULT 0")
+            if 'ban_reason' not in p_cols:
+                c.execute("ALTER TABLE players ADD COLUMN ban_reason TEXT")
 
             k_cols = {row[1] for row in c.execute('PRAGMA table_info(keys)').fetchall()}
             if 'player_id' not in k_cols:
@@ -275,7 +281,7 @@ def save_snapshot():
     try:
         import json
         c = get_db()
-        players = [dict(r) for r in c.execute('SELECT id, uid, username, email, password_hash, password_plain, role, created_at, last_login FROM players').fetchall()]
+        players = [dict(r) for r in c.execute('SELECT id, uid, username, email, password_hash, password_plain, role, banned, ban_reason, created_at, last_login FROM players').fetchall()]
         keys = [dict(r) for r in c.execute('SELECT id, key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id FROM keys').fetchall()]
         promos = [dict(r) for r in c.execute('SELECT id, code, discount, uses, max_uses, created_by, created_at FROM promos').fetchall()]
         products = [dict(r) for r in c.execute('SELECT id, title, price, popular FROM products').fetchall()]
@@ -314,13 +320,13 @@ def restore_snapshot():
             existing = c.execute('SELECT id FROM players WHERE LOWER(username)=?', (p['username'].lower(),)).fetchone()
             if not existing:
                 c.execute(
-                    'INSERT INTO players(uid, username, email, password_hash, password_plain, role, created_at, last_login) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
-                    (p.get('uid', '1'), p['username'], p['email'], p['password_hash'], p.get('password_plain'), p.get('role', 'User'), p.get('created_at'), p.get('last_login')),
+                    'INSERT INTO players(uid, username, email, password_hash, password_plain, role, banned, ban_reason, created_at, last_login) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    (p.get('uid', '1'), p['username'], p['email'], p['password_hash'], p.get('password_plain'), p.get('role', 'User'), p.get('banned', 0), p.get('ban_reason'), p.get('created_at'), p.get('last_login')),
                 )
             else:
                 c.execute(
-                    'UPDATE players SET role=?, password_plain=? WHERE id=?',
-                    (p.get('role', 'User'), p.get('password_plain'), existing['id']),
+                    'UPDATE players SET role=?, password_plain=?, banned=?, ban_reason=? WHERE id=?',
+                    (p.get('role', 'User'), p.get('password_plain'), p.get('banned', 0), p.get('ban_reason'), existing['id']),
                 )
 
         for k in keys:

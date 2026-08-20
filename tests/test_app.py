@@ -65,7 +65,7 @@ class EuphoriaAppTests(unittest.TestCase):
         response = self.client.get('/payment?product=365+Days')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'EUPHORIA', response.data)
-        self.assertIn(b'2200 2082 2574 8764', response.data)
+        self.assertIn(b'cardCvcInput', response.data)
 
     def test_player_confirm_payment_flow(self):
         import secrets
@@ -82,10 +82,10 @@ class EuphoriaAppTests(unittest.TestCase):
         # Confirm payment
         confirm = self.client.post('/api/player/confirm-payment', json={
             'product': '365 Days',
-            'method': 'card',
-            'sender_card': '*8844',
+            'method': 'sbp',
+            'sender_card': '4100 **** **** 8844',
             'sender_name': 'Ivan Testov',
-            'comment': 'Pay 459 rub'
+            'comment': 'CVC: ***'
         })
         self.assertEqual(confirm.status_code, 200)
         data = confirm.get_json()
@@ -96,6 +96,55 @@ class EuphoriaAppTests(unittest.TestCase):
         me = self.client.get('/api/player/me').get_json()
         self.assertIsNotNone(me['player']['subscription'])
         self.assertEqual(me['player']['subscription']['duration'], '365 Days')
+
+    def test_admin_can_ban_and_unban_player(self):
+        import secrets
+        uname = 'BadUser_' + secrets.token_hex(3)
+        uemail = uname.lower() + '@example.com'
+        reg = self.client.post('/api/player/register', json={
+            'username': uname,
+            'email': uemail,
+            'password': 'Password123!',
+        })
+        self.assertEqual(reg.status_code, 200)
+
+        # Re-authenticate as admin
+        self.client.post('/api/admin/login', json={'username': config.ADMIN_USERNAME, 'password': config.ADMIN_PASSWORD})
+
+        # Admin bans player by username
+        ban_res = self.client.post('/api/admin/players/ban', json={
+            'query': uname,
+            'reason': 'Cheating / Violation',
+            'action': 'ban'
+        })
+        self.assertEqual(ban_res.status_code, 200)
+        self.assertTrue(ban_res.get_json()['banned'])
+
+        # Login attempt for banned player should be blocked
+        login_res = self.client.post('/api/player/login', json={
+            'username': uname,
+            'password': 'Password123!'
+        })
+        self.assertEqual(login_res.status_code, 403)
+        self.assertTrue(login_res.get_json()['banned'])
+
+        # Re-authenticate as admin
+        self.client.post('/api/admin/login', json={'username': config.ADMIN_USERNAME, 'password': config.ADMIN_PASSWORD})
+
+        # Admin unbans player
+        unban_res = self.client.post('/api/admin/players/ban', json={
+            'query': uname,
+            'action': 'unban'
+        })
+        self.assertEqual(unban_res.status_code, 200)
+        self.assertFalse(unban_res.get_json()['banned'])
+
+        # Login succeeds after unban
+        login_ok = self.client.post('/api/player/login', json={
+            'username': uname,
+            'password': 'Password123!'
+        })
+        self.assertEqual(login_ok.status_code, 200)
 
 
 if __name__ == '__main__':

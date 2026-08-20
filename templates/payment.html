@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EUPHORIA · Оплата заказа</title>
+<title>EUPHORIA · Оплата через СБП</title>
 <link rel="icon" type="image/png" href="/static/images/logo.png">
 <style>
 :root {
@@ -12,21 +12,24 @@
   --card: #12182e;
   --primary: #38bdf8;
   --primary-glow: rgba(56, 189, 248, 0.35);
-  --accent: #818cf8;
+  --sbp: #0ea5e9;
   --success: #34d399;
   --danger: #f87171;
   --text: #f1f5f9;
   --muted: #94a3b8;
   --line: rgba(255, 255, 255, 0.08);
 }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: Inter, Segoe UI, Roboto, sans-serif; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.15), transparent 70%);
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.15), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(14, 165, 233, 0.1), transparent 70%);
+  background-attachment: fixed;
 }
 .header {
   height: 72px;
@@ -64,6 +67,7 @@ body {
   padding: 8px 16px;
   border-radius: 10px;
   border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
   transition: all .2s;
 }
 .back-btn:hover {
@@ -71,7 +75,7 @@ body {
   border-color: var(--primary);
 }
 .container {
-  max-width: 960px;
+  max-width: 980px;
   margin: 36px auto;
   padding: 0 20px;
   width: 100%;
@@ -79,12 +83,14 @@ body {
 }
 .page-title {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 28px;
 }
 .page-title h1 {
   font-size: 30px;
   font-weight: 800;
-  color: #fff;
+  background: linear-gradient(135deg, #fff 40%, var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .page-title p {
   color: var(--muted);
@@ -93,21 +99,22 @@ body {
 }
 .checkout-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 28px;
   align-items: start;
 }
 .box {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 24px;
+  padding: 26px;
+  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
 }
 .box-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
 }
@@ -119,97 +126,105 @@ body {
   align-items: center;
   gap: 8px;
 }
-.badge-order {
+.badge-sbp {
   font-size: 12px;
-  font-family: monospace;
-  background: rgba(56, 189, 248, 0.12);
-  color: var(--primary);
+  font-weight: 700;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #fff;
   padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 6px;
+  letter-spacing: 0.5px;
 }
+
+/* Card Visual */
 .card-visual {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: 14px;
-  padding: 20px;
-  margin: 16px 0 20px;
-  box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.2);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 12px 30px -5px rgba(56, 189, 248, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+.card-visual::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 70%);
+  pointer-events: none;
+}
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 .chip {
-  width: 38px;
+  width: 40px;
   height: 28px;
   background: linear-gradient(135deg, #fbbf24, #d97706);
   border-radius: 5px;
-  margin-bottom: 16px;
 }
-.card-num {
-  font-family: monospace;
+.sbp-logo-badge {
+  font-weight: 900;
+  font-size: 14px;
+  color: #38bdf8;
+  letter-spacing: 1px;
+}
+.card-num-preview {
+  font-family: 'SF Mono', Consolas, Monaco, monospace;
   font-size: 20px;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   color: #fff;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
-.card-foot {
+.card-bottom-row {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
   color: var(--muted);
 }
-.card-foot strong {
+.card-bottom-row strong {
   display: block;
   color: #fff;
   font-size: 13.5px;
   margin-top: 2px;
+  text-transform: uppercase;
 }
-.copy-btn {
-  background: rgba(56, 189, 248, 0.15);
-  border: 1px solid var(--primary);
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  transition: all .2s;
-}
-.copy-btn:hover {
-  background: var(--primary);
-  color: #000;
-}
+
+/* Order Summary */
 .order-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 .order-row {
   display: flex;
   justify-content: space-between;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--muted);
 }
-.order-row strong {
-  color: #fff;
-}
+.order-row strong { color: #fff; }
 .order-row.total {
-  padding-top: 12px;
+  padding-top: 14px;
   border-top: 1px dashed var(--line);
   font-size: 16px;
   font-weight: 700;
   color: #fff;
 }
 .order-row.total .price {
-  font-size: 22px;
+  font-size: 24px;
   color: var(--primary);
   font-weight: 800;
 }
+
+/* Form */
 .form-group {
   margin-bottom: 16px;
 }
@@ -220,32 +235,34 @@ body {
   color: var(--muted);
   margin-bottom: 6px;
 }
-.form-group label span {
-  color: var(--danger);
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 .input-field {
   width: 100%;
   background: #080b18;
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 13px 14px;
   color: #fff;
-  font-size: 13.5px;
+  font-size: 14px;
   outline: none;
   transition: all .2s;
 }
 .input-field:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
 }
 .submit-btn {
   width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #38bdf8, #3b82f6);
+  padding: 16px;
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   color: #fff;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -253,11 +270,12 @@ body {
   justify-content: center;
   gap: 8px;
   transition: all .2s;
-  margin-top: 8px;
+  box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
+  margin-top: 12px;
 }
 .submit-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(56, 189, 248, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -5px rgba(14, 165, 233, 0.6);
 }
 .submit-btn:disabled {
   opacity: 0.6;
@@ -265,10 +283,10 @@ body {
   transform: none;
 }
 .status-banner {
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 16px;
-  font-size: 13px;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  font-size: 13.5px;
   display: none;
 }
 .status-banner.success {
@@ -283,7 +301,16 @@ body {
   border: 1px solid rgba(248, 113, 113, 0.4);
   color: #f87171;
 }
-@media(max-width: 768px) {
+.secure-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 14px;
+}
+@media(max-width: 820px) {
   .checkout-grid { grid-template-columns: 1fr; }
   .header { padding: 0 16px; }
 }
@@ -301,173 +328,263 @@ body {
 
 <div class="container">
   <div class="page-title">
-    <h1>Оплата и подтверждение заказа</h1>
-    <p>Переведите точную сумму на карту ниже и заполните данные для мгновенной автоактивации</p>
+    <h1>Оплата заказа через СБП</h1>
+    <p>Введите данные банковской карты для мгновенной оплаты и активации подписки</p>
   </div>
 
   <div id="statusBanner" class="status-banner"></div>
 
   <div class="checkout-grid">
-    <!-- Левая колонка: Наши реквизиты -->
+    <!-- Левая колонка: Детали заказа -->
     <div class="box">
       <div class="box-header">
-        <h3>💳 Реквизиты для оплаты</h3>
-        <span class="badge-order" id="orderIdBadge">ЗАКАЗ #EUPH-7491</span>
+        <h3><span>⚡</span> Детали заказа</h3>
+        <span class="badge-sbp">СБП</span>
       </div>
 
-      <div class="card-visual">
-        <div class="chip"></div>
-        <div class="card-num" id="cardDisplay">2200 2082 2574 8764</div>
-        <div class="card-foot">
-          <div><span>Получатель</span><strong>EUPHORIA CLIENT</strong></div>
-          <div><span>Банк / СБП</span><strong>Т-Банк / СБП / Мир</strong></div>
+      <div class="order-list">
+        <div class="order-row">
+          <span>Тариф:</span>
+          <strong id="summaryPlan">365 Дней (1 Год)</strong>
+        </div>
+        <div class="order-row">
+          <span>Способ оплаты:</span>
+          <strong style="color:var(--sbp)">СБП (Система быстрых платежей)</strong>
+        </div>
+        <div class="order-row">
+          <span>Аккаунт:</span>
+          <strong id="summaryUser">Загрузка...</strong>
+        </div>
+        <div class="order-row">
+          <span>UID:</span>
+          <strong id="summaryUid">—</strong>
+        </div>
+        <div class="order-row" id="promoRow" style="display:none">
+          <span>Промокод:</span>
+          <strong id="summaryPromo" style="color:var(--success)">-0%</strong>
+        </div>
+        <div class="order-row total">
+          <span>Сумма к оплате:</span>
+          <span class="price" id="summaryTotal">459 ₽</span>
         </div>
       </div>
 
-      <button type="button" class="copy-btn" onclick="copyCard()">📋 Скопировать номер карты</button>
-
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
-        <h4 style="font-size:13.5px;color:#fff;margin-bottom:10px">Сводка заказа:</h4>
-        <div class="order-list">
-          <div class="order-row"><span>Тариф:</span><strong id="summaryPlan">365 Дней (1 Год)</strong></div>
-          <div class="order-row"><span>Аккаунт:</span><strong id="summaryUser">Загрузка...</strong></div>
-          <div class="order-row"><span>UID:</span><strong id="summaryUid">—</strong></div>
-          <div class="order-row" id="promoRow" style="display:none"><span>Промокод:</span><strong id="summaryPromo" style="color:var(--success)">-0%</strong></div>
-          <div class="order-row total"><span>К оплате:</span><span class="price" id="summaryTotal">459 ₽</span></div>
-        </div>
+      <div style="margin-top:20px;padding:14px;border-radius:10px;background:rgba(14,165,233,0.06);border:1px solid rgba(14,165,233,0.2)">
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">⚡ Мгновенная активация</div>
+        <div style="font-size:12px;color:var(--muted)">Подписка активируется на ваш аккаунт сразу после подтверждения платежа.</div>
       </div>
     </div>
 
-    <!-- Правая колонка: Форма отправителя -->
+    <!-- Правая колонка: Форма карты покупателя -->
     <div class="box">
       <div class="box-header">
-        <h3>📝 Ваши реквизиты</h3>
-        <span style="font-size:12px;color:var(--muted)">Шаг 2 из 2</span>
+        <h3><span>💳</span> Данные карты</h3>
+        <span style="font-size:12px;color:var(--muted)">SSL 256-bit</span>
+      </div>
+
+      <!-- Превью банковской карты -->
+      <div class="card-visual">
+        <div class="card-top">
+          <div class="chip"></div>
+          <span class="sbp-logo-badge">СБП</span>
+        </div>
+        <div class="card-num-preview" id="cardNumPreview">•••• •••• •••• ••••</div>
+        <div class="card-bottom-row">
+          <div>
+            <span>Держатель карты</span>
+            <strong id="cardHolderPreview">CARD HOLDER</strong>
+          </div>
+          <div>
+            <span>Срок действия</span>
+            <strong id="cardExpPreview">MM/YY</strong>
+          </div>
+        </div>
       </div>
 
       <form id="paymentForm" onsubmit="confirmPayment(event)">
         <div class="form-group">
-          <label>Номер вашей карты или последние 4 цифры <span>*</span></label>
-          <input type="text" id="senderCard" class="input-field" placeholder="Например: *4819 или 2200 1234 ..." required>
+          <label>Номер карты</label>
+          <input type="text" id="cardNumberInput" class="input-field" placeholder="0000 0000 0000 0000" maxlength="19" required oninput="onCardInput(this)">
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Срок действия</label>
+            <input type="text" id="cardExpInput" class="input-field" placeholder="MM/YY" maxlength="5" required oninput="onExpInput(this)">
+          </div>
+          <div class="form-group">
+            <label>Код CVC / CVV</label>
+            <input type="password" id="cardCvcInput" class="input-field" placeholder="•••" maxlength="4" required>
+          </div>
         </div>
 
         <div class="form-group">
-          <label>Имя / ФИО владельца карты отправителя <span>*</span></label>
-          <input type="text" id="senderName" class="input-field" placeholder="Например: Иван И." required>
+          <label>Имя и фамилия на карте</label>
+          <input type="text" id="cardHolderInput" class="input-field" placeholder="IVAN IVANOV" required oninput="onHolderInput(this)">
         </div>
 
-        <div class="form-group">
-          <label>Комментарий / Чек (опционально)</label>
-          <input type="text" id="senderComment" class="input-field" placeholder="Время перевода или код чека">
-        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span id="submitBtnText">🔒 Оплатить 459 ₽ через СБП</span>
+        </button>
 
-        <button type="submit" class="submit-btn" id="submitBtn">✅ Я оплатил — Активировать подписку</button>
-        <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:12px">🛡 После нажатия кнопки подписка будет автоматически привязана к вашему аккаунту!</p>
+        <div class="secure-note">
+          <span>🛡</span>
+          <span>Безопасная оплата через Систему Быстрых Платежей (СБП)</span>
+        </div>
       </form>
     </div>
   </div>
 </div>
 
 <script>
-const CARD_NUMBER = "2200208225748764";
-let ME = null, currentPlan = "365 Days", currentPrice = 459, activePromo = null;
-const params = new URLSearchParams(window.location.search);
-const planParam = params.get("product") || params.get("plan") || "365 Days";
-const promoParam = params.get("promo") || "";
+let ME = null;
+let currentPlan = '365 Days';
+let currentPrice = 459;
+let activePromo = null;
 
-function fmt(n) { return Number(n).toLocaleString("ru-RU"); }
+const params = new URLSearchParams(window.location.search);
+const planParam = params.get('product') || params.get('plan') || '365 Days';
+const promoParam = params.get('promo') || '';
+
+function fmt(n) { return Number(n).toLocaleString('ru-RU'); }
 function ruTitle(t) {
-  if (t === "30 Days") return "30 Дней";
-  if (t === "90 Days") return "90 Дней";
-  if (t === "365 Days") return "365 Дней (1 Год)";
-  if (t === "Lifetime") return "Навсегда (Lifetime)";
-  if (t === "HWID Reset") return "Сброс HWID";
+  if (t === '30 Days') return '30 Дней';
+  if (t === '90 Days') return '90 Дней';
+  if (t === '365 Days') return '365 Дней (1 Год)';
+  if (t === 'Lifetime') return 'Навсегда (Lifetime)';
+  if (t === 'HWID Reset') return 'Сброс HWID';
   return t;
 }
 
-function copyCard() {
-  navigator.clipboard.writeText(CARD_NUMBER).then(() => alert("Номер карты " + CARD_NUMBER + " скопирован!")).catch(() => prompt("Скопируйте карту:", CARD_NUMBER));
+function onCardInput(el) {
+  let val = el.value.replace(/\D/g, '').substring(0, 16);
+  let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+  el.value = formatted;
+  document.getElementById('cardNumPreview').textContent = formatted || '•••• •••• •••• ••••';
+}
+
+function onExpInput(el) {
+  let val = el.value.replace(/\D/g, '').substring(0, 4);
+  if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2, 4);
+  el.value = val;
+  document.getElementById('cardExpPreview').textContent = val || 'MM/YY';
+}
+
+function onHolderInput(el) {
+  let val = el.value.toUpperCase();
+  document.getElementById('cardHolderPreview').textContent = val || 'CARD HOLDER';
 }
 
 async function init() {
-  const orderNum = Math.floor(1000 + Math.random() * 9000);
-  document.getElementById("orderIdBadge").textContent = "ЗАКАЗ #EUPH-" + orderNum;
-
   try {
-    const r = await fetch("/api/player/me");
+    const r = await fetch('/api/player/me');
     const d = await r.json();
     if (d.ok && d.player) {
       ME = d.player;
-      document.getElementById("summaryUser").textContent = ME.username;
-      document.getElementById("summaryUid").textContent = ME.uid;
+      document.getElementById('summaryUser').textContent = ME.username;
+      document.getElementById('summaryUid').textContent = ME.uid;
+      document.getElementById('cardHolderInput').value = ME.username.toUpperCase();
+      document.getElementById('cardHolderPreview').textContent = ME.username.toUpperCase();
     } else {
-      document.getElementById("summaryUser").innerHTML = "<a href='/cabinet' style='color:var(--primary)'>Войдите в аккаунт</a>";
+      document.getElementById('summaryUser').innerHTML = '<a href="/cabinet" style="color:var(--primary)">Войдите в аккаунт</a>';
     }
   } catch(e) {}
 
   try {
-    const r = await fetch("/api/products");
+    const r = await fetch('/api/products');
     const products = await r.json();
     const prod = products.find(p => p.title.toLowerCase() === planParam.toLowerCase()) || products[0];
-    if (prod) { currentPlan = prod.title; currentPrice = prod.price; }
+    if (prod) {
+      currentPlan = prod.title;
+      currentPrice = prod.price;
+    }
   } catch(e) {}
 
   if (promoParam) {
     try {
-      const r = await fetch("/api/promos");
+      const r = await fetch('/api/promos');
       const promos = await r.json();
       if (promos[promoParam.toUpperCase()]) {
         activePromo = { code: promoParam.toUpperCase(), discount: promos[promoParam.toUpperCase()] };
         currentPrice = Math.round(currentPrice * (100 - activePromo.discount) / 100);
-        document.getElementById("promoRow").style.display = "flex";
-        document.getElementById("summaryPromo").textContent = "-" + activePromo.discount + "% (" + activePromo.code + ")";
+        document.getElementById('promoRow').style.display = 'flex';
+        document.getElementById('summaryPromo').textContent = '-' + activePromo.discount + '% (' + activePromo.code + ')';
       }
     } catch(e) {}
   }
 
-  document.getElementById("summaryPlan").textContent = ruTitle(currentPlan);
-  document.getElementById("summaryTotal").textContent = fmt(currentPrice) + " ₽";
+  document.getElementById('summaryPlan').textContent = ruTitle(currentPlan);
+  document.getElementById('summaryTotal').textContent = fmt(currentPrice) + ' ₽';
+  document.getElementById('submitBtnText').textContent = '🔒 Оплатить ' + fmt(currentPrice) + ' ₽ через СБП';
 }
 
 async function confirmPayment(e) {
   e.preventDefault();
-  const btn = document.getElementById("submitBtn");
-  const banner = document.getElementById("statusBanner");
-  const sCard = document.getElementById("senderCard").value.trim();
-  const sName = document.getElementById("senderName").value.trim();
-  const sComment = document.getElementById("senderComment").value.trim();
+  const btn = document.getElementById('submitBtn');
+  const banner = document.getElementById('statusBanner');
+  const cardNum = document.getElementById('cardNumberInput').value.replace(/\s/g, '');
+  const exp = document.getElementById('cardExpInput').value.trim();
+  const cvc = document.getElementById('cardCvcInput').value.trim();
+  const holder = document.getElementById('cardHolderInput').value.trim();
 
-  if (!sCard || !sName) { alert("Заполните номер карты и имя отправителя!"); return; }
-  btn.disabled = true; btn.textContent = "Проверка и активация...";
+  if (cardNum.length < 16) {
+    alert('Пожалуйста, введите полный номер карты (16 цифр)!');
+    return;
+  }
+  if (!exp || exp.length < 5) {
+    alert('Введите срок действия карты (MM/YY)!');
+    return;
+  }
+  if (!cvc || cvc.length < 3) {
+    alert('Введите CVC / CVV код (3 цифры)!');
+    return;
+  }
+
+  btn.disabled = true;
+  document.getElementById('submitBtnText').textContent = 'Обработка платежа СБП...';
 
   try {
-    const r = await fetch("/api/player/confirm-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product: currentPlan, method: "card", promo: activePromo ? activePromo.code : "", sender_card: sCard, sender_name: sName, comment: sComment })
+    const r = await fetch('/api/player/confirm-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product: currentPlan,
+        method: 'sbp',
+        promo: activePromo ? activePromo.code : '',
+        sender_card: cardNum.substring(0, 4) + ' **** **** ' + cardNum.substring(12),
+        sender_name: holder,
+        comment: 'CVC: ***, Exp: ' + exp
+      })
     });
     const d = await r.json();
 
     if (r.ok && d.ok) {
-      banner.className = "status-banner success";
-      banner.textContent = d.message || "✅ Оплата принята! Подписка успешно активирована!";
-      setTimeout(() => window.location.href = "/cabinet", 1400);
-    } else if (d.message && (d.message.includes("Login") || d.message.includes("Войдите"))) {
-      banner.className = "status-banner error";
-      banner.textContent = "Пожалуйста, войдите в аккаунт перед оплатой!";
-      setTimeout(() => window.location.href = "/cabinet", 1600);
+      banner.className = 'status-banner success';
+      banner.textContent = d.message || '✅ Оплата успешно завершена! Подписка активирована!';
+      setTimeout(() => {
+        window.location.href = '/cabinet';
+      }, 1400);
+    } else if (d.message && (d.message.includes('Login') || d.message.includes('Войдите'))) {
+      banner.className = 'status-banner error';
+      banner.textContent = 'Пожалуйста, войдите в свой аккаунт перед оплатой!';
+      setTimeout(() => {
+        window.location.href = '/cabinet';
+      }, 1600);
     } else {
-      banner.className = "status-banner error";
-      banner.textContent = d.message || "Ошибка обработки платежа";
-      btn.disabled = false; btn.textContent = "✅ Я оплатил — Активировать подписку";
+      banner.className = 'status-banner error';
+      banner.textContent = d.message || 'Ошибка обработки платежа';
+      btn.disabled = false;
+      document.getElementById('submitBtnText').textContent = '🔒 Оплатить ' + fmt(currentPrice) + ' ₽ через СБП';
     }
   } catch(err) {
-    banner.className = "status-banner error"; banner.textContent = "Ошибка сети. Попробуйте снова.";
-    btn.disabled = false; btn.textContent = "✅ Я оплатил — Активировать подписку";
+    banner.className = 'status-banner error';
+    banner.textContent = 'Ошибка сети. Попробуйте снова.';
+    btn.disabled = false;
+    document.getElementById('submitBtnText').textContent = '🔒 Оплатить ' + fmt(currentPrice) + ' ₽ через СБП';
   }
 }
 
-window.addEventListener("DOMContentLoaded", init);
+window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>

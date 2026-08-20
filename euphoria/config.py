@@ -31,8 +31,6 @@ SECRET_KEY = os.environ.get('EUPHORIA_SECRET', 'CHANGE_THIS_SECRET')
 ADMIN_USERNAME = os.environ.get('EUPHORIA_ADMIN_USER', 'admin')
 ADMIN_PASSWORD = os.environ.get('EUPHORIA_ADMIN_PASSWORD', 'Euphoria#2026!Sec9X_Admin')
 
-CARD_NUMBER = os.environ.get('EUPHORIA_CARD', '2200208225748764')
-
 DEFAULT_PRODUCTS = [
     ('30 Days', 159, 0),
     ('90 Days', 259, 0),
