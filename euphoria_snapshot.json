@@ -1,19 +1,48 @@
 {
-  "saved_at": "2026-08-20T20:11:56.937643+00:00",
+  "saved_at": "2026-08-20T20:15:46.018430+00:00",
   "players": [
     {
       "id": 1,
       "uid": "1",
       "username": "admin",
       "email": "admin@euphoria.local",
-      "password_hash": "scrypt:32768:8:1$GmNGDhCgfU0eUOoQ$432e73f508fa44d542982953539dccc361e741a2facac085c95a12ce1d3e4868f29f46f97e6fce2ea4c8a67c5ee294ec9a6f255f0719d64692bf87eb7450b8ce",
+      "password_hash": "scrypt:32768:8:1$MU1YGTituW3E82sw$d60637dbc9489dc58649a0bbf6700be81790b9bb888506290b7f5fd10218cf9c6444ef9f3685a411da42ec3e0ab56e1af0881ce4d4c2c63043a31752f7ed2a51",
       "password_plain": "Euphoria#2026!Sec9X_Admin",
       "role": "Admin",
-      "created_at": "2026-08-20T20:00:46.882225+00:00",
+      "created_at": "2026-08-20T20:15:45.904919+00:00",
       "last_login": null
     }
   ],
-  "keys": [],
+  "keys": [
+    {
+      "id": 1,
+      "key": "EUPHORIA-3179-8DE1-3CB0",
+      "duration": "90 Days",
+      "max_uses": 1,
+      "uses": 0,
+      "active": 1,
+      "created_at": "2026-08-20T20:15:45.442919+00:00",
+      "expires_at": null,
+      "uid": null,
+      "hwid": null,
+      "bound_at": null,
+      "player_id": null
+    },
+    {
+      "id": 2,
+      "key": "EUPHORIA-84C3-93D6-3EF7",
+      "duration": "7 Days",
+      "max_uses": 1,
+      "uses": 0,
+      "active": 1,
+      "created_at": "2026-08-20T20:15:45.948452+00:00",
+      "expires_at": "2026-08-27T20:15:45.973622+00:00",
+      "uid": null,
+      "hwid": null,
+      "bound_at": null,
+      "player_id": null
+    }
+  ],
   "promos": [
     {
       "id": 1,
@@ -27,16 +56,22 @@
   ],
   "products": [
     {
-      "id": 2,
+      "id": 1,
       "title": "30 Days",
       "price": 159.0,
       "popular": 0
     },
     {
-      "id": 3,
+      "id": 2,
       "title": "90 Days",
       "price": 259.0,
       "popular": 0
+    },
+    {
+      "id": 3,
+      "title": "365 Days",
+      "price": 459.0,
+      "popular": 1
     },
     {
       "id": 4,
@@ -49,12 +84,6 @@
       "title": "HWID Reset",
       "price": 199.0,
       "popular": 0
-    },
-    {
-      "id": 6,
-      "title": "365 Days",
-      "price": 459.0,
-      "popular": 1
     }
   ]
 }

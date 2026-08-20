@@ -339,6 +339,14 @@ def restore_snapshot():
                     (pr['code'], pr['discount'], pr.get('uses', 0), pr.get('max_uses'), pr.get('created_by'), pr.get('created_at')),
                 )
 
+        products = data.get('products', [])
+        for prd in products:
+            existing = c.execute('SELECT id FROM products WHERE title=?', (prd['title'],)).fetchone()
+            if existing:
+                c.execute('UPDATE products SET price=?, popular=? WHERE id=?', (prd['price'], prd.get('popular', 0), existing['id']))
+            else:
+                c.execute('INSERT INTO products(title, price, popular) VALUES(?, ?, ?)', (prd['title'], prd['price'], prd.get('popular', 0)))
+
         c.commit()
         c.close()
     except Exception:

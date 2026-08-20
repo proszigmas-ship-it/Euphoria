@@ -38,8 +38,8 @@ class EuphoriaAppTests(unittest.TestCase):
         prices = {item['title']: item['price'] for item in response.get_json()}
         self.assertEqual(
             prices,
-            {'7 Days': 100.0, '30 Days': 320.0, '90 Days': 750.0,
-             'Lifetime': 1200.0, 'HWID Reset': 250.0},
+            {'30 Days': 159.0, '90 Days': 259.0, '365 Days': 459.0,
+             'Lifetime': 699.0, 'HWID Reset': 199.0},
         )
 
     def test_bound_key_can_be_validated_again_without_consuming_it(self):
