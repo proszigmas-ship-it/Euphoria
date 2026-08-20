@@ -411,8 +411,8 @@ def register_routes(app):
             return jsonify(
                 ok=True,
                 is_funpay=True,
-                url='https://funpay.com',
-                message='Перенаправление на FunPay... Завершите покупку у продавца.',
+                url='https://funpay.com/users/12165454/',
+                message='Перенаправление на страницу продавца FunPay...',
             )
 
         # Direct online payments (Card, ЮMoney, Visa, Mastercard) -> Automatic activation directly on account!

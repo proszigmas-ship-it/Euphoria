@@ -617,7 +617,7 @@ async function submitPayment(){
     const d = await r.json();
     if(r.ok && d.ok){
       if(d.is_funpay){
-        window.open(d.url || 'https://funpay.com', '_blank');
+        window.open(d.url || 'https://funpay.com/users/12165454/', '_blank');
         msg.className='pay-msg ok';
         msg.textContent = 'Переход на FunPay для покупки у продавца...';
       } else if(d.auto_activated){
@@ -639,7 +639,7 @@ async function submitPayment(){
   }
 }
 function payViaFunPay(){
-  window.open('https://funpay.com', '_blank');
+  window.open('https://funpay.com/users/12165454/', '_blank');
 }
 
 /* ── Stub actions ── */

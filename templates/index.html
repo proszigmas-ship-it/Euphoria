@@ -615,7 +615,7 @@ async function startPay(){
     const d=await r.json();
     if(d.ok){
       if(d.is_funpay){
-        window.open(d.url||'https://funpay.com','_blank');
+        window.open(d.url||'https://funpay.com/users/12165454/','_blank');
         alert('Переход на FunPay для покупки у продавца.');
       }else if(d.auto_activated){
         alert(`✅ Оплата прошла успешно!\nТариф: ${d.product}\nСумма: ${d.price_paid} ₽\nСпособ: ${d.method}\n\nПодписка АВТОМАТИЧЕСКИ активирована на ваш аккаунт (ключ вводить не нужно)!`);
