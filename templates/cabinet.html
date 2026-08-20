@@ -203,7 +203,7 @@ h1.page-title{font-size:26px;margin-bottom:4px}
 <div class="gate" id="gate">
   <div class="gate-card">
     <h2 id="gateTitle">Вход в кабинет</h2>
-    <p class="sub">Войдите или создайте аккаунт, чтобы управлять подпиской.</p>
+    <p class="sub" id="gateSub">Войдите или создайте аккаунт, чтобы управлять подпиской.</p>
     <div class="gate-mode">
       <button class="active" id="modeLoginBtn" onclick="setGateMode('login')">Вход</button>
       <button id="modeRegisterBtn" onclick="setGateMode('register')">Регистрация</button>
@@ -211,14 +211,31 @@ h1.page-title{font-size:26px;margin-bottom:4px}
     <form id="loginForm" onsubmit="doLogin(event)">
       <input id="loginUser" placeholder="Логин или email" required>
       <input id="loginPass" type="password" placeholder="Пароль" required>
+      <div style="display:flex;justify-content:flex-end;margin:4px 0 10px">
+        <a onclick="setGateMode('forgot')" style="color:var(--primary);font-size:12.5px;cursor:pointer">🔑 Забыли пароль?</a>
+      </div>
       <button class="btn full-btn">Войти</button>
     </form>
     <form id="registerForm" style="display:none" onsubmit="doRegister(event)">
-      <input id="regUser" placeholder="Логин" required minlength="3">
-      <input id="regEmail" type="email" placeholder="Email" required>
-      <input id="regPass" type="password" placeholder="Пароль" required minlength="6">
+      <input id="regUser" placeholder="Логин (мин. 3 симв.)" required minlength="3">
+      <input id="regEmail" type="email" placeholder="Email (например name@domain.com)" required>
+      <input id="regPass" type="password" placeholder="Пароль (мин. 6)" required minlength="6">
       <button class="btn full-btn">Создать аккаунт</button>
     </form>
+    <div id="forgotForm" style="display:none">
+      <div id="cabForgotStep1">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Введите ваш логин или email, и мы отправим код сброса.</p>
+        <input id="cabForgotUser" placeholder="Логин или Email" style="margin-bottom:10px;width:100%" class="input">
+        <button class="btn full-btn" onclick="sendCabResetCode(event)">✉️ Отправить код</button>
+      </div>
+      <div id="cabForgotStep2" style="display:none">
+        <p id="cabForgotHint" style="font-size:12.5px;color:var(--primary);margin-bottom:10px">Код отправлен на почту!</p>
+        <input id="cabForgotCode" placeholder="6-значный код" maxlength="6" style="margin-bottom:10px;width:100%" class="input">
+        <input id="cabForgotNewPass" type="password" placeholder="Новый пароль (мин. 6)" style="margin-bottom:10px;width:100%" class="input">
+        <button class="btn full-btn" onclick="confirmCabReset(event)">🔒 Сменить пароль и войти</button>
+      </div>
+      <p style="margin-top:12px;font-size:12.5px;text-align:center"><a onclick="setGateMode('login')" style="color:var(--muted);cursor:pointer">← Вернуться ко входу</a></p>
+    </div>
     <div class="gate-msg" id="gateMsg"></div>
   </div>
 </div>
@@ -453,12 +470,84 @@ function showCabinet(){
 }
 
 /* ── Auth ── */
+let cabResetQuery = '';
 function setGateMode(mode){
-  document.getElementById('modeLoginBtn').classList.toggle('active', mode==='login');
-  document.getElementById('modeRegisterBtn').classList.toggle('active', mode==='register');
-  document.getElementById('loginForm').style.display = mode==='login' ? 'grid' : 'none';
-  document.getElementById('registerForm').style.display = mode==='register' ? 'grid' : 'none';
+  const l = mode === 'login';
+  const r = mode === 'register';
+  const f = mode === 'forgot';
+  document.getElementById('modeLoginBtn').classList.toggle('active', l);
+  document.getElementById('modeRegisterBtn').classList.toggle('active', r);
+  document.getElementById('loginForm').style.display = l ? 'grid' : 'none';
+  document.getElementById('registerForm').style.display = r ? 'grid' : 'none';
+  document.getElementById('forgotForm').style.display = f ? 'block' : 'none';
+  if(f){
+    document.getElementById('cabForgotStep1').style.display = 'block';
+    document.getElementById('cabForgotStep2').style.display = 'none';
+    document.getElementById('gateTitle').textContent = 'Сброс пароля';
+  } else {
+    document.getElementById('gateTitle').textContent = l ? 'Вход в кабинет' : 'Регистрация';
+  }
   document.getElementById('gateMsg').textContent = '';
+}
+async function sendCabResetCode(e){
+  e.preventDefault();
+  const msg = document.getElementById('gateMsg');
+  msg.style.color = 'var(--danger)';
+  const u = document.getElementById('cabForgotUser').value.trim();
+  if(!u){
+    msg.textContent = 'Введите ваш логин или email';
+    return;
+  }
+  cabResetQuery = u;
+  try{
+    const r = await fetch('/api/player/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login_or_email: u })
+    });
+    const d = await r.json();
+    if(d.ok){
+      document.getElementById('cabForgotStep1').style.display = 'none';
+      document.getElementById('cabForgotStep2').style.display = 'block';
+      document.getElementById('cabForgotHint').textContent = d.message || `Код отправлен на ${d.email_masked}!`;
+      msg.textContent = '';
+    } else {
+      msg.textContent = d.message || 'Ошибка';
+    }
+  }catch(err){
+    msg.textContent = 'Ошибка сети';
+  }
+}
+async function confirmCabReset(e){
+  e.preventDefault();
+  const msg = document.getElementById('gateMsg');
+  msg.style.color = 'var(--danger)';
+  const c = document.getElementById('cabForgotCode').value.trim();
+  const p = document.getElementById('cabForgotNewPass').value;
+  if(!c || !p){
+    msg.textContent = 'Заполните код и новый пароль';
+    return;
+  }
+  try{
+    const r = await fetch('/api/player/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        login_or_email: cabResetQuery,
+        code: c,
+        new_password: p
+      })
+    });
+    const d = await r.json();
+    if(d.ok){
+      alert(d.message || 'Пароль успешно обновлён!');
+      location.reload();
+    } else {
+      msg.textContent = d.message || 'Ошибка сброса';
+    }
+  }catch(err){
+    msg.textContent = 'Ошибка сети';
+  }
 }
 async function doLogin(e){
   e.preventDefault();

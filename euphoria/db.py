@@ -199,6 +199,18 @@ def init_db():
     ''')
 
     c.execute(f'''
+        CREATE TABLE IF NOT EXISTS password_resets (
+            id {pk},
+            player_id INTEGER NOT NULL,
+            email TEXT NOT NULL,
+            code TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            used INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL
+        )
+    ''')
+
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS ip_bans (
             id {pk},
             ip TEXT NOT NULL,

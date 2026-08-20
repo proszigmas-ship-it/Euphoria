@@ -219,6 +219,70 @@ class EuphoriaAppTests(unittest.TestCase):
         self.assertTrue(limited)
         self.assertGreater(retry_after, 0)
 
+    def test_registration_email_validation(self):
+        # Invalid email should fail with 400
+        bad_resp = self.client.post('/api/player/register', json={
+            'username': 'email_test_bad',
+            'email': 'not-an-email',
+            'password': 'Password123!'
+        })
+        self.assertEqual(bad_resp.status_code, 400)
+        self.assertIn('корректный адрес', bad_resp.get_json()['message'])
+
+        # Valid email should succeed
+        ok_resp = self.client.post('/api/player/register', json={
+            'username': 'email_test_ok',
+            'email': 'player_good@example.com',
+            'password': 'Password123!'
+        })
+        self.assertEqual(ok_resp.status_code, 200)
+
+    def test_forgot_and_reset_password_flow(self):
+        # 1. Register a test player
+        uname = 'pw_reset_user'
+        email = 'reset_me@domain.org'
+        orig_pw = 'OldPassword123!'
+        self.client.post('/api/player/register', json={
+            'username': uname,
+            'email': email,
+            'password': orig_pw
+        })
+
+        # 2. Request forgot password code
+        f_resp = self.client.post('/api/player/forgot-password', json={
+            'login_or_email': uname
+        })
+        self.assertEqual(f_resp.status_code, 200)
+        data = f_resp.get_json()
+        self.assertTrue(data['ok'])
+        code = data['code']
+        self.assertEqual(len(code), 6)
+
+        # 3. Try with invalid code
+        bad_reset = self.client.post('/api/player/reset-password', json={
+            'login_or_email': uname,
+            'code': '000000',
+            'new_password': 'NewPassword999!'
+        })
+        self.assertEqual(bad_reset.status_code, 400)
+
+        # 4. Reset with valid code
+        new_pw = 'NewPassword999!'
+        good_reset = self.client.post('/api/player/reset-password', json={
+            'login_or_email': uname,
+            'code': code,
+            'new_password': new_pw
+        })
+        self.assertEqual(good_reset.status_code, 200)
+        self.assertTrue(good_reset.get_json()['ok'])
+
+        # 5. Verify login works with new password
+        login_resp = self.client.post('/api/player/login', json={
+            'username': uname,
+            'password': new_pw
+        })
+        self.assertEqual(login_resp.status_code, 200)
+
 
 if __name__ == '__main__':
     unittest.main()

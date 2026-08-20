@@ -579,13 +579,31 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
       <div id="modLogin">
         <div class="pfr"><input type="text" id="mUser" placeholder="Логин или email"></div>
         <div class="pfr"><input type="password" id="mPass" placeholder="Пароль"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px">
+          <span></span>
+          <a onclick="swMode('forgot')" style="color:var(--primary);font-size:12.5px;cursor:pointer">🔑 Забыли пароль?</a>
+        </div>
         <button class="btn psb" onclick="doLogin()">Войти &#8594;</button>
       </div>
       <div id="modReg" style="display:none">
-        <div class="pfr"><input type="text" id="mRUser" placeholder="Логин"></div>
-        <div class="pfr"><input type="email" id="mREmail" placeholder="Email"></div>
+        <div class="pfr"><input type="text" id="mRUser" placeholder="Логин (мин. 3 симв.)"></div>
+        <div class="pfr"><input type="email" id="mREmail" placeholder="Email (например name@domain.com)"></div>
         <div class="pfr"><input type="password" id="mRPass" placeholder="Пароль (мин. 6)"></div>
         <button class="btn psb" onclick="doReg()">Создать аккаунт &#8594;</button>
+      </div>
+      <div id="modForgot" style="display:none">
+        <div id="forgotStep1">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Введите ваш логин или email, и мы отправим код сброса.</p>
+          <div class="pfr"><input type="text" id="mFUser" placeholder="Логин или Email"></div>
+          <button class="btn psb" onclick="doSendResetCode()">✉️ Отправить код сброса &#8594;</button>
+        </div>
+        <div id="forgotStep2" style="display:none">
+          <p id="forgotCodeHint" style="font-size:12.5px;color:#38bdf8;margin-bottom:10px">Код отправлен на почту!</p>
+          <div class="pfr"><input type="text" id="mFCode" placeholder="6-значный код" maxlength="6"></div>
+          <div class="pfr"><input type="password" id="mFNewPass" placeholder="Новый пароль (мин. 6)"></div>
+          <button class="btn psb" onclick="doConfirmResetPassword()">🔒 Сменить пароль и войти &#8594;</button>
+        </div>
+        <p style="margin-top:12px;font-size:12.5px;text-align:center"><a onclick="swMode('login')" style="color:var(--muted);cursor:pointer">← Вернуться ко входу</a></p>
       </div>
       <div class="pmsg" id="modMsg"></div>
     </div>
@@ -683,9 +701,145 @@ document.getElementById('cabRefresh')?.addEventListener('click',loadUser);
 // Modal
 function openLogin(){document.getElementById('pmod').classList.add('on');swMode('login');}
 function closeMod(){document.getElementById('pmod').classList.remove('on');}
-function swMode(m){const l=m==='login';document.getElementById('modLogin').style.display=l?'block':'none';document.getElementById('modReg').style.display=l?'none':'block';document.getElementById('modTitle').textContent=l?'Войдите в аккаунт':'Создайте аккаунт';const sl=document.querySelector('.psl');if(sl)sl.innerHTML=l?'Нет аккаунта? <a onclick="swMode(\'register\')">Регистрация</a>':'Уже есть аккаунт? <a onclick="swMode(\'login\')">Войти</a>';document.getElementById('modMsg').textContent='';}
-async function doLogin(){const m=document.getElementById('modMsg');m.className='pmsg';try{const r=await fetch('/api/player/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('mUser').value,password:document.getElementById('mPass').value})});const d=await r.json();if(d.ok){closeMod();await loadUser();initAdmin();}else{m.textContent=d.message||'Ошибка';m.className='pmsg err';}}catch(e){m.textContent='Ошибка сети';m.className='pmsg err';}}
-async function doReg(){const m=document.getElementById('modMsg');m.className='pmsg';try{const r=await fetch('/api/player/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('mRUser').value,email:document.getElementById('mREmail').value,password:document.getElementById('mRPass').value})});const d=await r.json();if(d.ok){closeMod();await loadUser();initAdmin();}else{m.textContent=d.message||'Ошибка';m.className='pmsg err';}}catch(e){m.textContent='Ошибка сети';m.className='pmsg err';}}
+function swMode(m){
+  const l=m==='login';
+  const r=m==='register';
+  const f=m==='forgot';
+  document.getElementById('modLogin').style.display=l?'block':'none';
+  document.getElementById('modReg').style.display=r?'block':'none';
+  document.getElementById('modForgot').style.display=f?'block':'none';
+  if(f){
+    document.getElementById('forgotStep1').style.display='block';
+    document.getElementById('forgotStep2').style.display='none';
+  }
+  document.getElementById('modTitle').textContent=l?'Войдите в аккаунт':(r?'Создайте аккаунт':'Сброс пароля');
+  const sl=document.querySelector('.psl');
+  if(sl){
+    if(f) sl.innerHTML='Вспомнили пароль? <a onclick="swMode(\'login\')">Войти</a>';
+    else sl.innerHTML=l?'Нет аккаунта? <a onclick="swMode(\'register\')">Регистрация</a>':'Уже есть аккаунт? <a onclick="swMode(\'login\')">Войти</a>';
+  }
+  document.getElementById('modMsg').textContent='';
+}
+async function doLogin(){
+  const m=document.getElementById('modMsg');
+  m.className='pmsg';
+  try{
+    const r=await fetch('/api/player/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        username:document.getElementById('mUser').value,
+        password:document.getElementById('mPass').value
+      })
+    });
+    const d=await r.json();
+    if(d.ok){
+      closeMod();
+      await loadUser();
+      initAdmin();
+    }else{
+      m.textContent=d.message||'Ошибка';
+      m.className='pmsg err';
+    }
+  }catch(e){
+    m.textContent='Ошибка сети';
+    m.className='pmsg err';
+  }
+}
+async function doReg(){
+  const m=document.getElementById('modMsg');
+  m.className='pmsg';
+  try{
+    const r=await fetch('/api/player/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        username:document.getElementById('mRUser').value,
+        email:document.getElementById('mREmail').value,
+        password:document.getElementById('mRPass').value
+      })
+    });
+    const d=await r.json();
+    if(d.ok){
+      closeMod();
+      await loadUser();
+      initAdmin();
+    }else{
+      m.textContent=d.message||'Ошибка';
+      m.className='pmsg err';
+    }
+  }catch(e){
+    m.textContent='Ошибка сети';
+    m.className='pmsg err';
+  }
+}
+let resetUserQuery = '';
+async function doSendResetCode(){
+  const m=document.getElementById('modMsg');
+  m.className='pmsg';
+  const u=document.getElementById('mFUser').value.trim();
+  if(!u){
+    m.textContent='Введите ваш логин или email';
+    m.className='pmsg err';
+    return;
+  }
+  resetUserQuery = u;
+  try{
+    const r=await fetch('/api/player/forgot-password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({login_or_email:u})
+    });
+    const d=await r.json();
+    if(d.ok){
+      document.getElementById('forgotStep1').style.display='none';
+      document.getElementById('forgotStep2').style.display='block';
+      document.getElementById('forgotCodeHint').textContent=d.message||`Код отправлен на ${d.email_masked}!`;
+      m.textContent='';
+    }else{
+      m.textContent=d.message||'Ошибка';
+      m.className='pmsg err';
+    }
+  }catch(e){
+    m.textContent='Ошибка сети при отправке кода';
+    m.className='pmsg err';
+  }
+}
+async function doConfirmResetPassword(){
+  const m=document.getElementById('modMsg');
+  m.className='pmsg';
+  const c=document.getElementById('mFCode').value.trim();
+  const p=document.getElementById('mFNewPass').value;
+  if(!c||!p){
+    m.textContent='Заполните код и новый пароль';
+    m.className='pmsg err';
+    return;
+  }
+  try{
+    const r=await fetch('/api/player/reset-password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        login_or_email:resetUserQuery,
+        code:c,
+        new_password:p
+      })
+    });
+    const d=await r.json();
+    if(d.ok){
+      alert(d.message||'Пароль успешно обновлён!');
+      closeMod();
+      await loadUser();
+      initAdmin();
+    }else{
+      m.textContent=d.message||'Ошибка сброса';
+      m.className='pmsg err';
+    }
+  }catch(e){
+    m.textContent='Ошибка сети при сбросе пароля';
+    m.className='pmsg err';
+  }
+}
 // Products
 let prods=[],activePromo=null,selProd=null,selPayM=null;
 async function loadProds(){try{const r=await fetch('/api/products');prods=await r.json();renderCards();}catch(e){}}

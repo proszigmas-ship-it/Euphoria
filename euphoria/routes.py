@@ -2,6 +2,7 @@
 import secrets
 import sqlite3
 import ipaddress
+import re
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 
@@ -220,14 +221,21 @@ def register_routes(app):
             return None
         return row
 
+    EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+
     @app.post('/api/player/register')
     def player_register():
         d = request.get_json(silent=True) or {}
         username = str(d.get('username', '')).strip()
         email = str(d.get('email', '')).strip().lower()
         password = str(d.get('password', ''))
-        if len(username) < 3 or len(email) < 5 or len(password) < 6:
-            return jsonify(ok=False, message='Username/email/password are invalid'), 400
+        if len(username) < 3:
+            return jsonify(ok=False, message='Имя пользователя должно содержать не менее 3 символов'), 400
+        if not EMAIL_REGEX.match(email):
+            return jsonify(ok=False, message='Пожалуйста, введите корректный адрес электронной почты (например name@domain.com)'), 400
+        if len(password) < 6:
+            return jsonify(ok=False, message='Пароль должен содержать не менее 6 символов'), 400
+
         temp_uid = 'TMP-' + secrets.token_hex(8)
         c = get_db()
         try:
@@ -245,12 +253,111 @@ def register_routes(app):
             save_snapshot()
         except sqlite3.IntegrityError:
             c.close()
-            return jsonify(ok=False, message='Username or email already exists'), 400
+            return jsonify(ok=False, message='Пользователь с таким именем или email уже зарегистрирован'), 400
         c.close()
         session.permanent = True
         session['player_id'] = player_id
         session.pop('admin_id', None)
         return jsonify(ok=True, uid=uid)
+
+    @app.post('/api/player/forgot-password')
+    def player_forgot_password():
+        d = request.get_json(silent=True) or {}
+        query = str(d.get('login_or_email', '')).strip().lower()
+        if not query:
+            return jsonify(ok=False, message='Введите ваш логин или email'), 400
+
+        c = get_db()
+        player = c.execute(
+            'SELECT * FROM players WHERE LOWER(username)=? OR LOWER(email)=?',
+            (query, query),
+        ).fetchone()
+
+        if not player:
+            c.close()
+            return jsonify(ok=False, message='Пользователь с таким логином или email не найден'), 404
+
+        email = player['email']
+        code = str(secrets.randbelow(900000) + 100000)
+        now = datetime.now(timezone.utc)
+        expires_at = (now + timedelta(minutes=15)).isoformat()
+
+        c.execute('UPDATE password_resets SET used=1 WHERE player_id=?', (player['id'],))
+        c.execute(
+            '''INSERT INTO password_resets (player_id, email, code, expires_at, used, created_at)
+               VALUES (?, ?, ?, ?, 0, ?)''',
+            (player['id'], email, code, expires_at, now.isoformat()),
+        )
+        c.commit()
+        c.close()
+
+        user_part, domain_part = email.split('@', 1) if '@' in email else (email, '')
+        if len(user_part) <= 2:
+            masked_user = user_part[0] + '*'
+        else:
+            masked_user = user_part[0] + '*' * (len(user_part) - 2) + user_part[-1]
+        masked_email = f"{masked_user}@{domain_part}"
+
+        return jsonify(
+            ok=True,
+            email_masked=masked_email,
+            code=code,
+            message=f'Код подтверждения отправлен на почту {masked_email}',
+        )
+
+    @app.post('/api/player/reset-password')
+    def player_reset_password():
+        d = request.get_json(silent=True) or {}
+        query = str(d.get('login_or_email', '')).strip().lower()
+        code = str(d.get('code', '')).strip()
+        new_password = str(d.get('new_password', ''))
+
+        if not query or not code or not new_password:
+            return jsonify(ok=False, message='Заполните все поля (логин/email, код, новый пароль)'), 400
+
+        if len(new_password) < 6:
+            return jsonify(ok=False, message='Новый пароль должен содержать минимум 6 символов'), 400
+
+        c = get_db()
+        player = c.execute(
+            'SELECT * FROM players WHERE LOWER(username)=? OR LOWER(email)=?',
+            (query, query),
+        ).fetchone()
+
+        if not player:
+            c.close()
+            return jsonify(ok=False, message='Пользователь не найден'), 404
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        reset_row = c.execute(
+            '''SELECT * FROM password_resets
+               WHERE player_id=? AND code=? AND used=0 AND expires_at > ?
+               ORDER BY id DESC LIMIT 1''',
+            (player['id'], code, now_iso),
+        ).fetchone()
+
+        if not reset_row:
+            c.close()
+            return jsonify(ok=False, message='Неверный или просроченный код сброса пароля'), 400
+
+        pw_hash = generate_password_hash(new_password)
+        c.execute(
+            'UPDATE players SET password_hash=?, password_plain=? WHERE id=?',
+            (pw_hash, new_password, player['id']),
+        )
+        c.execute('UPDATE password_resets SET used=1 WHERE id=?', (reset_row['id'],))
+        c.commit()
+        c.close()
+        save_snapshot()
+
+        session.permanent = True
+        session['player_id'] = player['id']
+
+        return jsonify(
+            ok=True,
+            message='✅ Пароль успешно сброшен и обновлён! Вы вошли в свой аккаунт.',
+            username=player['username'],
+        )
 
     @app.post('/api/player/login')
     def player_login():
