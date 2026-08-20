@@ -221,6 +221,9 @@ h1.page-title{font-size:26px;margin-bottom:4px}
       <input id="regEmail" type="email" placeholder="Email (например name@domain.com)" required>
       <input id="regPass" type="password" placeholder="Пароль (мин. 6)" required minlength="6">
       <button class="btn full-btn">Создать аккаунт</button>
+      <div style="text-align:center;margin-top:10px">
+        <a onclick="setGateMode('forgot')" style="color:var(--primary);font-size:12.5px;cursor:pointer">🔑 Забыли пароль? Восстановить по коду</a>
+      </div>
     </form>
     <div id="forgotForm" style="display:none">
       <div id="cabForgotStep1">
