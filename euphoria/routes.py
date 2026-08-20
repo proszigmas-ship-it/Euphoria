@@ -134,9 +134,9 @@ def register_routes(app):
 
         is_valid_pw = False
         if admin:
-            if check_password_hash(admin['password_hash'], password) or password in ('admin', 'admin123', 'EuP!2026#Z7mQ@41x', config.ADMIN_PASSWORD):
+            if check_password_hash(admin['password_hash'], password) or password == config.ADMIN_PASSWORD:
                 is_valid_pw = True
-        elif username.lower() == 'admin' and password in ('admin', 'admin123', 'EuP!2026#Z7mQ@41x', config.ADMIN_PASSWORD):
+        elif username.lower() == 'admin' and password == config.ADMIN_PASSWORD:
             pw_h = generate_password_hash(password)
             c.execute('INSERT OR REPLACE INTO admins(id, username, password_hash) VALUES(1, ?, ?)', (config.ADMIN_USERNAME, pw_h))
             c.commit()
@@ -219,7 +219,7 @@ def register_routes(app):
             is_valid_admin_pw = False
             if admin_row and check_password_hash(admin_row['password_hash'], password):
                 is_valid_admin_pw = True
-            elif password in ('admin', 'admin123', 'EuP!2026#Z7mQ@41x', config.ADMIN_PASSWORD):
+            elif password == config.ADMIN_PASSWORD:
                 is_valid_admin_pw = True
 
             if is_valid_admin_pw:
