@@ -28,7 +28,7 @@ DB_PATH = ROOT / 'euphoria.db'
 
 SECRET_KEY = os.environ.get('EUPHORIA_SECRET', 'CHANGE_THIS_SECRET')
 ADMIN_USERNAME = os.environ.get('EUPHORIA_ADMIN_USER', 'admin')
-ADMIN_PASSWORD = os.environ.get('EUPHORIA_ADMIN_PASSWORD', 'EuP!2026#Z7mQ@41x')
+ADMIN_PASSWORD = os.environ.get('EUPHORIA_ADMIN_PASSWORD', 'admin')
 
 DEFAULT_PRODUCTS = [
     ('7 Days', 100, 0),
