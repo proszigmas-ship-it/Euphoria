@@ -107,6 +107,16 @@ def register_routes(app):
     def cabinet_page():
         return render_template('cabinet.html')
 
+    @app.route('/login')
+    def login_page():
+        from flask import redirect
+        return redirect('/cabinet')
+
+    @app.route('/register')
+    def register_page():
+        from flask import redirect
+        return redirect('/cabinet')
+
     # ── Auth ──────────────────────────────────────────────────────────────
 
     @app.post('/api/admin/login')
