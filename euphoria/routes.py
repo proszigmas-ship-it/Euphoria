@@ -9,7 +9,7 @@ from flask import jsonify, render_template, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import config
-from .db import get_db
+from .db import get_db, save_snapshot
 from .security import fingerprint, hash_device_id, looks_like_hash, safe_compare
 
 
@@ -199,6 +199,7 @@ def register_routes(app):
             uid = str(config.PLAYER_UID_BASE + player_id)
             c.execute('UPDATE players SET uid=? WHERE id=?', (uid, player_id))
             c.commit()
+            save_snapshot()
         except sqlite3.IntegrityError:
             c.close()
             return jsonify(ok=False, message='Username or email already exists'), 400
@@ -432,6 +433,7 @@ def register_routes(app):
         )
         c.commit()
         c.close()
+        save_snapshot()
 
         method_names = {
             'yumoney': 'ЮMoney',
@@ -558,6 +560,7 @@ def register_routes(app):
         c.execute('UPDATE players SET role=? WHERE id=?', (normalized_role, player_id))
         c.commit()
         c.close()
+        save_snapshot()
         return jsonify(ok=True, role=normalized_role, message=f"Роль пользователя {player['username']} изменена на {normalized_role}")
 
 
@@ -632,11 +635,12 @@ def register_routes(app):
                 (code, discount, max_uses, created_by, datetime.now(timezone.utc).isoformat()),
             )
             c.commit()
+            c.close()
+            save_snapshot()
+            return jsonify(ok=True)
         except sqlite3.IntegrityError:
             c.close()
             return jsonify(ok=False, message='Promo already exists'), 400
-        c.close()
-        return jsonify(ok=True)
 
     @app.get('/api/admin/promos')
     @admin_required
@@ -656,23 +660,6 @@ def register_routes(app):
         } for r in rows]
         return jsonify(ok=True, promos=items)
 
-    @app.post('/api/admin/players/<int:player_id>/role')
-    @admin_required
-    def set_player_role(player_id):
-        d = request.get_json(silent=True) or {}
-        role = str(d.get('role', '')).strip()
-        if role not in ('User', 'Media', 'Admin'):
-            return jsonify(ok=False, message='Role must be User, Media or Admin'), 400
-        c = get_db()
-        row = c.execute('SELECT id FROM players WHERE id=?', (player_id,)).fetchone()
-        if not row:
-            c.close()
-            return jsonify(ok=False, message='Player not found'), 404
-        c.execute('UPDATE players SET role=? WHERE id=?', (role, player_id))
-        c.commit()
-        c.close()
-        return jsonify(ok=True, role=role)
-
     @app.delete('/api/admin/promos/<code>')
     @admin_required
     def del_promo(code):
@@ -680,6 +667,7 @@ def register_routes(app):
         c.execute('DELETE FROM promos WHERE code=?', (code.upper(),))
         c.commit()
         c.close()
+        save_snapshot()
         return jsonify(ok=True)
 
     # ── Keys ──────────────────────────────────────────────────────────────
@@ -720,6 +708,7 @@ def register_routes(app):
             created.append(key)
         c.commit()
         c.close()
+        save_snapshot()
         return jsonify(ok=True, keys=created)
 
     @app.get('/api/admin/keys')
@@ -746,6 +735,7 @@ def register_routes(app):
         c.execute('UPDATE keys SET active=0 WHERE id=?', (key_id,))
         c.commit()
         c.close()
+        save_snapshot()
         return jsonify(ok=True)
 
     @app.post('/api/admin/keys/<int:key_id>/reset-hwid')
@@ -764,6 +754,7 @@ def register_routes(app):
         )
         c.commit()
         c.close()
+        save_snapshot()
         return jsonify(ok=True, message='HWID reset successfully')
 
     # ── IP bans ───────────────────────────────────────────────────────────

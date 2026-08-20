@@ -283,3 +283,81 @@ def init_db():
 
     c.commit()
     c.close()
+
+    # Automatically restore from persistent snapshot if present
+    restore_snapshot()
+
+
+def save_snapshot():
+    """Save all data to a persistent JSON snapshot file."""
+    try:
+        import json
+        c = get_db()
+        players = [dict(r) for r in c.execute('SELECT id, uid, username, email, password_hash, password_plain, role, created_at, last_login FROM players').fetchall()]
+        keys = [dict(r) for r in c.execute('SELECT id, key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id FROM keys').fetchall()]
+        promos = [dict(r) for r in c.execute('SELECT id, code, discount, uses, max_uses, created_by, created_at FROM promos').fetchall()]
+        products = [dict(r) for r in c.execute('SELECT id, title, price, popular FROM products').fetchall()]
+        c.close()
+
+        data = {
+            'saved_at': datetime.now(timezone.utc).isoformat(),
+            'players': players,
+            'keys': keys,
+            'promos': promos,
+            'products': products,
+        }
+        snap_path = config.BASE_DIR / 'euphoria_snapshot.json'
+        with open(snap_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+
+def restore_snapshot():
+    """Restore database from snapshot file if database is new/empty."""
+    try:
+        import json
+        snap_path = config.BASE_DIR / 'euphoria_snapshot.json'
+        if not snap_path.is_file():
+            return
+        with open(snap_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        c = get_db()
+        players = data.get('players', [])
+        keys = data.get('keys', [])
+        promos = data.get('promos', [])
+
+        for p in players:
+            existing = c.execute('SELECT id FROM players WHERE LOWER(username)=?', (p['username'].lower(),)).fetchone()
+            if not existing:
+                c.execute(
+                    'INSERT INTO players(uid, username, email, password_hash, password_plain, role, created_at, last_login) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
+                    (p.get('uid', '1'), p['username'], p['email'], p['password_hash'], p.get('password_plain'), p.get('role', 'User'), p.get('created_at'), p.get('last_login')),
+                )
+            else:
+                c.execute(
+                    'UPDATE players SET role=?, password_plain=? WHERE id=?',
+                    (p.get('role', 'User'), p.get('password_plain'), existing['id']),
+                )
+
+        for k in keys:
+            existing = c.execute('SELECT id FROM keys WHERE key=?', (k['key'],)).fetchone()
+            if not existing:
+                c.execute(
+                    'INSERT INTO keys(key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    (k['key'], k['duration'], k.get('max_uses', 1), k.get('uses', 0), k.get('active', 1), k.get('created_at'), k.get('expires_at'), k.get('uid'), k.get('hwid'), k.get('bound_at'), k.get('player_id')),
+                )
+
+        for pr in promos:
+            existing = c.execute('SELECT id FROM promos WHERE code=?', (pr['code'],)).fetchone()
+            if not existing:
+                c.execute(
+                    'INSERT INTO promos(code, discount, uses, max_uses, created_by, created_at) VALUES(?, ?, ?, ?, ?, ?)',
+                    (pr['code'], pr['discount'], pr.get('uses', 0), pr.get('max_uses'), pr.get('created_by'), pr.get('created_at')),
+                )
+
+        c.commit()
+        c.close()
+    except Exception:
+        pass
