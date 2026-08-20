@@ -186,7 +186,7 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* SBP QR Code Box */
+/* QR Code Box */
 .qr-container {
   display: flex;
   flex-direction: column;
@@ -431,7 +431,7 @@ body {
       <span>⚡</span> СБП (Рубли ₽)
     </button>
     <button class="tab-btn crypto-tab" id="tabCrypto" onclick="switchMethod('cryptobot')">
-      <span>🪙</span> CryptoBot (Доллары $ & Рубли ₽)
+      <span>🪙</span> CryptoBot (Оплата в $ USD)
     </button>
   </div>
 
@@ -486,35 +486,6 @@ body {
           <rect x="126" y="66" width="8" height="8" rx="1.5" fill="#0f172a"/>
           <rect x="140" y="66" width="8" height="8" rx="1.5" fill="#0284c7"/>
           <rect x="154" y="66" width="8" height="8" rx="1.5" fill="#0f172a"/>
-
-          <rect x="16" y="80" width="8" height="8" rx="1.5" fill="#0284c7"/>
-          <rect x="44" y="80" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="126" y="80" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="154" y="80" width="8" height="8" rx="1.5" fill="#0f172a"/>
-
-          <rect x="16" y="94" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="30" y="94" width="8" height="8" rx="1.5" fill="#0284c7"/>
-          <rect x="44" y="94" width="8" height="8" rx="1.5" fill="#0284c7"/>
-          <rect x="126" y="94" width="8" height="8" rx="1.5" fill="#0284c7"/>
-          <rect x="140" y="94" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="154" y="94" width="8" height="8" rx="1.5" fill="#0f172a"/>
-
-          <rect x="66" y="126" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="80" y="126" width="8" height="8" rx="1.5" fill="#0284c7"/>
-          <rect x="108" y="126" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="126" y="126" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="154" y="126" width="8" height="8" rx="1.5" fill="#0284c7"/>
-
-          <rect x="66" y="140" width="8" height="8" rx="1.5" fill="#0284c7"/>
-          <rect x="94" y="140" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="126" y="140" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="140" y="140" width="8" height="8" rx="1.5" fill="#0284c7"/>
-
-          <rect x="80" y="154" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="94" y="154" width="8" height="8" rx="1.5" fill="#0284c7"/>
-          <rect x="108" y="154" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="140" y="154" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="154" y="154" width="8" height="8" rx="1.5" fill="#0f172a"/>
 
           <rect x="65" y="65" width="50" height="50" rx="8" fill="#0284c7"/>
           <rect x="67" y="67" width="46" height="46" rx="6" fill="#0f172a"/>
@@ -637,23 +608,12 @@ body {
           <rect x="94" y="16" width="8" height="8" rx="1.5" fill="#0f172a"/>
           <rect x="108" y="16" width="8" height="8" rx="1.5" fill="#d97706"/>
 
-          <rect x="66" y="30" width="8" height="8" rx="1.5" fill="#d97706"/>
-          <rect x="94" y="30" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="108" y="30" width="8" height="8" rx="1.5" fill="#d97706"/>
-
-          <rect x="16" y="66" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="30" y="66" width="8" height="8" rx="1.5" fill="#d97706"/>
-          <rect x="44" y="66" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="126" y="66" width="8" height="8" rx="1.5" fill="#0f172a"/>
-          <rect x="140" y="66" width="8" height="8" rx="1.5" fill="#d97706"/>
-          <rect x="154" y="66" width="8" height="8" rx="1.5" fill="#0f172a"/>
-
           <rect x="65" y="65" width="50" height="50" rx="8" fill="#d97706"/>
           <rect x="67" y="67" width="46" height="46" rx="6" fill="#0f172a"/>
           <text x="90" y="96" fill="#f59e0b" font-size="18" font-weight="900" font-family="Inter, Arial, sans-serif" text-anchor="middle">⚡$</text>
         </svg>
         <div class="qr-label" style="color:#b45309">📲 Оплата в @CryptoBot</div>
-        <div class="qr-hint">Откройте Telegram для оплаты в долларах или криптовалюте</div>
+        <div class="qr-hint">USDT, TON, BTC, NOT — моментальное зачисление</div>
       </div>
 
       <div class="crypto-currencies">
@@ -664,11 +624,11 @@ body {
       </div>
     </div>
 
-    <!-- Правая колонка: Конвертер цен и Подтверждение в долларах и рублях -->
+    <!-- Правая колонка: Официальный платёжный шлюз CryptoBot -->
     <div class="box">
       <div class="box-header">
-        <h3><span>💵</span> Калькулятор валют CryptoBot</h3>
-        <span style="font-size:12px;color:var(--muted)">1 USD ≈ 92 ₽</span>
+        <h3><span>💵</span> Официальный счёт CryptoBot</h3>
+        <span style="font-size:12px;color:var(--crypto)">Crypto Pay API Active</span>
       </div>
 
       <div class="order-list">
@@ -681,37 +641,37 @@ body {
           <strong id="cryptoSummaryUser">Загрузка...</strong>
         </div>
         <div class="order-row">
-          <span>Сумма в рублях (RUB):</span>
-          <strong id="cryptoSummaryRub" style="color:#fff">459 ₽</strong>
+          <span>Сумма в рублях:</span>
+          <strong id="cryptoSummaryRub">459 ₽</strong>
         </div>
         <div class="order-row">
-          <span>Сумма в долларах (USD):</span>
-          <strong id="cryptoSummaryUsd" style="color:var(--crypto)">$5.00 USD</strong>
+          <span>Сумма в долларах:</span>
+          <strong id="cryptoSummaryUsd" style="color:var(--crypto)">$6.00 USD</strong>
         </div>
         <div class="order-row" id="cryptoPromoRow" style="display:none">
           <span>Промокод:</span>
           <strong id="cryptoSummaryPromo" style="color:var(--success)">-0%</strong>
         </div>
         <div class="order-row total">
-          <span>Итого к оплате:</span>
+          <span>К оплате в CryptoBot:</span>
           <div style="text-align:right">
-            <span class="price" id="cryptoSummaryTotal" style="color:var(--crypto);display:block">$5.00 USD</span>
+            <span class="price" id="cryptoSummaryTotal" style="color:var(--crypto);display:block">$6.00 USD</span>
             <small id="cryptoSummarySub" style="color:var(--muted);font-size:13px">(459 ₽)</small>
           </div>
         </div>
       </div>
 
-      <a href="https://t.me/CryptoBot" target="_blank" class="submit-btn crypto-btn" style="text-decoration:none">
-        <span id="cryptoBtnText">🚀 Оплатить $5.00 USD (459 ₽) в @CryptoBot</span>
+      <a id="cryptoPayLink" href="https://t.me/CryptoBot" target="_blank" class="submit-btn crypto-btn" style="text-decoration:none">
+        <span id="cryptoBtnText">🚀 Оплатить в @CryptoBot</span>
       </a>
 
-      <button type="button" class="submit-btn" style="margin-top:10px;background:rgba(255,255,255,0.06);border:1px solid var(--line)" onclick="confirmCryptoPayment()">
-        <span>✓ Я оплатил заказ через CryptoBot</span>
+      <button type="button" class="submit-btn" style="margin-top:10px;background:rgba(255,255,255,0.06);border:1px solid var(--line)" onclick="checkCryptoStatusManual()">
+        <span id="checkCryptoBtnText">🔄 Проверить оплату в Telegram</span>
       </button>
 
       <div class="secure-note">
-        <span>🔒</span>
-        <span>Автоматическая конвертация и быстрая передача товара</span>
+        <span>⚡</span>
+        <span>После оплаты в Telegram подписка автоматически активируется на ваш аккаунт</span>
       </div>
     </div>
   </div>
@@ -721,9 +681,11 @@ body {
 let ME = null;
 let currentPlan = '365 Days';
 let currentPriceRub = 459;
-let currentPriceUsd = 5.00;
+let currentPriceUsd = 6.00;
 let activePromo = null;
 let activeMethod = 'sbp';
+let activeCryptoInvoice = null;
+let cryptoPollInterval = null;
 
 const params = new URLSearchParams(window.location.search);
 const planParam = params.get('product') || params.get('plan') || '365 Days';
@@ -749,12 +711,78 @@ function switchMethod(m) {
   document.getElementById('cryptoSection').style.display = isCrypto ? 'grid' : 'none';
 
   if (isCrypto) {
-    document.getElementById('pageTitleText').textContent = 'Оплата через CryptoBot (Доллары $ & Рубли ₽)';
-    document.getElementById('pageDescText').textContent = 'Конвертация валют и оплата в $ USD / ₽ RUB через Telegram @CryptoBot';
+    document.getElementById('pageTitleText').textContent = 'Оплата через CryptoBot (Официальный API)';
+    document.getElementById('pageDescText').textContent = 'Оплата в $ USD / USDT / TON / BTC через Telegram @CryptoBot';
+    prepareCryptoInvoice();
   } else {
     document.getElementById('pageTitleText').textContent = 'Оплата заказа через СБП';
     document.getElementById('pageDescText').textContent = 'Отсканируйте QR-код в мобильном приложении банка или оплатите картой';
   }
+}
+
+async function prepareCryptoInvoice() {
+  const btn = document.getElementById('cryptoBtnText');
+  const link = document.getElementById('cryptoPayLink');
+  btn.textContent = '⏳ Создание официального счёта...';
+
+  try {
+    const r = await fetch('/api/cryptobot/create-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product: currentPlan,
+        promo: activePromo ? activePromo.code : ''
+      })
+    });
+    const d = await r.json();
+    if (d.ok && (d.bot_invoice_url || d.pay_url)) {
+      activeCryptoInvoice = d.invoice_id;
+      link.href = d.bot_invoice_url || d.pay_url;
+      btn.textContent = '🚀 Оплатить $' + d.amount_usd.toFixed(2) + ' USD в @CryptoBot';
+      if (!cryptoPollInterval) {
+        cryptoPollInterval = setInterval(checkCryptoStatus, 3500);
+      }
+    } else {
+      link.href = 'https://t.me/CryptoBot';
+      btn.textContent = '🚀 Оплатить $' + currentPriceUsd + '.00 USD (' + fmt(currentPriceRub) + ' ₽) в @CryptoBot';
+    }
+  } catch(e) {
+    link.href = 'https://t.me/CryptoBot';
+    btn.textContent = '🚀 Оплатить $' + currentPriceUsd + '.00 USD (' + fmt(currentPriceRub) + ' ₽) в @CryptoBot';
+  }
+}
+
+async function checkCryptoStatus() {
+  if (!activeCryptoInvoice) return;
+  try {
+    const r = await fetch('/api/cryptobot/check-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ invoice_id: activeCryptoInvoice })
+    });
+    const d = await r.json();
+    if (d.ok && d.paid) {
+      if (cryptoPollInterval) clearInterval(cryptoPollInterval);
+      const banner = document.getElementById('statusBanner');
+      banner.className = 'status-banner success';
+      banner.textContent = '✅ Оплата успешно получена! Подписка активирована!';
+      setTimeout(() => {
+        window.location.href = '/cabinet';
+      }, 1400);
+    }
+  } catch(e) {}
+}
+
+async function checkCryptoStatusManual() {
+  const btn = document.getElementById('checkCryptoBtnText');
+  btn.textContent = '⏳ Проверка...';
+  if (!activeCryptoInvoice) {
+    await prepareCryptoInvoice();
+  }
+  await checkCryptoStatus();
+  setTimeout(() => {
+    btn.textContent = '🔄 Проверить оплату в Telegram';
+  }, 1000);
 }
 
 function onCardInput(el) {
@@ -902,38 +930,6 @@ async function confirmPayment(e) {
     banner.textContent = 'Ошибка сети. Попробуйте снова.';
     btn.disabled = false;
     document.getElementById('submitBtnText').textContent = '🔒 Оплатить ' + fmt(currentPriceRub) + ' ₽ через СБП';
-  }
-}
-
-async function confirmCryptoPayment() {
-  const banner = document.getElementById('statusBanner');
-  try {
-    const r = await fetch('/api/player/confirm-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        product: currentPlan,
-        method: 'cryptobot',
-        promo: activePromo ? activePromo.code : '',
-        sender_card: 'CryptoBot Invoice ($' + currentPriceUsd.toFixed(2) + ' / ' + fmt(currentPriceRub) + ' RUB)',
-        sender_name: ME ? ME.username : 'Crypto Buyer',
-        comment: 'Amount in USD: $' + currentPriceUsd.toFixed(2) + ' (~' + fmt(currentPriceRub) + ' RUB)'
-      })
-    });
-    const d = await r.json();
-    if (r.ok && d.ok) {
-      banner.className = 'status-banner success';
-      banner.textContent = '✅ Оплата через CryptoBot подтверждена! Товар передан на аккаунт!';
-      setTimeout(() => {
-        window.location.href = '/cabinet';
-      }, 1400);
-    } else {
-      banner.className = 'status-banner error';
-      banner.textContent = d.message || 'Ошибка подтверждения платежа CryptoBot';
-    }
-  } catch(e) {
-    banner.className = 'status-banner error';
-    banner.textContent = 'Ошибка сети при проверке CryptoBot';
   }
 }
 

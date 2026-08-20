@@ -559,6 +559,186 @@ def register_routes(app):
             message=f"✅ Оплата принята! Тариф '{title}' ({price} ₽) успешно активирован на ваш аккаунт! Срок: {exp_text}.",
         )
 
+    # ── Official CryptoBot API Routes ──────────────────────────────────────────
+
+    @app.post('/api/cryptobot/create-invoice')
+    def cryptobot_create_invoice():
+        import math
+        import urllib.request
+        import json
+
+        player = player_session_user()
+        d = request.get_json(silent=True) or {}
+        title = str(d.get('product', '')).strip() or '365 Days'
+        promo_code = str(d.get('promo', '')).strip().upper()
+
+        c = get_db()
+        product = c.execute('SELECT * FROM products WHERE title=?', (title,)).fetchone()
+        if not product:
+            product = c.execute('SELECT * FROM products ORDER BY id DESC LIMIT 1').fetchone()
+
+        price_rub = product['price'] if product else 459
+        if promo_code:
+            promo = c.execute('SELECT code, discount, uses, max_uses FROM promos WHERE code=?', (promo_code,)).fetchone()
+            if promo and (promo['max_uses'] is None or promo['uses'] < promo['max_uses']):
+                price_rub = round(price_rub * (100 - promo['discount']) / 100, 2)
+
+        usd_amount = float(math.ceil(price_rub / 80.0))
+        if usd_amount < 1.0:
+            usd_amount = 1.0
+
+        token = getattr(config, 'CRYPTOBOT_API_TOKEN', '')
+        if not token:
+            c.close()
+            return jsonify(ok=False, message='CryptoBot API токен не настроен'), 500
+
+        desc = f'Euphoria Client - {title}'
+        if player:
+            desc += f' ({player["username"]})'
+
+        payload_data = {
+            'currency_type': 'fiat',
+            'fiat': 'USD',
+            'amount': f'{usd_amount:.2f}',
+            'description': desc,
+            'hidden_message': 'Спасибо за покупку в Euphoria! Ваша подписка мгновенно активирована.',
+            'paid_btn_name': 'openBot',
+            'paid_btn_url': 'https://t.me/CryptoBot'
+        }
+
+        try:
+            req = urllib.request.Request(
+                'https://pay.crypt.bot/api/createInvoice',
+                data=json.dumps(payload_data).encode('utf-8'),
+                headers={
+                    'Crypto-Pay-API-Token': token,
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Euphoria/1.0'
+                }
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                if not data.get('ok'):
+                    c.close()
+                    return jsonify(ok=False, message=data.get('error', {}).get('name', 'Ошибка создания счёта CryptoBot')), 400
+
+                res = data['result']
+                inv_id = res['invoice_id']
+                pay_url = res['pay_url']
+                bot_url = res.get('bot_invoice_url', pay_url)
+
+                now_str = datetime.now(timezone.utc).isoformat()
+                c.execute(
+                    '''INSERT INTO crypto_invoices (invoice_id, player_id, product, promo, amount_usd, pay_url, status, created_at)
+                       VALUES (?, ?, ?, ?, ?, ?, 'active', ?)''',
+                    (inv_id, player['id'] if player else None, title, promo_code, usd_amount, pay_url, now_str)
+                )
+                c.commit()
+                c.close()
+                save_snapshot()
+
+                return jsonify(
+                    ok=True,
+                    invoice_id=inv_id,
+                    pay_url=pay_url,
+                    bot_invoice_url=bot_url,
+                    amount_usd=usd_amount,
+                    amount_rub=price_rub,
+                    product=title,
+                    message='Счёт CryptoBot успешно создан!'
+                )
+        except Exception as e:
+            c.close()
+            return jsonify(ok=False, message=f'Ошибка связи с CryptoBot: {str(e)}'), 500
+
+    @app.post('/api/cryptobot/check-invoice')
+    def cryptobot_check_invoice():
+        import urllib.request
+        import json
+
+        d = request.get_json(silent=True) or {}
+        invoice_id = d.get('invoice_id')
+        if not invoice_id:
+            return jsonify(ok=False, message='Invoice ID required'), 400
+
+        token = getattr(config, 'CRYPTOBOT_API_TOKEN', '')
+        c = get_db()
+        inv_record = c.execute('SELECT * FROM crypto_invoices WHERE invoice_id=?', (invoice_id,)).fetchone()
+
+        try:
+            req = urllib.request.Request(
+                f'https://pay.crypt.bot/api/getInvoices?invoice_ids={invoice_id}',
+                headers={
+                    'Crypto-Pay-API-Token': token,
+                    'User-Agent': 'Euphoria/1.0'
+                }
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                if not data.get('ok'):
+                    c.close()
+                    return jsonify(ok=False, message='Ошибка проверки счёта CryptoBot'), 400
+
+                items = data.get('result', {}).get('items', [])
+                if not items:
+                    c.close()
+                    return jsonify(ok=False, message='Счёт не найден в CryptoBot'), 404
+
+                inv = items[0]
+                status = inv.get('status', 'active')
+
+                if status == 'paid':
+                    if inv_record and inv_record['status'] != 'paid':
+                        title = inv_record['product']
+                        promo_code = inv_record['promo']
+                        player_id = inv_record['player_id']
+                        if not player_id:
+                            player = player_session_user()
+                            if player:
+                                player_id = player['id']
+
+                        if player_id:
+                            player_row = c.execute('SELECT * FROM players WHERE id=?', (player_id,)).fetchone()
+                            if player_row:
+                                duration = title if title in config.KEY_DURATIONS else '365 Days'
+                                key = make_key(c)
+                                now = datetime.now(timezone.utc)
+                                days = config.KEY_DURATIONS.get(duration)
+                                expires_at = (now + timedelta(days=days)).isoformat() if days else None
+                                uid_h = hash_device_id(player_row['uid'])
+
+                                c.execute(
+                                    '''INSERT INTO keys
+                                       (key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id)
+                                       VALUES (?, ?, 1, 1, 1, ?, ?, ?, NULL, ?, ?)''',
+                                    (key, duration, now.isoformat(), expires_at, uid_h, now.isoformat(), player_id),
+                                )
+                                if promo_code:
+                                    c.execute('UPDATE promos SET uses = uses + 1 WHERE code=?', (promo_code,))
+
+                        c.execute('UPDATE crypto_invoices SET status="paid" WHERE invoice_id=?', (invoice_id,))
+                        c.commit()
+                        save_snapshot()
+
+                    c.close()
+                    return jsonify(
+                        ok=True,
+                        paid=True,
+                        status='paid',
+                        message='✅ Оплата через CryptoBot успешно получена! Подписка активирована на ваш аккаунт!'
+                    )
+
+                c.close()
+                return jsonify(
+                    ok=True,
+                    paid=False,
+                    status=status,
+                    message='Ожидание оплаты в Telegram CryptoBot...'
+                )
+        except Exception as e:
+            c.close()
+            return jsonify(ok=False, message=f'Ошибка проверки CryptoBot: {str(e)}'), 500
+
 
     def get_current_admin_role():
         pid = session.get('player_id')

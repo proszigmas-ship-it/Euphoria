@@ -185,6 +185,20 @@ def init_db():
     ''')
 
     c.execute(f'''
+        CREATE TABLE IF NOT EXISTS crypto_invoices (
+            id {pk},
+            invoice_id BIGINT UNIQUE NOT NULL,
+            player_id INTEGER,
+            product TEXT NOT NULL,
+            promo TEXT,
+            amount_usd REAL NOT NULL,
+            pay_url TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active',
+            created_at TEXT NOT NULL
+        )
+    ''')
+
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS ip_bans (
             id {pk},
             ip TEXT NOT NULL,
