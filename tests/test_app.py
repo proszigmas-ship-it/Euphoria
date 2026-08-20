@@ -146,6 +146,60 @@ class EuphoriaAppTests(unittest.TestCase):
         })
         self.assertEqual(login_ok.status_code, 200)
 
+    def test_admin_can_delete_player_and_deputy_cannot(self):
+        import secrets
+        uname = 'UserToDel_' + secrets.token_hex(3)
+        uemail = uname.lower() + '@example.com'
+        reg = self.client.post('/api/player/register', json={
+            'username': uname,
+            'email': uemail,
+            'password': 'Password123!',
+        })
+        self.assertEqual(reg.status_code, 200)
+
+        # Login as Admin
+        self.client.post('/api/admin/login', json={'username': config.ADMIN_USERNAME, 'password': config.ADMIN_PASSWORD})
+        plist = self.client.get('/api/admin/players').get_json()['players']
+        p_obj = next(p for p in plist if p['username'] == uname)
+        pid = p_obj['id']
+
+        # Admin can view plain password
+        self.assertEqual(p_obj['password'], 'Password123!')
+
+        # Make another user Deputy Admin
+        deputy_name = 'Deputy_' + secrets.token_hex(3)
+        self.client.post('/api/player/register', json={
+            'username': deputy_name,
+            'email': deputy_name.lower() + '@example.com',
+            'password': 'DeputyPassword123!',
+        })
+        self.client.post('/api/admin/login', json={'username': config.ADMIN_USERNAME, 'password': config.ADMIN_PASSWORD})
+        deputy_id = next(p for p in self.client.get('/api/admin/players').get_json()['players'] if p['username'] == deputy_name)['id']
+        self.client.post(f'/api/admin/players/{deputy_id}/role', json={'role': 'Deputy Admin'})
+
+        # Login as Deputy Admin
+        self.client.post('/api/player/login', json={'username': deputy_name, 'password': 'DeputyPassword123!'})
+
+        # Deputy Admin sees masked password
+        deputy_view = self.client.get('/api/admin/players').get_json()['players']
+        p_deputy_seen = next(p for p in deputy_view if p['username'] == uname)
+        self.assertEqual(p_deputy_seen['password'], '••••••••')
+
+        # Deputy Admin CANNOT delete account
+        del_fail = self.client.delete(f'/api/admin/players/{pid}')
+        self.assertEqual(del_fail.status_code, 403)
+
+        # Re-login as full Admin
+        self.client.post('/api/admin/login', json={'username': config.ADMIN_USERNAME, 'password': config.ADMIN_PASSWORD})
+
+        # Full Admin CAN delete account
+        del_ok = self.client.delete(f'/api/admin/players/{pid}')
+        self.assertEqual(del_ok.status_code, 200)
+
+        # Verify player is gone
+        plist_after = self.client.get('/api/admin/players').get_json()['players']
+        self.assertFalse(any(p['id'] == pid for p in plist_after))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -205,8 +205,10 @@ def register_routes(app):
                 (temp_uid, username, email, generate_password_hash(password), password, 'User', datetime.now(timezone.utc).isoformat()),
             )
             player_id = cur.lastrowid
-            # Numeric, auto-incrementing UID assigned the moment the account is created (Delta-style, e.g. 268410).
-            uid = str(config.PLAYER_UID_BASE + player_id)
+            base_uid = config.PLAYER_UID_BASE + player_id
+            while c.execute('SELECT 1 FROM players WHERE uid=?', (str(base_uid),)).fetchone():
+                base_uid += 1
+            uid = str(base_uid)
             c.execute('UPDATE players SET uid=? WHERE id=?', (uid, player_id))
             c.commit()
             save_snapshot()
@@ -527,7 +529,21 @@ def register_routes(app):
         )
 
 
-    # ── Players (admin stats & role management) ───────────────────────────
+    def get_current_admin_role():
+        pid = session.get('player_id')
+        admin_id = session.get('admin_id')
+        if not pid and not admin_id:
+            return None
+        c = get_db()
+        role = 'User'
+        if pid:
+            p = c.execute('SELECT role FROM players WHERE id=?', (pid,)).fetchone()
+            if p and p['role']:
+                role = p['role']
+        elif admin_id:
+            role = 'Admin'
+        c.close()
+        return role
 
     @app.get('/api/admin/players')
     @admin_required
@@ -538,6 +554,8 @@ def register_routes(app):
             'FROM players ORDER BY id DESC LIMIT 500'
         ).fetchall()
         now = datetime.now(timezone.utc)
+        current_role = get_current_admin_role()
+        is_full_admin = (current_role in ('Admin', 'Администратор'))
         out = []
         active_subs = 0
         hwid_bound = 0
@@ -576,7 +594,7 @@ def register_routes(app):
                 'uid': p['uid'],
                 'username': p['username'],
                 'email': p['email'],
-                'password': p['password_plain'] or '—',
+                'password': (p['password_plain'] or '—') if is_full_admin else '••••••••',
                 'role': p['role'] or 'User',
                 'banned': bool(p['banned']),
                 'ban_reason': p['ban_reason'] or '',
@@ -592,11 +610,44 @@ def register_routes(app):
         return jsonify(
             ok=True,
             players=out,
+            is_full_admin=is_full_admin,
+            viewer_role=current_role,
             stats={
                 'total_players': len(out),
                 'active_subscriptions': active_subs,
                 'hwid_bound': hwid_bound,
             },
+        )
+
+    @app.delete('/api/admin/players/<int:player_id>')
+    @app.post('/api/admin/players/<int:player_id>/delete')
+    @admin_required
+    def admin_delete_player(player_id: int):
+        current_role = get_current_admin_role()
+        if current_role not in ('Admin', 'Администратор'):
+            return jsonify(ok=False, message='Доступ запрещён! Удалять аккаунты могут только Главные Администраторы (Admin), но не Зам. Админы!'), 403
+
+        c = get_db()
+        player = c.execute('SELECT * FROM players WHERE id=?', (player_id,)).fetchone()
+        if not player:
+            c.close()
+            return jsonify(ok=False, message='Пользователь не найден'), 404
+
+        if player['username'].lower() in ('admin', config.ADMIN_USERNAME.lower()) or player['id'] == 1:
+            c.close()
+            return jsonify(ok=False, message='Нельзя удалить главного администратора!'), 400
+
+        c.execute('DELETE FROM players WHERE id=?', (player_id,))
+        c.execute('DELETE FROM keys WHERE player_id=?', (player_id,))
+        c.commit()
+        c.close()
+        save_snapshot()
+
+        return jsonify(
+            ok=True,
+            player_id=player_id,
+            username=player['username'],
+            message=f"Аккаунт пользователя '{player['username']}' (UID: {player['uid']}) успешно удалён!",
         )
 
     @app.post('/api/admin/players/ban')
