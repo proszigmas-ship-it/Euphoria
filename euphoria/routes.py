@@ -1548,3 +1548,10 @@ def register_routes(app):
         c.commit()
         c.close()
         return jsonify(ok=True, message=f'Импорт завершён: добавлено {imported_players} игроков и {imported_keys} ключей.')
+
+    @app.post('/api/admin/database/sync-snapshot')
+    @admin_required
+    def admin_db_sync_snapshot():
+        from .db import restore_snapshot
+        restore_snapshot()
+        return jsonify(ok=True, message='База данных успешно синхронизирована со снимком!')

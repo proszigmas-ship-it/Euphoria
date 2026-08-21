@@ -563,6 +563,7 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
                   <strong id="dbStatusBadge" style="color:#38bdf8;font-size:15px">Загрузка...</strong>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn small" style="background:#38bdf8;color:#070913;font-weight:700" type="button" onclick="syncSnapshot()">⚡ Восстановить всех игроков из снимка</button>
                   <button class="btn ghost small" type="button" onclick="exportDatabase()">&#128229; Скачать бэкап (JSON)</button>
                   <label class="btn ghost small" style="cursor:pointer;margin:0">
                     &#128228; Восстановить из файла
@@ -1076,6 +1077,16 @@ async function exportDatabase(){
     }
   }catch(e){
     alert('Ошибка экспорта базы данных');
+  }
+}
+async function syncSnapshot(){
+  try{
+    const r=await fetch('/api/admin/database/sync-snapshot',{method:'POST'});
+    const d=await r.json();
+    alert(d.message||'Успешно');
+    loadAdmin();
+  }catch(e){
+    alert('Ошибка синхронизации снимка');
   }
 }
 async function importDatabase(event){
