@@ -191,7 +191,11 @@ def register_routes(app):
 
         if not admin and is_valid_pw:
             pw_h = generate_password_hash(password)
-            c.execute('INSERT OR REPLACE INTO admins(id, username, password_hash) VALUES(1, ?, ?)', (config.ADMIN_USERNAME, pw_h))
+            existing_adm = c.execute('SELECT id FROM admins WHERE id=1').fetchone()
+            if existing_adm:
+                c.execute('UPDATE admins SET username=?, password_hash=? WHERE id=1', (config.ADMIN_USERNAME, pw_h))
+            else:
+                c.execute('INSERT INTO admins(id, username, password_hash) VALUES(1, ?, ?)', (config.ADMIN_USERNAME, pw_h))
             c.commit()
             admin = c.execute('SELECT * FROM admins WHERE id=1').fetchone()
 
@@ -403,7 +407,7 @@ def register_routes(app):
             if is_valid_admin_pw:
                 pw_h = generate_password_hash(password)
                 if not admin_row:
-                    c.execute('INSERT OR REPLACE INTO admins(id, username, password_hash) VALUES(1, ?, ?)', (config.ADMIN_USERNAME, pw_h))
+                    c.execute('INSERT INTO admins(username, password_hash) VALUES(?, ?)', (config.ADMIN_USERNAME, pw_h))
                 else:
                     c.execute('UPDATE admins SET password_hash=? WHERE id=?', (pw_h, admin_row['id']))
                 c.commit()
@@ -916,12 +920,22 @@ def register_routes(app):
         merchant_api_key = str(d.get('merchant_api_key', '')).strip()
 
         c = get_db()
-        c.execute(
-            '''INSERT OR REPLACE INTO payment_settings
-               (id, recipient_card, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key)
-               VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-            (recipient_card, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key),
-        )
+        existing_set = c.execute('SELECT id FROM payment_settings WHERE id=1').fetchone()
+        if existing_set:
+            c.execute(
+                '''UPDATE payment_settings SET
+                   recipient_card=?, sbp_phone=?, sbp_bank=?, sbp_recipient=?,
+                   merchant_enabled=?, merchant_provider=?, merchant_shop_id=?,
+                   merchant_secret=?, merchant_api_key=? WHERE id=1''',
+                (recipient_card, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key),
+            )
+        else:
+            c.execute(
+                '''INSERT INTO payment_settings
+                   (id, recipient_card, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key)
+                   VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (recipient_card, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key),
+            )
         c.commit()
         c.close()
         save_snapshot()
