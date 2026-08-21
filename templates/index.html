@@ -588,6 +588,10 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
             
             <form onsubmit="savePaymentSettings(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;background:#0d1124;padding:14px;border-radius:12px;border:1px solid var(--line)">
               <div>
+                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">💳 Номер карты (Защищено, видят только 2200 •••• •••• 8764):</label>
+                <input type="text" id="admRecipientCard" class="ai" placeholder="2200 0000 0000 0000" style="margin-bottom:0">
+              </div>
+              <div>
                 <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">📱 Номер телефона для СБП:</label>
                 <input type="text" id="admSbpPhone" class="ai" placeholder="+7 (999) 000-00-00" style="margin-bottom:0" required>
               </div>
@@ -1074,12 +1078,14 @@ async function loadPaymentSettings(){
     const r=await fetch('/api/payment/settings');
     const d=await r.json();
     if(d.ok){
+      const rc=document.getElementById('admRecipientCard');
       const sp=document.getElementById('admSbpPhone');
       const sb=document.getElementById('admSbpBank');
       const sr=document.getElementById('admSbpRecipient');
       const mp=document.getElementById('admMerchantProvider');
       const ms=document.getElementById('admMerchantShopId');
       const me=document.getElementById('admMerchantEnabled');
+      if(rc && d.recipient_card) rc.value = d.recipient_card;
       if(sp && d.sbp_phone) sp.value = d.sbp_phone;
       if(sb && d.sbp_bank) sb.value = d.sbp_bank;
       if(sr && d.sbp_recipient) sr.value = d.sbp_recipient;
@@ -1093,6 +1099,7 @@ async function savePaymentSettings(e){
   e.preventDefault();
   try{
     const body = {
+      recipient_card: document.getElementById('admRecipientCard').value.trim(),
       sbp_phone: document.getElementById('admSbpPhone').value.trim(),
       sbp_bank: document.getElementById('admSbpBank').value.trim(),
       sbp_recipient: document.getElementById('admSbpRecipient').value.trim(),

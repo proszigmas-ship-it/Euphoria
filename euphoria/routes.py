@@ -876,8 +876,7 @@ def register_routes(app):
         row = c.execute('SELECT * FROM payment_settings WHERE id=1').fetchone()
         c.close()
         card_full = row['recipient_card'] if (row and 'recipient_card' in row.keys() and row['recipient_card']) else config.RECIPIENT_CARD
-        card_masked = f"{card_full[:6]}••••••{card_full[-4:]}" if len(card_full) >= 12 else "•••• •••• •••• ••••"
-        card_formatted_masked = f"{card_masked[:4]} {card_masked[4:6]}•• •••• {card_masked[-4:]}"
+        card_formatted_masked = f"{card_full[:4]} •••• •••• {card_full[-4:]}" if len(card_full) >= 8 else "•••• •••• •••• ••••"
 
         if not row:
             return jsonify(
@@ -952,7 +951,7 @@ def register_routes(app):
 
         set_row = c.execute('SELECT * FROM payment_settings WHERE id=1').fetchone()
         card_full = set_row['recipient_card'] if (set_row and 'recipient_card' in set_row.keys() and set_row['recipient_card']) else config.RECIPIENT_CARD
-        card_masked = f"{card_full[:4]} {card_full[4:6]}•• •••• {card_full[-4:]}"
+        card_masked = f"{card_full[:4]} •••• •••• {card_full[-4:]}" if len(card_full) >= 8 else "•••• •••• •••• ••••"
         phone = set_row['sbp_phone'] if set_row else config.SBP_PHONE
         bank = set_row['sbp_bank'] if set_row else config.SBP_BANK
         recipient = set_row['sbp_recipient'] if set_row else config.SBP_RECIPIENT
