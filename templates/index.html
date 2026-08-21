@@ -290,9 +290,9 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
       <h3>2. Способ оплаты</h3>
       <div id="planHint" style="color:var(--muted);font-size:13px;margin-bottom:14px">1. Выберите тариф → 2. Оплата</div>
       <div class="pms" style="grid-template-columns: 1fr 1fr 1fr;">
-        <button class="pm sel" onclick="selPay('sbp',this)">&#9889; СБП<small>Быстрые платежи (₽)</small></button>
-        <button class="pm" onclick="selPay('cryptobot',this)">&#129689; CryptoBot<small>USDT, TON ($ USD)</small></button>
-        <button class="pm" onclick="selPay('funpay',this)">&#128176; FunPay<small>Маркетплейс (₽)</small></button>
+        <button class="pm sel" onclick="selPay('cryptobot',this)">&#129689; CryptoBot<small>USDT, TON, BTC ($ USD)</small></button>
+        <button class="pm" onclick="selPay('funpay',this)">&#128176; FunPay<small>Гарант Маркетплейс (₽)</small></button>
+        <button class="pm" style="opacity:0.65;position:relative" onclick="selPay('sbp',this)" title="СБП скоро будет доступен">&#9889; СБП<small style="color:#fbbf24;font-weight:700">⏳ Скоро будет</small></button>
       </div>
 
       <div class="co" id="checkout">
@@ -972,13 +972,16 @@ function sPlan(i){
 }
 async function applyPromo(){const code=document.getElementById('promoInput').value.trim().toUpperCase();const st=document.getElementById('promoStatus');if(!code){activePromo=null;renderCards();if(st)st.textContent='';return;}try{const r=await fetch('/api/promos');const pm=await r.json();if(pm[code]){activePromo={code,discount:pm[code]};if(st){st.textContent=`✓ ${code}: −${pm[code]}%`;st.style.color='#34d399';}renderCards();}else{activePromo=null;if(st){st.textContent='✕ Промокод не найден';st.style.color='#ef4444';}renderCards();}}catch(e){}}
 function selPay(m,b){
+  if(m==='sbp'){
+    alert('⏳ Оплата через СБП временно на техническом обслуживании.\n\nСБП скоро заработает! Пожалуйста, выберите оплату через CryptoBot или FunPay.');
+    return;
+  }
   selPayM=m;
   document.querySelectorAll('.pm').forEach(x=>x.classList.remove('sel'));
   b.classList.add('sel');
   const lb={
-    'sbp':'СБП (Система быстрых платежей)',
     'cryptobot':'CryptoBot (Telegram / USDT, TON, BTC)',
-    'funpay':'FunPay'
+    'funpay':'FunPay (Гарант)'
   };
   const mv=document.getElementById('coMethod');
   if(mv)mv.textContent=lb[m]||m;
@@ -991,6 +994,7 @@ function upCo(){
   const p=prods[selProd];
   if(!p||!co)return;
   const dc=activePromo?activePromo.discount:0;
+  const f=dc?Math.round(p.price*(100-dc)/100):p.price;
   const usd=Math.max(1, Math.ceil(f / 80));
   co.classList.add('on');
   const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
@@ -1000,6 +1004,11 @@ function upCo(){
     se('coTotal', '$' + usd + '.00 USD (' + f + ' ₽)');
     const pb=document.getElementById('payBtn');
     if(pb)pb.textContent='Оплатить через CryptoBot: $' + usd + '.00 USD (' + f + ' ₽) →';
+  } else if(selPayM==='funpay') {
+    se('coPrice', f + ' ₽');
+    se('coTotal', f + ' ₽');
+    const pb=document.getElementById('payBtn');
+    if(pb)pb.textContent='Купить на FunPay (' + f + ' ₽) →';
   } else {
     se('coPrice', f + ' ₽');
     se('coTotal', f + ' ₽');
@@ -1009,7 +1018,7 @@ function upCo(){
 }
 function startPay(){
   if(selProd===null){alert('Пожалуйста, сначала выберите тариф выше!');return;}
-  if(!selPayM){alert('Пожалуйста, выберите способ оплаты (СБП, CryptoBot или FunPay)');return;}
+  if(!selPayM){alert('Пожалуйста, выберите способ оплаты (CryptoBot или FunPay)');return;}
   const p=prods[selProd];
   if(selPayM==='funpay'){
     window.open('https://funpay.com/users/12165454/','_blank');

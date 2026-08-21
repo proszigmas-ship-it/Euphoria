@@ -425,25 +425,36 @@ body {
 </header>
 
 <div class="container">
-  <!-- Tabs to switch between SBP and CryptoBot -->
-  <div class="method-tabs">
-    <button class="tab-btn active" id="tabSbp" onclick="switchMethod('sbp')">
-      <span>⚡</span> СБП (Рубли ₽)
+  <!-- Tabs to switch between CryptoBot, FunPay and SBP -->
+  <div class="method-tabs" style="flex-wrap:wrap;gap:10px">
+    <button class="tab-btn crypto-tab active" id="tabCrypto" onclick="switchMethod('cryptobot')">
+      <span>🪙</span> CryptoBot (Оплата в $ USD / USDT / TON)
     </button>
-    <button class="tab-btn crypto-tab" id="tabCrypto" onclick="switchMethod('cryptobot')">
-      <span>🪙</span> CryptoBot (Оплата в $ USD)
+    <a href="https://funpay.com/users/12165454/" target="_blank" class="tab-btn" style="text-decoration:none">
+      <span>🛍️</span> FunPay (Оплата картой РФ / СБП через Гарант) ↗
+    </a>
+    <button class="tab-btn" id="tabSbp" onclick="switchMethod('sbp')" style="opacity:0.8">
+      <span>⚡</span> СБП (Рубли ₽) <small style="color:#fbbf24;font-size:11.5px;font-weight:700;margin-left:6px">⏳ Скоро будет</small>
     </button>
   </div>
 
   <div class="page-title">
-    <h1 id="pageTitleText">Оплата заказа через СБП</h1>
-    <p id="pageDescText">Отсканируйте QR-код в мобильном приложении банка или оплатите картой</p>
+    <h1 id="pageTitleText">Оплата через CryptoBot (Официальный API)</h1>
+    <p id="pageDescText">Оплата в $ USD / USDT / TON / BTC через Telegram @CryptoBot</p>
   </div>
 
   <div id="statusBanner" class="status-banner"></div>
 
   <!-- SBP SECTION -->
-  <div id="sbpSection" class="checkout-grid">
+  <div id="sbpSection" class="checkout-grid" style="display:none">
+    <div style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);border-radius:14px;padding:16px 20px;grid-column:1/-1;display:flex;align-items:center;gap:14px;box-shadow:0 8px 24px rgba(245,158,11,0.15)">
+      <div style="font-size:32px">⏳</div>
+      <div>
+        <strong style="color:#fbbf24;font-size:16px;display:block;margin-bottom:4px">Оплата через СБП временно на техническом обслуживании</strong>
+        <p style="color:var(--muted);font-size:13px;margin:0">СБП сейчас дорабатывается и скоро заработает! Рекомендуем прямо сейчас оплатить подписку через <strong>CryptoBot</strong> или <strong>FunPay</strong>.</p>
+      </div>
+    </div>
+
     <!-- Левая колонка: QR-код СБП -->
     <div class="box">
       <div class="box-header">
@@ -603,7 +614,7 @@ body {
   </div>
 
   <!-- CRYPTOBOT SECTION -->
-  <div id="cryptoSection" class="checkout-grid" style="display:none">
+  <div id="cryptoSection" class="checkout-grid">
     <!-- Левая колонка: QR-код CryptoBot -->
     <div class="box">
       <div class="box-header">
@@ -922,7 +933,9 @@ async function init() {
     }
   } catch(e) {}
 
-  if (methodParam === 'cryptobot' || methodParam === 'crypto') {
+  if (methodParam === 'sbp') {
+    switchMethod('sbp');
+  } else {
     switchMethod('cryptobot');
   }
 }
