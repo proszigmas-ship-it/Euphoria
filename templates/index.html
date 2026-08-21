@@ -32,18 +32,17 @@ a{text-decoration:none;color:inherit}
 button,input,select,textarea{font:inherit}
 .container{width:min(1140px,92%);margin:auto}
 
-/* Ambient glowing background orbs & cyber grid */
-.bg-grid-overlay{position:fixed;inset:0;background-image:linear-gradient(rgba(133,155,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(133,155,255,0.035) 1px, transparent 1px);background-size:48px 48px;mask-image:radial-gradient(circle at 50% 30%, black 45%, transparent 85%);-webkit-mask-image:radial-gradient(circle at 50% 30%, black 45%, transparent 85%);pointer-events:none;z-index:0}
-.bg-glow-1{position:fixed;top:-15%;left:50%;transform:translateX(-50%);width:900px;height:650px;background:radial-gradient(circle,rgba(133,155,255,0.2),rgba(99,102,241,0.08) 45%,transparent 70%);filter:blur(90px);pointer-events:none;z-index:0;animation:orbBreathe1 12s ease-in-out infinite alternate}
-.bg-glow-2{position:fixed;top:38%;right:-10%;width:750px;height:600px;background:radial-gradient(circle,rgba(56,189,248,0.15),rgba(14,165,233,0.05) 50%,transparent 70%);filter:blur(100px);pointer-events:none;z-index:0;animation:orbBreathe2 15s ease-in-out infinite alternate}
-.bg-glow-3{position:fixed;bottom:-10%;left:-10%;width:720px;height:600px;background:radial-gradient(circle,rgba(168,85,247,0.14),rgba(139,92,246,0.04) 50%,transparent 70%);filter:blur(95px);pointer-events:none;z-index:0;animation:orbBreathe3 14s ease-in-out infinite alternate}
+/* Atmospheric Minecraft Cinematic Background */
+.minecraft-bg-layer{position:fixed;inset:0;background:url('/static/images/minecraft_bg.jpg') no-repeat center 20% / cover;filter:brightness(0.52) contrast(1.12) saturate(1.15);transform:scale(1.02);pointer-events:none;z-index:0}
+.minecraft-bg-overlay{position:fixed;inset:0;background:radial-gradient(circle at 50% 30%, rgba(9, 11, 20, 0.35) 0%, rgba(9, 11, 20, 0.85) 65%, rgba(5, 6, 10, 0.98) 100%), linear-gradient(180deg, rgba(9, 11, 20, 0.3) 0%, rgba(9, 11, 20, 0.92) 100%);pointer-events:none;z-index:0}
+.bg-glow-1{position:fixed;top:-15%;left:50%;transform:translateX(-50%);width:900px;height:650px;background:radial-gradient(circle,rgba(133,155,255,0.18),rgba(99,102,241,0.06) 45%,transparent 70%);filter:blur(90px);pointer-events:none;z-index:0;animation:orbBreathe1 12s ease-in-out infinite alternate}
+.bg-glow-2{position:fixed;top:38%;right:-10%;width:750px;height:600px;background:radial-gradient(circle,rgba(56,189,248,0.12),rgba(14,165,233,0.04) 50%,transparent 70%);filter:blur(100px);pointer-events:none;z-index:0;animation:orbBreathe2 15s ease-in-out infinite alternate}
 
 @keyframes orbBreathe1{0%{transform:translateX(-50%) scale(1) translateY(0);opacity:0.85}100%{transform:translateX(-48%) scale(1.15) translateY(40px);opacity:1}}
 @keyframes orbBreathe2{0%{transform:scale(1) translateY(0);opacity:0.75}100%{transform:scale(1.2) translateY(-50px);opacity:1}}
-@keyframes orbBreathe3{0%{transform:scale(1) translateX(0);opacity:0.7}100%{transform:scale(1.18) translateX(50px);opacity:0.95}}
 
 #particles-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
-body>*:not(#particles-bg):not(.bg-glow-1):not(.bg-glow-2):not(.bg-glow-3):not(.bg-grid-overlay){position:relative;z-index:1}
+body>*:not(#particles-bg):not(.bg-glow-1):not(.bg-glow-2):not(.minecraft-bg-layer):not(.minecraft-bg-overlay){position:relative;z-index:1}
 
 /* HEADER / NAVBAR */
 header{position:sticky;top:0;z-index:50;background:rgba(9,11,20,0.85);backdrop-filter:blur(24px);border-bottom:1px solid var(--line);transition:.2s}
@@ -261,10 +260,10 @@ footer{border-top:1px solid var(--line);padding:50px 0;color:var(--muted);font-s
 </style>
 </head>
 <body>
-<div class="bg-grid-overlay"></div>
+<div class="minecraft-bg-layer"></div>
+<div class="minecraft-bg-overlay"></div>
 <div class="bg-glow-1"></div>
 <div class="bg-glow-2"></div>
-<div class="bg-glow-3"></div>
 <canvas id="particles-bg"></canvas>
 
 <header>
