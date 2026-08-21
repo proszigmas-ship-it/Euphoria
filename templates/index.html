@@ -7,321 +7,547 @@
 <meta name="description" content="EUPHORIA &mdash; Minecraft Client">
 <link rel="icon" type="image/png" href="/static/images/logo.png">
 <style>
-:root{--bg:#070812;--card:#111528;--primary:#8b5cf6;--primary2:#6d28d9;--cyan:#38bdf8;--text:#f8fafc;--muted:#9ca3af;--line:rgba(255,255,255,.09);--success:#34d399;--danger:#ef4444;--shadow:0 20px 60px rgba(0,0,0,.35)}
-*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
-body{min-height:100vh;color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);overflow-x:hidden}
-a{text-decoration:none;color:inherit}button,input,select,textarea{font:inherit}
-.container{width:min(1120px,92%);margin:auto}
-#rays-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.5}
-body>*:not(#rays-bg){position:relative;z-index:1}
-header{position:sticky;top:0;z-index:50;background:rgba(7,8,18,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+:root{
+  --bg:#090b14;
+  --bg-deep:#05060a;
+  --card:rgba(16,20,40,0.85);
+  --card-hover:rgba(22,28,56,0.95);
+  --primary:#859bff;
+  --primary2:#6366f1;
+  --primary-rgb:133, 155, 255;
+  --cyan:#38bdf8;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --line:rgba(133,155,255,0.14);
+  --line-hover:rgba(133,155,255,0.38);
+  --success:#34d399;
+  --danger:#ef4444;
+  --shadow:0 20px 60px rgba(0,0,0,0.45);
+  --glow:0 0 35px rgba(133,155,255,0.22);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{min-height:100vh;color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);overflow-x:hidden;position:relative}
+a{text-decoration:none;color:inherit}
+button,input,select,textarea{font:inherit}
+.container{width:min(1140px,92%);margin:auto}
+
+/* Ambient glow orbs in background */
+.bg-glow-1{position:fixed;top:-10%;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(circle,rgba(133,155,255,0.12),transparent 65%);filter:blur(80px);pointer-events:none;z-index:0}
+.bg-glow-2{position:fixed;bottom:-10%;right:10%;width:600px;height:450px;background:radial-gradient(circle,rgba(56,189,248,0.08),transparent 65%);filter:blur(90px);pointer-events:none;z-index:0}
+
+#rays-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.45}
+body>*:not(#rays-bg):not(.bg-glow-1):not(.bg-glow-2){position:relative;z-index:1}
+
+/* HEADER / NAVBAR */
+header{position:sticky;top:0;z-index:50;background:rgba(9,11,20,0.85);backdrop-filter:blur(24px);border-bottom:1px solid var(--line);transition:.2s}
 .nav-inner{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.logo{font-weight:900;font-size:22px;display:inline-flex;align-items:center;gap:10px;transition:.2s transform}
-.logo:hover{transform:translateY(-1px)}
-.logo img{height:38px;width:38px;object-fit:cover;border-radius:11px;box-shadow:0 0 0 1px rgba(139,92,246,.4),0 0 16px rgba(139,92,246,.3);transition:.2s}
-.logo-word{letter-spacing:.12em;font-weight:900}.logo-word span{color:var(--primary)}
-.hnav ul{list-style:none;display:flex;gap:4px}
-.hnav ul a{display:block;padding:8px 13px;color:var(--muted);font-size:14px;border-radius:8px;transition:.15s}
-.hnav ul a:hover{color:#fff;background:rgba(255,255,255,.06)}
-.hacts{display:flex;align-items:center;gap:8px}
-.hbtn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:0;transition:.2s}
-.hbtn-sec{background:transparent;border:1px solid var(--line);color:var(--muted)}
-.hbtn-sec:hover{color:#fff;border-color:rgba(255,255,255,.2)}
-.hbtn-pri{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 6px 22px rgba(109,40,217,.28)}
-.hbtn-pri:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(109,40,217,.42)}
-.burger{display:none;background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:#fff;cursor:pointer;font-size:18px}
-.mmenu{display:none;position:fixed;inset:0;top:76px;background:rgba(7,8,18,.97);z-index:49;padding:20px;flex-direction:column;gap:8px}
+.logo{font-weight:900;font-size:22px;display:inline-flex;align-items:center;gap:12px;transition:.25s transform}
+.logo:hover{transform:scale(1.02)}
+.logo img{height:38px;width:38px;object-fit:cover;border-radius:12px;box-shadow:0 0 0 1px rgba(133,155,255,0.4),0 0 20px rgba(133,155,255,0.35);transition:.2s}
+.logo-word{letter-spacing:.14em;font-weight:900;font-size:19px}.logo-word span{color:var(--primary)}
+.logo-badge{font-size:10px;padding:3px 7px;border-radius:6px;background:rgba(133,155,255,0.15);border:1px solid rgba(133,155,255,0.3);color:var(--primary);font-weight:800;letter-spacing:0}
+
+.hnav ul{list-style:none;display:flex;gap:6px}
+.hnav ul a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;color:var(--muted);font-size:14px;font-weight:600;border-radius:10px;transition:.18s}
+.hnav ul a:hover{color:#fff;background:rgba(133,155,255,0.1)}
+.hacts{display:flex;align-items:center;gap:10px}
+.hbtn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;border:0;transition:.2s}
+.hbtn-sec{background:rgba(255,255,255,0.04);border:1px solid var(--line);color:#e2e8f0}
+.hbtn-sec:hover{color:#fff;border-color:rgba(133,155,255,0.4);background:rgba(133,155,255,0.08)}
+.hbtn-pri{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 6px 20px rgba(133,155,255,0.35)}
+.hbtn-pri:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(133,155,255,0.5)}
+.burger{display:none;background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 11px;color:#fff;cursor:pointer;font-size:18px}
+.mmenu{display:none;position:fixed;inset:0;top:76px;background:rgba(9,11,20,0.98);z-index:49;padding:24px;flex-direction:column;gap:10px;backdrop-filter:blur(20px)}
 .mmenu.open{display:flex}
-.mmenu a{padding:14px 18px;font-size:16px;color:var(--muted);border-radius:10px;border:1px solid transparent}
-.mmenu a:hover{color:#fff;border-color:var(--line)}
-.hero{padding:120px 0 80px;text-align:center}
-.hero-inner{max-width:780px;margin:auto}
-.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid rgba(139,92,246,.35);border-radius:999px;background:rgba(139,92,246,.08);color:#c4b5fd;font-size:13px;margin-bottom:28px}
-.htitle{font-size:clamp(44px,8vw,82px);line-height:.95;letter-spacing:-3px;margin-bottom:22px;font-weight:900}
-.gr{background:linear-gradient(90deg,#fff,#c4b5fd,#38bdf8);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hdesc{max-width:640px;margin:0 auto 36px;color:var(--muted);font-size:18px;line-height:1.7}
-.hbtns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-.hb{display:inline-flex;align-items:center;gap:8px;padding:14px 24px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;border:0;transition:.2s}
-.hb-pri{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 8px 28px rgba(109,40,217,.3)}
-.hb-pri:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(109,40,217,.45)}
-.hb-sec{background:transparent;border:1px solid var(--line);color:var(--muted)}
-.hb-sec:hover{color:#fff;border-color:rgba(255,255,255,.25)}
-.sec{padding:80px 0}
-.sh{text-align:center;margin-bottom:52px}
-.sh h2{font-size:38px;font-weight:900;margin-bottom:10px}
-.sh p{color:var(--muted);font-size:16px}
-.kicker{color:#a78bfa;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:900;margin-bottom:12px;display:block}
-.itabs-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
-.tabs-nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
-.tbn{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;transition:.2s}
-.tbn:hover{color:#fff;border-color:rgba(255,255,255,.2)}
-.tbn.active{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(139,92,246,.06));border-color:rgba(139,92,246,.5);color:#fff}
-.tc{display:none}.tc.active{display:block}
-.adv-item{display:flex;gap:16px;padding:18px;background:linear-gradient(180deg,rgba(23,27,49,.9),rgba(13,16,32,.9));border:1px solid var(--line);border-radius:16px;margin-bottom:12px}
-.adv-ico{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(109,40,217,.1));border:1px solid rgba(139,92,246,.3);display:grid;place-items:center;flex-shrink:0;font-size:20px}
-.adv-text h3{font-size:16px;margin-bottom:4px}
-.adv-text p{color:var(--muted);font-size:13.5px;line-height:1.55}
-.faq-tab-list{display:grid;gap:8px}
-.fti{background:linear-gradient(180deg,rgba(23,27,49,.9),rgba(13,16,32,.9));border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.ftq{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;background:transparent;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;border:0;text-align:left}
-.ftq .arr{color:var(--muted);transition:.3s transform;flex-shrink:0}
-.fta{max-height:0;overflow:hidden;transition:max-height .35s ease}
-.fta p{padding:0 18px 16px;color:var(--muted);font-size:13.5px;line-height:1.6}
-.fti.open .ftq .arr{transform:rotate(180deg)}.fti.open .fta{max-height:200px}
-.stats-g{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.sc{background:linear-gradient(180deg,rgba(23,27,49,.9),rgba(13,16,32,.9));border:1px solid var(--line);border-radius:16px;padding:22px;text-align:center}
-.sv{display:block;font-size:32px;font-weight:900;margin-bottom:4px}
-.st{color:var(--muted);font-size:13px}
-.cs{display:none}.cs.active{display:block}
-.fc{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:24px;overflow:hidden}
-.fg{height:220px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%,rgba(139,92,246,.12),transparent 65%);border-bottom:1px solid var(--line)}
-.fcont{padding:24px}
-.ft2{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.ft2 h2{font-size:22px;font-weight:800}
-.fcont p{color:var(--muted);font-size:14px;line-height:1.6}
-.cn{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:16px}
-.cb{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(17,21,40,.8);color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:20px;transition:.2s}
-.cb:hover{color:#fff;border-color:rgba(255,255,255,.25)}
-.cdots{display:flex;gap:8px}
-.cd{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:.2s}
-.cd.active{background:var(--primary)}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes pulse2{0%,100%{opacity:.5}50%{opacity:1}}
-@keyframes scan{0%{top:5%}100%{top:90%}}
-.ci{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(109,40,217,.15));border:2px solid rgba(139,92,246,.4);display:grid;place-items:center;font-size:40px;animation:float 3s ease-in-out infinite}
-.ev{width:110px;height:110px;border:2px solid rgba(139,92,246,.4);border-radius:12px;position:relative;display:grid;place-items:center}
-.ec{position:absolute;width:14px;height:14px;border-color:var(--cyan);border-style:solid}
-.etl{top:-1px;left:-1px;border-width:2px 0 0 2px;border-top-left-radius:4px}
-.etr{top:-1px;right:-1px;border-width:2px 2px 0 0;border-top-right-radius:4px}
-.ebl{bottom:-1px;left:-1px;border-width:0 0 2px 2px;border-bottom-left-radius:4px}
-.ebr{bottom:-1px;right:-1px;border-width:0 2px 2px 0;border-bottom-right-radius:4px}
-.esl{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.6),transparent);animation:scan 2s linear infinite}
-.sa{font-size:42px;animation:pulse2 2s ease-in-out infinite}
-.btn{border:0;border-radius:10px;padding:12px 20px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:800;cursor:pointer;box-shadow:0 8px 25px rgba(109,40,217,.25);display:inline-flex;align-items:center;gap:8px;transition:.2s;font-size:14px}
-.btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(109,40,217,.38)}
-.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);box-shadow:none}
-.btn.ghost:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+.mmenu a{padding:14px 18px;font-size:16px;color:var(--muted);border-radius:12px;border:1px solid transparent;font-weight:600}
+.mmenu a:hover{color:#fff;background:rgba(133,155,255,0.1);border-color:var(--line)}
+
+/* HERO SECTION */
+.hero{padding:100px 0 70px;text-align:center;position:relative}
+.hero-inner{max-width:880px;margin:auto}
+.badge-pill{display:inline-flex;align-items:center;gap:9px;padding:8px 18px;border:1px solid rgba(133,155,255,0.35);border-radius:999px;background:linear-gradient(90deg,rgba(133,155,255,0.12),rgba(56,189,248,0.08));color:#c7d2fe;font-size:13.5px;font-weight:700;margin-bottom:28px;box-shadow:0 4px 20px rgba(133,155,255,0.15);animation:glowPulse 4s ease-in-out infinite}
+@keyframes glowPulse{0%,100%{border-color:rgba(133,155,255,0.35)}50%{border-color:rgba(56,189,248,0.6);box-shadow:0 0 25px rgba(56,189,248,0.25)}}
+.badge-dot{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 10px #34d399}
+
+.htitle{font-size:clamp(42px,7.5vw,76px);line-height:1.02;letter-spacing:-2.5px;margin-bottom:22px;font-weight:900}
+.gr{background:linear-gradient(135deg,#ffffff 20%,#c7d2fe 55%,#38bdf8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
+.hdesc{max-width:680px;margin:0 auto 36px;color:var(--muted);font-size:18px;line-height:1.7}
+.hbtns{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:42px}
+.hb{display:inline-flex;align-items:center;gap:9px;padding:15px 28px;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;border:0;transition:.25s}
+.hb-pri{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 10px 30px rgba(133,155,255,0.4)}
+.hb-pri:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(133,155,255,0.55)}
+.hb-sec{background:rgba(255,255,255,0.04);border:1px solid var(--line);color:#e2e8f0}
+.hb-sec:hover{color:#fff;border-color:rgba(133,155,255,0.45);background:rgba(133,155,255,0.08);transform:translateY(-2px)}
+
+/* METRICS STRIP */
+.metrics-strip{display:flex;justify-content:center;align-items:center;gap:28px;flex-wrap:wrap;padding:16px 24px;border:1px solid var(--line);border-radius:18px;background:rgba(16,20,40,0.6);backdrop-filter:blur(16px);max-width:780px;margin:0 auto 50px}
+.metric-item{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:700;color:#cbd5e1}
+.metric-item span{color:var(--primary)}
+
+/* HERO CLIENT GUI PREVIEW CARD */
+.client-preview-card{background:linear-gradient(180deg,rgba(20,26,52,0.9),rgba(11,14,28,0.95));border:1px solid rgba(133,155,255,0.25);border-radius:24px;padding:26px;box-shadow:0 25px 60px rgba(0,0,0,0.5),0 0 40px rgba(133,155,255,0.15);position:relative;overflow:hidden;max-width:860px;margin:auto}
+.client-topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.client-topbar-left{display:flex;align-items:center;gap:10px}
+.client-dots{display:flex;gap:6px}
+.client-dot{width:11px;height:11px;border-radius:50%}
+.client-dot.red{background:#ef4444}
+.client-dot.yellow{background:#f59e0b}
+.client-dot.green{background:#10b981}
+.client-title{font-size:13px;font-weight:800;letter-spacing:1px;color:#c7d2fe}
+.client-fps{font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(56,189,248,0.12);padding:4px 10px;border-radius:8px;border:1px solid rgba(56,189,248,0.25)}
+
+.client-modules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;text-align:left}
+.c-mod{background:rgba(9,11,22,0.7);border:1px solid rgba(133,155,255,0.15);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;transition:.2s;cursor:pointer}
+.c-mod:hover{border-color:var(--primary);background:rgba(133,155,255,0.1);transform:translateY(-2px)}
+.c-mod-info h4{font-size:14px;font-weight:800;margin-bottom:2px;color:#fff}
+.c-mod-info span{font-size:11px;color:var(--muted)}
+.c-toggle{width:36px;height:20px;border-radius:999px;background:#34d399;position:relative;transition:.2s}
+.c-toggle::after{content:"";position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+
+/* SECTIONS */
+.sec{padding:90px 0}
+.sh{text-align:center;margin-bottom:56px}
+.sh h2{font-size:38px;font-weight:900;margin-bottom:12px;letter-spacing:-1px}
+.sh p{color:var(--muted);font-size:16px;max-width:600px;margin:auto}
+.kicker{color:var(--primary);text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:900;margin-bottom:12px;display:block}
+
+/* BENTO FEATURES GRID */
+.bento-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.bento-card{background:linear-gradient(180deg,rgba(19,25,50,0.85),rgba(11,14,28,0.9));border:1px solid var(--line);border-radius:22px;padding:32px 26px;position:relative;overflow:hidden;transition:.3s;backdrop-filter:blur(16px)}
+.bento-card:hover{border-color:var(--line-hover);transform:translateY(-4px);box-shadow:0 20px 45px rgba(0,0,0,0.4),0 0 30px rgba(133,155,255,0.18)}
+.bento-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(133,155,255,0.6),transparent);opacity:0;transition:.3s}
+.bento-card:hover::before{opacity:1}
+.bento-icon{width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,rgba(133,155,255,0.22),rgba(99,102,241,0.12));border:1px solid rgba(133,155,255,0.35);display:grid;place-items:center;font-size:24px;margin-bottom:20px}
+.bento-card h3{font-size:20px;font-weight:800;margin-bottom:10px;color:#fff}
+.bento-card p{color:var(--muted);font-size:14px;line-height:1.65}
+.bento-tag{display:inline-block;font-size:11px;font-weight:800;color:var(--cyan);background:rgba(56,189,248,0.1);padding:4px 10px;border-radius:999px;margin-top:14px;border:1px solid rgba(56,189,248,0.2)}
+
+/* HOW IT WORKS / TIMELINE */
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:20px}
+.step-card{background:linear-gradient(180deg,rgba(19,25,50,0.8),rgba(11,14,28,0.85));border:1px solid var(--line);border-radius:20px;padding:30px 24px;position:relative}
+.step-num{position:absolute;top:20px;right:24px;font-size:38px;font-weight:900;color:rgba(133,155,255,0.18)}
+.step-card h3{font-size:18px;font-weight:800;margin:14px 0 8px}
+.step-card p{color:var(--muted);font-size:13.5px;line-height:1.6}
+
+/* PRICING & CARDS */
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.pc{background:linear-gradient(180deg,rgba(20,26,52,0.9),rgba(11,14,28,0.95));border:1px solid var(--line);border-radius:22px;padding:32px 28px;position:relative;overflow:hidden;transition:.3s}
+.pc:hover{border-color:var(--primary);transform:translateY(-4px);box-shadow:var(--shadow),0 0 30px rgba(133,155,255,0.2)}
+.pc.pop{border-color:rgba(133,155,255,0.65);box-shadow:var(--shadow),0 0 35px rgba(133,155,255,0.25)}
+.ptag{position:absolute;right:20px;top:20px;background:rgba(133,155,255,0.18);color:#c7d2fe;border:1px solid rgba(133,155,255,0.35);padding:5px 12px;border-radius:999px;font-size:11.5px;font-weight:800}
+.pc h3{font-size:22px;margin-bottom:6px;font-weight:800}
+.pb{font-size:44px;font-weight:900;margin:18px 0 8px;letter-spacing:-1px}
+.pb small{font-size:13.5px;color:var(--muted);font-weight:500;display:block;margin-top:2px}
+.fl{list-style:none;margin:22px 0}
+.fl li{padding:9px 0;color:#d1d5db;font-size:14px}
+.fl li::before{content:"✓";color:var(--success);font-weight:900;margin-right:10px}
+.btn{border:0;border-radius:12px;padding:14px 22px;color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:800;cursor:pointer;box-shadow:0 8px 25px rgba(133,155,255,0.3);display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.2s;font-size:14px}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(133,155,255,0.45)}
+.btn.ghost{background:rgba(255,255,255,0.04);border:1px solid var(--line);color:#e2e8f0;box-shadow:none}
+.btn.ghost:hover{color:#fff;border-color:rgba(133,155,255,0.4);background:rgba(133,155,255,0.08)}
 .btn-full{width:100%}
-.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.pc{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:18px;padding:28px;position:relative;overflow:hidden}
-.pc.pop{border-color:rgba(139,92,246,.65);box-shadow:var(--shadow)}
-.ptag{position:absolute;right:18px;top:18px;background:rgba(139,92,246,.15);color:#c4b5fd;border:1px solid rgba(139,92,246,.3);padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800}
-.pc h3{font-size:20px;margin-bottom:4px}
-.pb{font-size:42px;font-weight:900;margin:16px 0 6px}
-.pb small{font-size:13px;color:var(--muted);font-weight:500}
-.fl{list-style:none;margin:20px 0}
-.fl li{padding:8px 0;color:#d1d5db}
-.fl li::before{content:"\2713";color:var(--success);font-weight:900;margin-right:9px}
-.pw{margin:28px auto 0;display:flex;max-width:520px;gap:9px}
-.pw input{flex:1;padding:12px 14px;background:#0a0d19;color:#fff;border:1px solid var(--line);border-radius:10px;outline:none;font-family:inherit}
-.pw input:focus{border-color:rgba(139,92,246,.5)}
-.paybox{margin-top:24px;padding:22px;border:1px solid var(--line);border-radius:18px;background:rgba(17,21,40,.72)}
-.paybox h3{margin-bottom:14px;font-size:17px}
-.pms{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
-.pm{border:1px solid var(--line);background:#0a0d19;color:#d9dde5;border-radius:12px;padding:12px 8px;cursor:pointer;text-align:center;font-weight:800;transition:.2s}
-.pm:hover,.pm.sel{border-color:var(--primary);background:rgba(139,92,246,.12);transform:translateY(-1px)}
-.pm small{display:block;color:var(--muted);font-size:10px;margin-top:4px;font-weight:500}
-.co{display:none;margin-top:16px;padding:15px;border-radius:13px;background:#0a0d19;border:1px solid var(--line)}
+
+.pw{margin:32px auto 0;display:flex;max-width:540px;gap:10px}
+.pw input{flex:1;padding:14px 16px;background:rgba(10,13,25,0.9);color:#fff;border:1px solid var(--line);border-radius:12px;outline:none;font-family:inherit}
+.pw input:focus{border-color:var(--primary)}
+
+.paybox{margin-top:28px;padding:26px;border:1px solid var(--line);border-radius:22px;background:rgba(16,20,40,0.75);backdrop-filter:blur(16px)}
+.paybox h3{margin-bottom:14px;font-size:18px;font-weight:800}
+.pms{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.pm{border:1px solid var(--line);background:rgba(10,13,25,0.85);color:#e2e8f0;border-radius:14px;padding:14px 12px;cursor:pointer;text-align:center;font-weight:800;transition:.2s}
+.pm:hover,.pm.sel{border-color:var(--primary);background:rgba(133,155,255,0.14);transform:translateY(-2px);box-shadow:0 8px 24px rgba(133,155,255,0.15)}
+.pm small{display:block;color:var(--muted);font-size:11px;margin-top:4px;font-weight:500}
+
+.co{display:none;margin-top:20px;padding:18px;border-radius:16px;background:rgba(10,13,25,0.95);border:1px solid var(--line)}
 .co.on{display:block}
-.cr{display:flex;justify-content:space-between;gap:15px;padding:7px 0;color:#cbd5e1}
-.cr.tot{border-top:1px solid var(--line);margin-top:5px;padding-top:12px;font-size:18px;color:#fff;font-weight:900}
-.faq-pub-list{max-width:850px;margin:auto;display:grid;gap:10px}
-.fpi{background:linear-gradient(180deg,rgba(23,27,49,.95),rgba(13,16,32,.95));border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.fpq{width:100%;display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:transparent;color:var(--text);font-size:15px;font-weight:800;cursor:pointer;border:0;text-align:left;gap:12px}
+.cr{display:flex;justify-content:space-between;gap:15px;padding:8px 0;color:#cbd5e1;font-size:14.5px}
+.cr.tot{border-top:1px solid var(--line);margin-top:6px;padding-top:14px;font-size:19px;color:#fff;font-weight:900}
+
+/* FAQ */
+.faq-pub-list{max-width:880px;margin:auto;display:grid;gap:12px}
+.fpi{background:linear-gradient(180deg,rgba(20,26,52,0.85),rgba(11,14,28,0.9));border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.2s}
+.fpi:hover{border-color:var(--line-hover)}
+.fpq{width:100%;display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:transparent;color:var(--text);font-size:15.5px;font-weight:800;cursor:pointer;border:0;text-align:left;gap:14px}
 .fa2{color:var(--muted);transition:.3s transform;flex-shrink:0}
 .fpa{max-height:0;overflow:hidden;transition:max-height .35s ease}
-.fpa p{padding:0 20px 16px;color:var(--muted);line-height:1.6;font-size:14px}
+.fpa p{padding:0 24px 20px;color:var(--muted);line-height:1.65;font-size:14.5px}
 .fpi.open .fa2{transform:rotate(180deg)}.fpi.open .fpa{max-height:300px}
-.cta-box{text-align:center;padding:60px 30px;border:1px solid var(--line);border-radius:24px;background:radial-gradient(circle at 50% 0,rgba(139,92,246,.22),transparent 60%),var(--card)}
-.cta-box h2{font-size:36px;font-weight:900;margin-bottom:14px}
-.cta-box p{color:var(--muted);margin:0 auto 28px;max-width:560px;font-size:16px;line-height:1.6}
-footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-size:13px}
-.fc2{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:32px}
-.fs h3{font-size:15px;font-weight:800;margin-bottom:14px}
-.fs ul{list-style:none;display:grid;gap:8px}
+
+/* CTA BOX */
+.cta-box{text-align:center;padding:70px 36px;border:1px solid var(--line);border-radius:28px;background:radial-gradient(circle at 50% 0,rgba(133,155,255,0.2),transparent 65%),linear-gradient(180deg,#141932,#0c0f1e);box-shadow:0 20px 50px rgba(0,0,0,0.5),0 0 40px rgba(133,155,255,0.15)}
+.cta-box h2{font-size:38px;font-weight:900;margin-bottom:14px;letter-spacing:-1px}
+.cta-box p{color:var(--muted);margin:0 auto 30px;max-width:580px;font-size:16px;line-height:1.65}
+
+/* FOOTER */
+footer{border-top:1px solid var(--line);padding:50px 0;color:var(--muted);font-size:13.5px;background:rgba(6,8,15,0.9)}
+.fc2{display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:36px}
+.fs h3{font-size:15px;font-weight:800;margin-bottom:16px;color:#fff}
+.fs ul{list-style:none;display:grid;gap:10px}
 .fs ul a:hover{color:#fff}
-.admin-p{display:none;margin:25px auto;padding:25px;border:1px dashed var(--primary);border-radius:18px;background:#0c0f1d}
-.admin-p.on{display:block}
-.ag{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.ab{background:#111528;border:1px solid var(--line);border-radius:16px;padding:20px}
-.ab h3{margin-bottom:12px}
-.ai{width:100%;padding:12px 14px;background:#0a0d19;color:#fff;border:1px solid var(--line);border-radius:10px;outline:none;margin-bottom:8px;font-family:inherit}
-.ai:focus{border-color:rgba(139,92,246,.5)}
-.pl{display:grid;gap:8px;margin-top:12px}
-.pr{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 13px;background:#0a0d19;border:1px solid var(--line);border-radius:10px}
-.pmod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:110;place-items:center;padding:20px}
+
+/* CABINET & ADMIN STYLES (Keep 100% compatible) */
+.cab-sec{padding:80px 0}
+.cab-shell{display:grid;grid-template-columns:250px 1fr;gap:20px;background:rgba(16,20,40,0.9);border:1px solid var(--line);border-radius:26px;padding:20px;box-shadow:var(--shadow)}
+.cab-side{background:rgba(10,13,26,0.95);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.cum{display:flex;gap:12px;align-items:center;padding:12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.cav{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:900;flex-shrink:0}
+.cum strong{display:block;font-size:15px}.cum span{font-size:12px;color:var(--muted)}
+.cnb{width:100%;border:1px solid transparent;background:transparent;color:#cbd5e1;text-align:left;border-radius:12px;padding:12px 14px;cursor:pointer;font-size:14px;font-family:inherit;font-weight:600;transition:.18s}
+.cnb:hover,.cnb.act{background:rgba(133,155,255,0.12);border-color:rgba(133,155,255,0.25);color:#fff}
+.cab-cont{padding:10px 14px}
+.ctop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
+.cg{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.cc{background:rgba(12,16,33,0.9);border:1px solid var(--line);border-radius:18px;padding:20px}
+.cc.wide{grid-column:1/-1}
+.cl{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--primary);margin-bottom:8px;display:block;font-weight:800}
+.cc strong{font-size:16px;overflow-wrap:anywhere}
+.sts-top{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+.ssb{background:rgba(9,11,22,0.9);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.skf{background:rgba(9,11,22,0.9);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:1fr auto;gap:10px}
+.ai{width:100%;padding:13px 15px;background:rgba(9,11,22,0.9);color:#fff;border:1px solid var(--line);border-radius:12px;outline:none;margin-bottom:8px;font-family:inherit}
+.ai:focus{border-color:var(--primary)}
+
+/* MODAL STYLES */
+.pmod{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:110;place-items:center;padding:20px;backdrop-filter:blur(8px)}
 .pmod.on{display:grid}
-.pbox{width:min(820px,100%);background:#0d101d;border:1px solid var(--line);border-radius:20px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;position:relative}
-.closeb{position:absolute;top:16px;right:18px;z-index:5;cursor:pointer;color:#c7cbe0;font-size:20px;background:rgba(255,255,255,.06);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:0}
-@keyframes lp{0%,100%{box-shadow:0 0 0 1px rgba(139,92,246,.4),0 0 18px 2px rgba(139,92,246,.35)}50%{box-shadow:0 0 0 1px rgba(139,92,246,.55),0 0 28px 6px rgba(139,92,246,.5)}}
-.pvis{overflow:hidden;background:radial-gradient(ellipse 80% 60% at 50% 35%,rgba(139,92,246,.22),transparent 55%),linear-gradient(165deg,#151a2e,#080a14);padding:36px 32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:420px;text-align:center;position:relative}
-.pglyph{width:88px;height:88px;border-radius:22px;background:linear-gradient(135deg,var(--primary),#5b4bd6);display:grid;place-items:center;font-size:22px;font-weight:900;color:#fff;animation:lp 3s ease-in-out infinite;overflow:hidden}
-.pglyph img{width:100%;height:100%;object-fit:cover;border-radius:22px;display:block}
-.pvis::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:18px 18px;opacity:.5;pointer-events:none}
-.pvis h3{font-size:24px;color:#fff;font-weight:800;position:relative;z-index:1}
-.pvis p{color:#9398ad;font-size:13.5px;line-height:1.55;position:relative;z-index:1;max-width:240px}
-.pfs{padding:40px 36px}
-.pfs h2{font-size:26px;margin-bottom:6px}
-.psl{color:#9398ad;font-size:13.5px;margin-bottom:22px}
-.psl a{color:#a99cf5;cursor:pointer}
+.pbox{width:min(840px,100%);background:#0c0f1e;border:1px solid rgba(133,155,255,0.3);border-radius:24px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;position:relative;box-shadow:0 25px 70px rgba(0,0,0,0.7),0 0 50px rgba(133,155,255,0.2)}
+.closeb{position:absolute;top:16px;right:18px;z-index:5;cursor:pointer;color:#c7cbe0;font-size:20px;background:rgba(255,255,255,0.08);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;border:0;transition:.2s}
+.closeb:hover{background:rgba(255,255,255,0.18);color:#fff}
+.pvis{overflow:hidden;background:radial-gradient(ellipse 80% 60% at 50% 35%,rgba(133,155,255,0.25),transparent 60%),linear-gradient(165deg,#151a30,#080a14);padding:40px 34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:440px;text-align:center;position:relative}
+.pglyph{width:90px;height:90px;border-radius:24px;background:linear-gradient(135deg,var(--primary),#4f46e5);display:grid;place-items:center;font-size:24px;font-weight:900;color:#fff;box-shadow:0 0 30px rgba(133,155,255,0.4);overflow:hidden}
+.pglyph img{width:100%;height:100%;object-fit:cover;border-radius:24px;display:block}
+.pvis h3{font-size:24px;color:#fff;font-weight:900}
+.pvis p{color:var(--muted);font-size:13.5px;line-height:1.6;max-width:260px}
+.pfs{padding:42px 38px}
+.pfs h2{font-size:28px;margin-bottom:6px;font-weight:900}
+.psl{color:var(--muted);font-size:13.5px;margin-bottom:22px}
+.psl a{color:var(--primary);cursor:pointer;font-weight:700}
 .pfr{margin-bottom:14px}
-.pfr input{width:100%;background:#0a0d19;border:1px solid var(--line);color:#fff;border-radius:10px;padding:12px 14px;outline:none;font-family:inherit}
-.pfr input:focus{border-color:rgba(139,92,246,.5)}
-.psb{width:100%;margin-top:8px}
+.pfr input{width:100%;background:rgba(9,11,22,0.9);border:1px solid var(--line);color:#fff;border-radius:12px;padding:13px 15px;outline:none;font-family:inherit}
+.pfr input:focus{border-color:var(--primary)}
+.psb{width:100%;margin-top:10px}
 .pmsg{font-size:13px;margin-top:8px;min-height:18px}
 .pmsg.ok{color:var(--success)}.pmsg.err{color:var(--danger)}
-.cab-sec{padding:75px 0}
-.cab-shell{display:grid;grid-template-columns:245px 1fr;gap:18px;background:#0c1020;border:1px solid var(--line);border-radius:24px;padding:16px}
-.cab-side{background:#090d19;border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:7px}
-.cum{display:flex;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--line);margin-bottom:4px}
-.cav{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:900;flex-shrink:0}
-.cum strong{display:block}.cum span{font-size:12px;color:var(--muted)}
-.cnb{width:100%;border:1px solid transparent;background:transparent;color:#dce2f0;text-align:left;border-radius:10px;padding:11px 12px;cursor:pointer;font-size:14px;font-family:inherit}
-.cnb:hover,.cnb.act{background:#12182a;border-color:var(--line)}
-.cab-cont{padding:8px 10px 10px}
-.ctop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
-.cg{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.cc{background:#11182a;border:1px solid var(--line);border-radius:16px;padding:18px}
-.cc.wide{grid-column:1/-1}
-.cl{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:#9aa5bf;margin-bottom:7px;display:block}
-.cc strong{font-size:16px;overflow-wrap:anywhere}
-.sts-top{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
-.ssb{background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.skf{background:#0a0d19;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:8px}
-@media(max-width:900px){.itabs-wrap{grid-template-columns:1fr}.fc2{grid-template-columns:1fr 1fr}.pg{grid-template-columns:1fr}.pms{grid-template-columns:repeat(2,1fr)}.hnav{display:none}.burger{display:flex;align-items:center}}
-@media(max-width:720px){.pbox{grid-template-columns:1fr}.pvis{display:none}.cab-shell{grid-template-columns:1fr}.cg{grid-template-columns:1fr}.stats-g{grid-template-columns:1fr}.ag{grid-template-columns:1fr}.sts-top{grid-template-columns:1fr}}
-@media(max-width:520px){.fc2{grid-template-columns:1fr}.htitle{font-size:38px}.pw{flex-direction:column}}
+
+@media(max-width:960px){
+  .bento-grid{grid-template-columns:1fr 1fr}
+  .steps-grid{grid-template-columns:1fr}
+  .pg{grid-template-columns:1fr}
+  .pms{grid-template-columns:1fr}
+  .hnav{display:none}
+  .burger{display:flex;align-items:center}
+  .fc2{grid-template-columns:1fr 1fr}
+  .client-modules-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:720px){
+  .pbox{grid-template-columns:1fr}.pvis{display:none}
+  .cab-shell{grid-template-columns:1fr}.cg{grid-template-columns:1fr}
+  .sts-top{grid-template-columns:1fr}
+  .bento-grid{grid-template-columns:1fr}
+  .client-modules-grid{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  .fc2{grid-template-columns:1fr}
+  .htitle{font-size:38px}
+  .pw{flex-direction:column}
+}
 </style>
 </head>
 <body>
+<div class="bg-glow-1"></div>
+<div class="bg-glow-2"></div>
 <canvas id="rays-bg"></canvas>
+
 <header>
   <div class="container nav-inner">
-    <a href="#top" class="logo"><img src="/static/images/logo.png" alt="EUPHORIA"><span class="logo-word">EU<span>PHORIA</span></span></a>
+    <a href="#top" class="logo">
+      <img src="/static/images/logo.png" alt="EUPHORIA">
+      <span class="logo-word">EU<span>PHORIA</span></span>
+      <span class="logo-badge">v2.0</span>
+    </a>
     <nav class="hnav"><ul>
-      <li><a href="#top">&#127968; Главная</a></li>
-      <li><a href="#pluses">&#10024; Преимущества</a></li>
-      <li><a href="#pricing">&#128142; Тарифы</a></li>
-      <li><a href="#faq">&#10067; FAQ</a></li>
-      <li><a href="#support">&#128233; Поддержка</a></li>
-      <li><a href="/cabinet" style="color:var(--cyan);font-weight:800">&#128100; Аккаунт</a></li>
+      <li><a href="#top">🏠 Главная</a></li>
+      <li><a href="#features">✨ Преимущества</a></li>
+      <li><a href="#how-it-works">🚀 Как начать</a></li>
+      <li><a href="#pricing">💎 Тарифы</a></li>
+      <li><a href="#faq">❓ FAQ</a></li>
+      <li><a href="#support">📨 Поддержка</a></li>
     </ul></nav>
     <div class="hacts">
-      <a href="/cabinet" class="hbtn hbtn-sec">&#8594; Войти</a>
-      <a href="/cabinet" class="hbtn hbtn-pri">&#128100; Аккаунт</a>
-      <button class="burger" onclick="toggleMenu()">&#9776;</button>
+      <a href="/cabinet" class="hbtn hbtn-sec">Войти</a>
+      <a href="/cabinet" class="hbtn hbtn-pri">⚡ Кабинет</a>
+      <button class="burger" onclick="toggleMenu()">☰</button>
     </div>
   </div>
 </header>
+
 <div class="mmenu" id="mmenu">
-  <a href="#top" onclick="toggleMenu()">&#127968; Главная</a>
-  <a href="#pluses" onclick="toggleMenu()">&#10024; Преимущества</a>
-  <a href="#pricing" onclick="toggleMenu()">&#128142; Тарифы</a>
-  <a href="#faq" onclick="toggleMenu()">&#10067; FAQ</a>
-  <a href="#support" onclick="toggleMenu()">&#128233; Поддержка</a>
-  <a href="/cabinet" onclick="toggleMenu()" style="color:var(--cyan);font-weight:800">&#128100; Личный кабинет / Аккаунт</a>
+  <a href="#top" onclick="toggleMenu()">🏠 Главная</a>
+  <a href="#features" onclick="toggleMenu()">✨ Преимущества</a>
+  <a href="#how-it-works" onclick="toggleMenu()">🚀 Как начать</a>
+  <a href="#pricing" onclick="toggleMenu()">💎 Тарифы</a>
+  <a href="#faq" onclick="toggleMenu()">❓ FAQ</a>
+  <a href="#support" onclick="toggleMenu()">📨 Поддержка</a>
+  <a href="/cabinet" onclick="toggleMenu()" style="color:var(--cyan);font-weight:800">⚡ Личный кабинет</a>
 </div>
+
 <main id="top">
+
+<!-- HERO SECTION -->
 <section class="hero">
-  <div class="container"><div class="hero-inner">
-    <div class="badge">&#127942; <span>EUPHORIA — Ваш лучший выбор!</span></div>
-    <h1 class="htitle"><span class="gr">EUPHORIA</span><br>Мощность и Стиль</h1>
-    <p class="hdesc">EUPHORIA предоставляет захватывающий геймплей с изысканной визуальной эстетикой, надёжными обходами и продвинутыми модулями.</p>
-    <div class="hbtns">
-      <a href="/cabinet" class="hb hb-pri">&#128100; Начать</a>
-      <a href="#support" class="hb hb-sec">&#128233; Связаться</a>
-    </div>
-  </div></div>
-</section>
-<section class="sec" id="pluses">
   <div class="container">
-    <div class="sh"><h2>Почему выбирают нас?</h2><p>Узнайте больше о EUPHORIA</p></div>
-    <div class="itabs-wrap">
-      <div>
-        <div class="tabs-nav">
-          <button class="tbn active" data-tab="adv">&#11088; Преимущества</button>
-          <button class="tbn" data-tab="faq">&#10067; FAQ</button>
-          <button class="tbn" data-tab="stat">&#128202; Статистика</button>
-        </div>
-        <div class="tc active" id="tc-adv">
-          <div class="adv-item"><div class="adv-ico">&#127911;</div><div class="adv-text"><h3>Поддержка 24/7</h3><p>Наша команда доступна в любое время — от начальной настройки до последних обновлений.</p></div></div>
-          <div class="adv-item"><div class="adv-ico">&#128737;&#65039;</div><div class="adv-text"><h3>Надёжная работа</h3><p>EUPHORIA работает стабильно. Разработчики постоянно оптимизируют и выпускают обновления.</p></div></div>
-          <div class="adv-item"><div class="adv-ico">&#9889;</div><div class="adv-text"><h3>Высокая производительность</h3><p>Оптимизированный клиент обеспечивает максимальный FPS и комфортный геймплей.</p></div></div>
-        </div>
-        <div class="tc" id="tc-faq">
-          <div class="faq-tab-list">
-            <div class="fti"><button class="ftq" onclick="tgFt(this)"><span>Безопасно ли использовать EUPHORIA?</span><span class="arr">&#9660;</span></button><div class="fta"><p>Да, мы используем передовые методы защиты и обхода античитов. Клиент регулярно обновляется.</p></div></div>
-            <div class="fti"><button class="ftq" onclick="tgFt(this)"><span>Как активировать после покупки?</span><span class="arr">&#9660;</span></button><div class="fta"><p>Войдите в кабинет и введите ключ в разделе «Настройки → Subscription».</p></div></div>
-            <div class="fti"><button class="ftq" onclick="tgFt(this)"><span>На каких версиях работает?</span><span class="arr">&#9660;</span></button><div class="fta"><p>EUPHORIA поддерживает Minecraft 1.21+.</p></div></div>
-            <div class="fti"><button class="ftq" onclick="tgFt(this)"><span>Есть ли возврат средств?</span><span class="arr">&#9660;</span></button><div class="fta"><p>Мы гарантируем работоспособность. При технических проблемах рассмотрим возврат согласно соглашению.</p></div></div>
+    <div class="hero-inner">
+      <div class="badge-pill">
+        <span class="badge-dot"></span>
+        <span>EUPHORIA 2.0 — Доведите свою игру до совершенства</span>
+      </div>
+
+      <h1 class="htitle">
+        <span class="gr">EUPHORIA</span><br>
+        Доминируйте на каждом сервере
+      </h1>
+
+      <p class="hdesc">
+        Передовой чит-клиент для Minecraft 1.21+ с непревзойдённой оптимизацией, ультра-плавной KillAura, идеальными обходами популярных серверов и моментальной автоактивацией.
+      </p>
+
+      <div class="hbtns">
+        <a href="#pricing" class="hb hb-pri">⚡ Выбрать тариф</a>
+        <a href="/cabinet" class="hb hb-sec">💎 Личный кабинет</a>
+      </div>
+
+      <div class="metrics-strip">
+        <div class="metric-item"><span>🎮</span> Minecraft 1.21+</div>
+        <div class="metric-item"><span>🛡️</span> 99.9% Обходы (Grim, Matrix, RW)</div>
+        <div class="metric-item"><span>⚡</span> 240+ FPS Boost</div>
+        <div class="metric-item"><span>🟢</span> Сервер Онлайн</div>
+      </div>
+
+      <!-- INTERACTIVE CLIENT GUI PREVIEW MOCKUP -->
+      <div class="client-preview-card">
+        <div class="client-topbar">
+          <div class="client-topbar-left">
+            <div class="client-dots">
+              <span class="client-dot red"></span>
+              <span class="client-dot yellow"></span>
+              <span class="client-dot green"></span>
+            </div>
+            <span class="client-title">EUPHORIA CLIENT HUD & GUI (PREVIEW)</span>
           </div>
+          <span class="client-fps">FPS: 384 · PING: 12ms · BYPASS: ACTIVE</span>
         </div>
-        <div class="tc" id="tc-stat">
-          <div class="stats-g">
-            <div class="sc"><span class="sv">1.21+</span><span class="st">Версии Minecraft</span></div>
-            <div class="sc"><span class="sv">24/7</span><span class="st">Доступность</span></div>
-            <div class="sc"><span class="sv">&#9889;</span><span class="st">Быстрый запуск</span></div>
-            <div class="sc"><span class="sv">&#128274;</span><span class="st">Защита аккаунта</span></div>
+
+        <div class="client-modules-grid">
+          <div class="c-mod">
+            <div class="c-mod-info">
+              <h4>⚔️ KillAura</h4>
+              <span>Smart Rotation · 3.8m Range</span>
+            </div>
+            <div class="c-toggle"></div>
+          </div>
+
+          <div class="c-mod">
+            <div class="c-mod-info">
+              <h4>🛡️ AutoTotem</h4>
+              <span>Instant Swap · 0ms Delay</span>
+            </div>
+            <div class="c-toggle"></div>
+          </div>
+
+          <div class="c-mod">
+            <div class="c-mod-info">
+              <h4>⚡ Velocity 0%</h4>
+              <span>Grim / Matrix / RW Bypass</span>
+            </div>
+            <div class="c-toggle"></div>
+          </div>
+
+          <div class="c-mod">
+            <div class="c-mod-info">
+              <h4>👁️ Glow ESP & Chams</h4>
+              <span>Custom Shaders & Box</span>
+            </div>
+            <div class="c-toggle"></div>
+          </div>
+
+          <div class="c-mod">
+            <div class="c-mod-info">
+              <h4>🎯 TargetHUD</h4>
+              <span>Armor, Health & Distance</span>
+            </div>
+            <div class="c-toggle"></div>
+          </div>
+
+          <div class="c-mod">
+            <div class="c-mod-info">
+              <h4>☁️ Cloud Configs</h4>
+              <span>1-Click Load & Share</span>
+            </div>
+            <div class="c-toggle"></div>
           </div>
         </div>
       </div>
-      <div>
-        <div class="carousel-slides">
-          <div class="cs active"><div class="fc"><div class="fg"><div class="ci">&#128640;</div></div><div class="fcont"><div class="ft2"><span style="font-size:22px;color:var(--primary)">&#128200;</span><h2>Оптимизация</h2></div><p>Клиент известен своей оптимизацией. С каждым обновлением мы улучшаем скорость для вашего комфортного геймплея!</p></div></div></div>
-          <div class="cs"><div class="fc"><div class="fg"><div class="ev"><div class="ec etl"></div><div class="ec etr"></div><div class="ec ebl"></div><div class="ec ebr"></div><span style="font-size:32px;color:var(--primary);z-index:1">&#128065;&#65039;</span><div class="esl"></div></div></div><div class="fcont"><div class="ft2"><span style="font-size:22px;color:var(--primary)">&#128065;&#65039;</span><h2>Визуализация</h2></div><p>Визуальная сторона EUPHORIA на высшем уровне — от ESP до каждой мелочи.</p></div></div></div>
-          <div class="cs"><div class="fc"><div class="fg"><div class="sa">&#128737;&#65039;</div></div><div class="fcont"><div class="ft2"><span style="font-size:22px;color:var(--primary)">&#128737;&#65039;</span><h2>Идеальные обходы</h2></div><p>EUPHORIA знаменит обходами для большинства серверов.</p></div></div></div>
-        </div>
-        <div class="cn">
-          <button class="cb" onclick="chSlide(-1)">&#8249;</button>
-          <div class="cdots"><span class="cd active" onclick="goSlide(0)"></span><span class="cd" onclick="goSlide(1)"></span><span class="cd" onclick="goSlide(2)"></span></div>
-          <button class="cb" onclick="chSlide(1)">&#8250;</button>
-        </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES BENTO GRID (DELTA STYLE) -->
+<section class="sec" id="features">
+  <div class="container">
+    <div class="sh">
+      <span class="kicker">ПРЕИМУЩЕСТВА</span>
+      <h2>Почему выбирают EUPHORIA</h2>
+      <p>Создан профессионалами для тех, кто не согласен на меньшее.</p>
+    </div>
+
+    <div class="bento-grid">
+      <div class="bento-card">
+        <div class="bento-icon">🚀</div>
+        <h3>Экстремальная оптимизация</h3>
+        <p>Переписанный графический движок увеличивает FPS до +200%, обеспечивая кристально плавную картинку без просадок даже в самых жёстких PvP-замесах.</p>
+        <span class="bento-tag">240+ FPS Boost</span>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">🛡️</div>
+        <h3>Идеальные обходы (Bypasses)</h3>
+        <p>Регулярные автообновления под все популярные серверы и античиты: ReallyWorld, FunTime, HolyWorld, Matrix, Grim, Vulcan и Spigot.</p>
+        <span class="bento-tag">Zero-Ban Technology</span>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">👁️</div>
+        <h3>Премиальный Visuals & HUD</h3>
+        <p>Полная кастомизация интерфейса: светящийся ESP, Chams, Tracers, TargetHUD, Watermark, кастомные анимации и шейдеры предметов.</p>
+        <span class="bento-tag">Next-Gen Visuals</span>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">⚔️</div>
+        <h3>Combat & Rage Master</h3>
+        <p>Умная KillAura с обходом ротаций взгляда, моментальный AutoTotem, NoSlowdown, Spider, Speed и TriggerBot для полного доминирования.</p>
+        <span class="bento-tag">PvP Dominance</span>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">☁️</div>
+        <h3>Облачные конфиги (Cloud CFG)</h3>
+        <p>Сохраняйте свои лучшие настройки в облако и загружайте готовые топовые конфиги от разработчиков и про-игроков в один клик.</p>
+        <span class="bento-tag">Instant Sync</span>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">🔐</div>
+        <h3>Защита и HWID Spoofer</h3>
+        <p>Моментальная автоматическая выдача ключей после оплаты, безопасный запуск лаунчера, встроенный спуфер и полная конфиденциальность.</p>
+        <span class="bento-tag">100% Security</span>
       </div>
     </div>
   </div>
 </section>
+
+<!-- HOW IT WORKS -->
+<section class="sec" id="how-it-works" style="background:rgba(8,10,20,0.6);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="container">
+    <div class="sh">
+      <span class="kicker">КАК НАЧАТЬ</span>
+      <h2>3 простых шага к победе</h2>
+      <p>Начните играть с EUPHORIA уже через пару минут.</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="bento-icon">👤</div>
+        <h3>Регистрация аккаунта</h3>
+        <p>Создайте аккаунт в личном кабинете за 10 секунд — нужен только логин и пароль.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="bento-icon">💎</div>
+        <h3>Выбор тарифа</h3>
+        <p>Выберите подходящий срок доступа и мгновенно оплатите через CryptoBot или FunPay.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="bento-icon">🎮</div>
+        <h3>Запуск и игра</h3>
+        <p>Скачайте лаунчер в личном кабинете, активируйте полученный ключ и доминируйте в игре!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING SECTION -->
 <section class="sec" id="pricing">
   <div class="container">
-    <div class="sh"><span class="kicker">Тарифы</span><h2>Выбери свой доступ</h2><p>Чем дольше срок — тем выгоднее тариф.</p></div>
+    <div class="sh">
+      <span class="kicker">ТАРИФЫ</span>
+      <h2>Выбери свой доступ</h2>
+      <p>Чем дольше срок — тем выгоднее тариф. Моментальная активация сразу после покупки.</p>
+    </div>
+
     <div class="pg" id="cards"></div>
-    <div class="pw"><input id="promoInput" placeholder="Введите промокод..."><button class="btn" onclick="applyPromo()">Применить</button></div>
-    <div id="promoStatus" style="min-height:20px;text-align:center;margin-top:8px;font-size:13px"></div>
+
+    <div class="pw">
+      <input id="promoInput" placeholder="Введите промокод на скидку...">
+      <button class="btn" onclick="applyPromo()">Применить</button>
+    </div>
+    <div id="promoStatus" style="min-height:20px;text-align:center;margin-top:10px;font-size:13.5px"></div>
+
     <div class="paybox">
       <h3>2. Способ оплаты</h3>
-      <div id="planHint" style="color:var(--muted);font-size:13px;margin-bottom:14px">1. Выберите тариф → 2. Оплата</div>
-      <div class="pms" style="grid-template-columns: 1fr 1fr 1fr;">
-        <button class="pm sel" onclick="selPay('cryptobot',this)">&#129689; CryptoBot<small>USDT, TON, BTC ($ USD)</small></button>
-        <button class="pm" onclick="selPay('funpay',this)">&#128176; FunPay<small>Гарант Маркетплейс (₽)</small></button>
-        <button class="pm" style="opacity:0.65;position:relative" onclick="selPay('sbp',this)" title="СБП скоро будет доступен">&#9889; СБП<small style="color:#fbbf24;font-weight:700">⏳ Скоро будет</small></button>
+      <div id="planHint" style="color:var(--muted);font-size:13.5px;margin-bottom:16px">1. Выберите тариф выше ➔ 2. Способ оплаты</div>
+      <div class="pms">
+        <button class="pm sel" onclick="selPay('cryptobot',this)">🪙 CryptoBot<small>USDT, TON, BTC ($ USD)</small></button>
+        <button class="pm" onclick="selPay('funpay',this)">🛍️ FunPay<small>Гарант Маркетплейс (₽)</small></button>
+        <button class="pm" style="opacity:0.65;position:relative" onclick="selPay('sbp',this)" title="СБП скоро будет доступен">⚡ СБП<small style="color:#fbbf24;font-weight:700">⏳ Скоро будет</small></button>
       </div>
 
       <div class="co" id="checkout">
         <div class="cr"><span id="coProd">Тариф</span><b id="coPrice">0 ₽</b></div>
-        <div class="cr"><span>Оплата</span><b id="coMethod">&#8212;</b></div>
+        <div class="cr"><span>Оплата</span><b id="coMethod">—</b></div>
         <div class="cr tot"><span>К оплате</span><span id="coTotal">0 ₽</span></div>
-        <button class="btn btn-full" style="margin-top:12px" onclick="startPay()" id="payBtn">Перейти к оплате &#8594;</button>
+        <button class="btn btn-full" style="margin-top:14px" onclick="startPay()" id="payBtn">Перейти к оплате →</button>
       </div>
     </div>
   </div>
 </section>
+
+<!-- FAQ SECTION -->
 <section class="sec" id="faq">
   <div class="container">
-    <div class="sh"><span class="kicker">FAQ</span><h2>Частые вопросы</h2></div>
+    <div class="sh">
+      <span class="kicker">FAQ</span>
+      <h2>Частые вопросы</h2>
+      <p>Всё, что вам нужно знать перед покупкой и началом игры.</p>
+    </div>
+
     <div class="faq-pub-list">
-      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Какая валюта используется? <span class="fa2">&#9660;</span></button><div class="fpa"><p>Все цены на сайте указаны в российских рублях (₽).</p></div></div>
-      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Можно ли применить промокод? <span class="fa2">&#9660;</span></button><div class="fpa"><p>Да. Введите код в поле под тарифами.</p></div></div>
-      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Как изменить тарифы? <span class="fa2">&#9660;</span></button><div class="fpa"><p>Войдите в админ-панель и добавляйте или удаляйте тарифы.</p></div></div>
-      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Как войти в аккаунт? <span class="fa2">&#9660;</span></button><div class="fpa"><p>Нажмите «Войти» в хедере или перейдите на /cabinet.</p></div></div>
+      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Какая валюта используется на сайте? <span class="fa2">▼</span></button><div class="fpa"><p>Все цены указаны в российских рублях (₽) и долларах ($ USD) для CryptoBot.</p></div></div>
+      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Как активировать ключ после покупки? <span class="fa2">▼</span></button><div class="fpa"><p>Войдите в личный кабинет на сайте, перейдите во вкладку «Settings» и введите ключ в поле «Activate Key».</p></div></div>
+      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">На каких версиях Minecraft работает клиент? <span class="fa2">▼</span></button><div class="fpa"><p>EUPHORIA поддерживает современные версии Minecraft 1.21+ и выше со всеми популярными серверами.</p></div></div>
+      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Безопасно ли использовать EUPHORIA? <span class="fa2">▼</span></button><div class="fpa"><p>Да, клиент регулярно обновляется разработчиками для обеспечения максимальной скрытности и обхода античитов.</p></div></div>
+      <div class="fpi"><button class="fpq" onclick="tgFaq(this)">Можно ли применить промокод на скидку? <span class="fa2">▼</span></button><div class="fpa"><p>Да! Введите промокод в поле под блоком тарифов и нажмите кнопку «Применить».</p></div></div>
     </div>
   </div>
 </section>
+
+<!-- SUPPORT CTA SECTION -->
 <section class="sec" id="support">
   <div class="container">
     <div class="cta-box">
-      <span class="kicker">SUPPORT</span>
-      <h2>Остались вопросы?</h2>
-      <p>Свяжитесь с нами через удобный канал поддержки.</p>
-      <a class="btn" href="#" onclick="supAlert();return false">&#128233; Связаться с поддержкой</a>
+      <span class="kicker">ПОДДЕРЖКА & СООБЩЕСТВО</span>
+      <h2>Остались вопросы или нужна помощь?</h2>
+      <p>Наша служба поддержки и комьюнити всегда готовы помочь вам с настройкой и запуском.</p>
+      <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+        <a class="btn" href="#" onclick="supAlert();return false">📨 Связаться с поддержкой</a>
+        <a class="btn ghost" href="https://funpay.com/users/12165454/" target="_blank">🛍️ Профиль FunPay</a>
+      </div>
     </div>
   </div>
 </section>
@@ -686,11 +912,14 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
 <footer>
   <div class="container">
     <div class="fc2">
-      <div class="fs"><h3 style="color:var(--primary)">EUPHORIA</h3><p style="margin-top:4px;color:var(--muted)">Minecraft Client &middot; 2025</p></div>
-      <div class="fs"><h3>Платформа</h3><ul><li><a href="#top">Главная</a></li><li><a href="#pricing">Тарифы</a></li><li><a href="#faq">FAQ</a></li></ul></div>
-      <div class="fs"><h3>Аккаунт</h3><ul><li><a href="/cabinet">Войти</a></li><li><a href="/cabinet">Регистрация</a></li></ul></div>
-      <div class="fs"><h3>Контакты</h3><ul><li><a href="#">Telegram</a></li><li><a href="#">Discord</a></li></ul></div>
-      <div class="fs"><h3>Правовая</h3><ul><li><a href="#">Условия использования</a></li><li><a href="#">КонфиденциальносΌь</a></li></ul></div>
+      <div class="fs">
+        <h3 style="color:var(--primary);font-size:18px;font-weight:900">EUPHORIA</h3>
+        <p style="margin-top:6px;color:var(--muted);line-height:1.6">Передовой чит-клиент для Minecraft 1.21+ с максимальной оптимизацией, лучшими обходами и моментальной автоактивацией.</p>
+        <p style="margin-top:10px;font-size:12px;color:rgba(255,255,255,0.4)">© 2026 EUPHORIA Client. Все права защищены.</p>
+      </div>
+      <div class="fs"><h3>Навигация</h3><ul><li><a href="#top">Главная</a></li><li><a href="#features">Преимущества</a></li><li><a href="#how-it-works">Как начать</a></li><li><a href="#pricing">Тарифы</a></li><li><a href="#faq">FAQ</a></li></ul></div>
+      <div class="fs"><h3>Аккаунт</h3><ul><li><a href="/cabinet">Личный кабинет</a></li><li><a href="/cabinet">Регистрация</a></li><li><a href="/payment">Оплата онлайн</a></li></ul></div>
+      <div class="fs"><h3>Сообщество</h3><ul><li><a href="https://funpay.com/users/12165454/" target="_blank">FunPay Гарант</a></li><li><a href="#" onclick="supAlert();return false">Поддержка 24/7</a></li></ul></div>
     </div>
   </div>
 </footer>
