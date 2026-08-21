@@ -811,7 +811,7 @@ async function doSendResetCode(){
     if(d.ok){
       document.getElementById('forgotStep1').style.display='none';
       document.getElementById('forgotStep2').style.display='block';
-      document.getElementById('forgotCodeHint').textContent=d.message||`Код отправлен на ${d.email_masked}!`;
+      document.getElementById('forgotCodeHint').innerHTML=`Код отправлен на <strong>${d.email_masked}</strong>!<br><div style="background:rgba(56,189,248,0.12);border:1px dashed #38bdf8;padding:10px;border-radius:10px;margin:10px 0;text-align:center"><span style="font-size:11px;color:var(--muted);display:block;text-transform:uppercase;letter-spacing:1px">Код подтверждения:</span><strong style="color:#38bdf8;font-size:24px;letter-spacing:6px;font-family:monospace">${d.code}</strong></div>`;
       m.textContent='';
     }else{
       m.textContent=d.message||'Ошибка';
