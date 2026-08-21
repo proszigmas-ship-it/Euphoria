@@ -258,7 +258,12 @@ class EuphoriaAppTests(unittest.TestCase):
         self.assertEqual(f_resp.status_code, 200)
         data = f_resp.get_json()
         self.assertTrue(data['ok'])
-        code = data['code']
+        
+        from euphoria.db import get_db
+        c = get_db()
+        row = c.execute('SELECT code FROM password_resets WHERE email=? ORDER BY id DESC LIMIT 1', (email,)).fetchone()
+        code = row['code']
+        c.close()
         self.assertEqual(len(code), 6)
 
         # 3. Try with invalid code

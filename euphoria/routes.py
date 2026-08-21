@@ -305,9 +305,8 @@ def register_routes(app):
         return jsonify(
             ok=True,
             email_masked=masked_email,
-            code=code,
             email_sent=send_ok,
-            message=f'Код подтверждения отправлен на почту {masked_email}',
+            message=f'Код подтверждения отправлен на почту {masked_email}! Проверьте папку "Входящие" и "Спам".',
         )
 
     @app.post('/api/player/reset-password')
