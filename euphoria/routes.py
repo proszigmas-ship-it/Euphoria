@@ -89,6 +89,10 @@ def register_hooks(app):
         ip = get_client_ip()
         path = request.path or ''
 
+        # 0. Health checks bypass all rate-limiting and bans
+        if path in ('/healthz', '/health', '/ping'):
+            return None
+
         # 1. IP Ban Enforcement
         if path.startswith('/api/'):
             ban = is_ip_banned(ip)
@@ -131,6 +135,12 @@ def register_hooks(app):
 # ── Route registration ───────────────────────────────────────────────────────
 
 def register_routes(app):
+
+    @app.route('/healthz')
+    @app.route('/health')
+    @app.route('/ping')
+    def health_check():
+        return jsonify(status='ok', service='Euphoria Client', timestamp=datetime.now(timezone.utc).isoformat()), 200
 
     @app.route('/')
     def home():

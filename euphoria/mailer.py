@@ -14,11 +14,49 @@ SMTP_FROM = os.environ.get('SMTP_FROM', getattr(config, 'SMTP_FROM', 'euphoria.a
 SMTP_SSL = os.environ.get('SMTP_SSL', '1') == '1'
 
 
+def _send_smtp_worker(to_email: str, username: str, code: str, subject: str, html_content: str):
+    clean_password = SMTP_PASSWORD.replace(' ', '').strip()
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = f"EUPHORIA <{SMTP_FROM}>"
+        msg['To'] = to_email
+
+        text_part = MIMEText(f"Здравствуйте, {username}!\nВаш код для сброса пароля: {code}\nКод действителен 15 минут.", 'plain', 'utf-8')
+        html_part = MIMEText(html_content, 'html', 'utf-8')
+        msg.attach(text_part)
+        msg.attach(html_part)
+
+        try:
+            if SMTP_SSL:
+                server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=8)
+            else:
+                server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=8)
+                server.starttls()
+            server.login(SMTP_USER, clean_password)
+            server.sendmail(SMTP_FROM, [to_email], msg.as_string())
+            server.quit()
+        except Exception:
+            # Fallback to TLS on port 587
+            try:
+                server = smtplib.SMTP(SMTP_HOST, 587, timeout=8)
+                server.starttls()
+                server.login(SMTP_USER, clean_password)
+                server.sendmail(SMTP_FROM, [to_email], msg.as_string())
+                server.quit()
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
 def send_password_reset_email(to_email: str, username: str, code: str) -> tuple[bool, str]:
     """
     Sends a styled HTML password reset email with the 6-digit security code.
-    Returns (success: bool, info_message: str).
+    Runs asynchronously in a background thread to prevent blocking web workers.
     """
+    import threading
+
     subject = f"🔒 Код сброса пароля EUPHORIA: {code}"
     
     html_content = f"""
@@ -61,35 +99,11 @@ def send_password_reset_email(to_email: str, username: str, code: str) -> tuple[
     if not SMTP_HOST or not SMTP_USER or not SMTP_PASSWORD:
         return True, "Code saved and logged for Admin review"
 
-    clean_password = SMTP_PASSWORD.replace(' ', '').strip()
-    try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From'] = f"EUPHORIA <{SMTP_FROM}>"
-        msg['To'] = to_email
-
-        text_part = MIMEText(f"Здравствуйте, {username}!\nВаш код для сброса пароля: {code}\nКод действителен 15 минут.", 'plain', 'utf-8')
-        html_part = MIMEText(html_content, 'html', 'utf-8')
-        msg.attach(text_part)
-        msg.attach(html_part)
-
-        try:
-            if SMTP_SSL:
-                server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=12)
-            else:
-                server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=12)
-                server.starttls()
-            server.login(SMTP_USER, clean_password)
-            server.sendmail(SMTP_FROM, [to_email], msg.as_string())
-            server.quit()
-            return True, "Email successfully sent"
-        except Exception:
-            # Fallback to TLS on port 587
-            server = smtplib.SMTP(SMTP_HOST, 587, timeout=12)
-            server.starttls()
-            server.login(SMTP_USER, clean_password)
-            server.sendmail(SMTP_FROM, [to_email], msg.as_string())
-            server.quit()
-            return True, "Email successfully sent via fallback TLS"
-    except Exception as err:
-        return False, f"SMTP error: {str(err)}"
+    # Dispatch to background thread so HTTP worker responds instantly
+    t = threading.Thread(
+        target=_send_smtp_worker,
+        args=(to_email, username, code, subject, html_content),
+        daemon=True,
+    )
+    t.start()
+    return True, "Email dispatch scheduled in background"

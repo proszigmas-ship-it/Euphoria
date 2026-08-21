@@ -210,6 +210,12 @@ class EuphoriaAppTests(unittest.TestCase):
         self.assertEqual(resp.headers.get('X-Frame-Options'), 'SAMEORIGIN')
         self.assertEqual(resp.headers.get('X-XSS-Protection'), '1; mode=block')
 
+    def test_health_check_endpoints(self):
+        for path in ('/healthz', '/health', '/ping'):
+            resp = self.client.get(path)
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(resp.get_json()['status'], 'ok')
+
     def test_anti_ddos_rate_limiting(self):
         from euphoria.security import rate_limiter
         test_ip = '198.51.100.99'
