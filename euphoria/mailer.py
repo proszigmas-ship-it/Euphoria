@@ -59,6 +59,7 @@ def send_password_reset_email(to_email: str, username: str, code: str) -> tuple[
     if not SMTP_HOST or not SMTP_USER or not SMTP_PASSWORD:
         return True, "Code saved and logged for Admin review"
 
+    clean_password = SMTP_PASSWORD.replace(' ', '').strip()
     try:
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
@@ -70,15 +71,23 @@ def send_password_reset_email(to_email: str, username: str, code: str) -> tuple[
         msg.attach(text_part)
         msg.attach(html_part)
 
-        if SMTP_SSL:
-            server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=10)
-        else:
-            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10)
+        try:
+            if SMTP_SSL:
+                server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=12)
+            else:
+                server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=12)
+                server.starttls()
+            server.login(SMTP_USER, clean_password)
+            server.sendmail(SMTP_FROM, [to_email], msg.as_string())
+            server.quit()
+            return True, "Email successfully sent"
+        except Exception:
+            # Fallback to TLS on port 587
+            server = smtplib.SMTP(SMTP_HOST, 587, timeout=12)
             server.starttls()
-
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        server.sendmail(SMTP_FROM, [to_email], msg.as_string())
-        server.quit()
-        return True, "Email successfully sent"
+            server.login(SMTP_USER, clean_password)
+            server.sendmail(SMTP_FROM, [to_email], msg.as_string())
+            server.quit()
+            return True, "Email successfully sent via fallback TLS"
     except Exception as err:
         return False, f"SMTP error: {str(err)}"
