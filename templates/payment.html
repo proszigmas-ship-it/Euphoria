@@ -526,31 +526,37 @@ body {
         <span style="font-size:12px;color:var(--primary)">Система Быстрых Платежей</span>
       </div>
 
-      <!-- SBP Requisites Card -->
+      <!-- Bank / SBP Requisites Card -->
       <div style="background:#0d1124;border:1px solid var(--primary);border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 8px 24px rgba(56,189,248,0.15)">
-        <div style="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Перевод по номеру телефона:</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Банковский шлюз получателя:</div>
+          <span style="background:rgba(52,211,153,0.15);color:#34d399;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid rgba(52,211,153,0.3)">🟢 Активен</span>
+        </div>
         <div style="display:flex;justify-content:space-between;align-items:center;background:#141933;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:10px">
-          <strong id="sbpPhoneVal" style="color:#38bdf8;font-size:18px;font-family:monospace;letter-spacing:1px">+7 (999) 000-00-00</strong>
-          <button type="button" class="btn small" style="background:rgba(56,189,248,0.2);color:#38bdf8;border:1px solid #38bdf8;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700" onclick="copyText('sbpPhoneVal','Номер скопирован!')">📋 Копировать</button>
+          <div>
+            <span style="color:var(--muted);font-size:11px;display:block">Карта получателя (Защищено):</span>
+            <strong id="sbpCardVal" style="color:#38bdf8;font-size:17px;font-family:monospace;letter-spacing:1.5px">2200 20•• •••• 8764</strong>
+          </div>
+          <span style="background:#0284c7;color:#fff;font-size:11px;font-weight:900;padding:4px 8px;border-radius:6px">МИР</span>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin-bottom:10px">
           <div style="background:#141933;padding:10px;border-radius:8px;border:1px solid var(--line)">
             <span style="color:var(--muted);display:block;font-size:11px">Банк:</span>
-            <strong id="sbpBankVal" style="color:#f1f5f9">Т-Банк / Сбербанк</strong>
+            <strong id="sbpBankVal" style="color:#f1f5f9">МИР / Банк РФ (СБП)</strong>
           </div>
           <div style="background:#141933;padding:10px;border-radius:8px;border:1px solid var(--line)">
-            <span style="color:var(--muted);display:block;font-size:11px">Получатель:</span>
-            <strong id="sbpRecipientVal" style="color:#f1f5f9">Получатель EUPHORIA</strong>
+            <span style="color:var(--muted);display:block;font-size:11px">Назначение:</span>
+            <strong id="sbpRecipientVal" style="color:#f1f5f9">Оплата заказа EUPHORIA</strong>
           </div>
         </div>
 
         <div style="background:#141933;border:1px dashed rgba(56,189,248,0.4);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
           <div>
-            <span style="color:var(--muted);font-size:11px;display:block">Комментарий к переводу:</span>
+            <span style="color:var(--muted);font-size:11px;display:block">Номер вашего заказа:</span>
             <strong id="sbpCommentVal" style="color:#34d399;font-family:monospace;font-size:15px">EUPH-84920</strong>
           </div>
-          <button type="button" class="btn small" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid #34d399;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:700" onclick="copyText('sbpCommentVal','Комментарий скопирован!')">📋 Копировать</button>
+          <button type="button" class="btn small" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid #34d399;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:700" onclick="copyText('sbpCommentVal','Номер заказа скопирован!')">📋 Копировать</button>
         </div>
       </div>
 
@@ -898,6 +904,7 @@ async function init() {
     });
     const sbpData = await sbpR.json();
     if (sbpData.ok) {
+      if (document.getElementById('sbpCardVal') && sbpData.card_masked) document.getElementById('sbpCardVal').textContent = sbpData.card_masked;
       if (document.getElementById('sbpPhoneVal') && sbpData.phone) document.getElementById('sbpPhoneVal').textContent = sbpData.phone;
       if (document.getElementById('sbpBankVal') && sbpData.bank) document.getElementById('sbpBankVal').textContent = sbpData.bank;
       if (document.getElementById('sbpRecipientVal') && sbpData.recipient) document.getElementById('sbpRecipientVal').textContent = sbpData.recipient;

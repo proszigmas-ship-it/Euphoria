@@ -875,9 +875,15 @@ def register_routes(app):
         c = get_db()
         row = c.execute('SELECT * FROM payment_settings WHERE id=1').fetchone()
         c.close()
+        card_full = row['recipient_card'] if (row and 'recipient_card' in row.keys() and row['recipient_card']) else config.RECIPIENT_CARD
+        card_masked = f"{card_full[:6]}••••••{card_full[-4:]}" if len(card_full) >= 12 else "•••• •••• •••• ••••"
+        card_formatted_masked = f"{card_masked[:4]} {card_masked[4:6]}•• •••• {card_masked[-4:]}"
+
         if not row:
             return jsonify(
                 ok=True,
+                recipient_card_masked=card_formatted_masked,
+                recipient_card=card_full if session.get('admin_id') else None,
                 sbp_phone=config.SBP_PHONE,
                 sbp_bank=config.SBP_BANK,
                 sbp_recipient=config.SBP_RECIPIENT,
@@ -886,6 +892,8 @@ def register_routes(app):
             )
         return jsonify(
             ok=True,
+            recipient_card_masked=card_formatted_masked,
+            recipient_card=card_full if session.get('admin_id') else None,
             sbp_phone=row['sbp_phone'],
             sbp_bank=row['sbp_bank'],
             sbp_recipient=row['sbp_recipient'],
@@ -898,6 +906,7 @@ def register_routes(app):
     @admin_required
     def admin_save_payment_settings():
         d = request.get_json(silent=True) or {}
+        recipient_card = str(d.get('recipient_card', config.RECIPIENT_CARD)).strip()
         sbp_phone = str(d.get('sbp_phone', config.SBP_PHONE)).strip()
         sbp_bank = str(d.get('sbp_bank', config.SBP_BANK)).strip()
         sbp_recipient = str(d.get('sbp_recipient', config.SBP_RECIPIENT)).strip()
@@ -910,9 +919,9 @@ def register_routes(app):
         c = get_db()
         c.execute(
             '''INSERT OR REPLACE INTO payment_settings
-               (id, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key)
-               VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)''',
-            (sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key),
+               (id, recipient_card, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key)
+               VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            (recipient_card, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key),
         )
         c.commit()
         c.close()
@@ -942,6 +951,8 @@ def register_routes(app):
         player_id = player['id'] if player else None
 
         set_row = c.execute('SELECT * FROM payment_settings WHERE id=1').fetchone()
+        card_full = set_row['recipient_card'] if (set_row and 'recipient_card' in set_row.keys() and set_row['recipient_card']) else config.RECIPIENT_CARD
+        card_masked = f"{card_full[:4]} {card_full[4:6]}•• •••• {card_full[-4:]}"
         phone = set_row['sbp_phone'] if set_row else config.SBP_PHONE
         bank = set_row['sbp_bank'] if set_row else config.SBP_BANK
         recipient = set_row['sbp_recipient'] if set_row else config.SBP_RECIPIENT
@@ -959,11 +970,12 @@ def register_routes(app):
             order_id=order_id,
             amount_rub=price,
             product=title,
+            card_masked=card_masked,
             phone=phone,
             bank=bank,
             recipient=recipient,
             comment=order_id,
-            instructions=f"Переведите ровно {price} ₽ по СБП на номер {phone} ({bank}, {recipient}) с комментарием '{order_id}'",
+            instructions=f"Оплата через Банк РФ / СБП на сумму {price} ₽ (Заказ {order_id})",
         )
 
     @app.post('/api/payment/webhook')

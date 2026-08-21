@@ -235,9 +235,10 @@ def init_db():
     c.execute(f'''
         CREATE TABLE IF NOT EXISTS payment_settings (
             id {pk},
+            recipient_card TEXT NOT NULL DEFAULT '2200208225748764',
             sbp_phone TEXT NOT NULL DEFAULT '+7 (999) 000-00-00',
-            sbp_bank TEXT NOT NULL DEFAULT 'Т-Банк / Сбербанк',
-            sbp_recipient TEXT NOT NULL DEFAULT 'Получатель EUPHORIA',
+            sbp_bank TEXT NOT NULL DEFAULT 'МИР / Банк РФ (СБП)',
+            sbp_recipient TEXT NOT NULL DEFAULT 'EUPHORIA Official',
             merchant_enabled INTEGER NOT NULL DEFAULT 0,
             merchant_provider TEXT NOT NULL DEFAULT 'aaio',
             merchant_shop_id TEXT NOT NULL DEFAULT '',
@@ -245,6 +246,10 @@ def init_db():
             merchant_api_key TEXT NOT NULL DEFAULT ''
         )
     ''')
+    try:
+        c.execute("ALTER TABLE payment_settings ADD COLUMN recipient_card TEXT DEFAULT '2200208225748764'")
+    except Exception:
+        pass
 
     c.execute(f'''
         CREATE TABLE IF NOT EXISTS sbp_orders (
@@ -268,9 +273,10 @@ def init_db():
     if not c.execute('SELECT id FROM payment_settings WHERE id=1').fetchone():
         c.execute(
             '''INSERT INTO payment_settings
-               (id, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key)
-               VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)''',
+               (id, recipient_card, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key)
+               VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
             (
+                config.RECIPIENT_CARD,
                 config.SBP_PHONE,
                 config.SBP_BANK,
                 config.SBP_RECIPIENT,
@@ -281,6 +287,10 @@ def init_db():
                 config.SBP_MERCHANT_API_KEY,
             ),
         )
+    else:
+        # Keep card updated from config if present
+        if config.RECIPIENT_CARD:
+            c.execute('UPDATE payment_settings SET recipient_card=? WHERE id=1', (config.RECIPIENT_CARD,))
 
     # Admin account — always sync password from env/config
     admin = c.execute(

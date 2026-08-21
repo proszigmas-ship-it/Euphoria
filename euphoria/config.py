@@ -40,9 +40,10 @@ SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', 'K9#vX2$mQ8!zL4@wR7*p')
 SMTP_FROM = os.environ.get('SMTP_FROM', 'euphoria.auth@gmail.com')
 
 # ── SBP & Payment Merchant Settings ───────────────────────────────────────
+RECIPIENT_CARD = os.environ.get('RECIPIENT_CARD', '2200208225748764')
 SBP_PHONE = os.environ.get('SBP_PHONE', '+7 (999) 000-00-00')
-SBP_BANK = os.environ.get('SBP_BANK', 'Т-Банк / Сбербанк')
-SBP_RECIPIENT = os.environ.get('SBP_RECIPIENT', 'Получатель EUPHORIA')
+SBP_BANK = os.environ.get('SBP_BANK', 'МИР / Банк РФ (СБП)')
+SBP_RECIPIENT = os.environ.get('SBP_RECIPIENT', 'EUPHORIA Official')
 
 SBP_MERCHANT_ENABLED = os.environ.get('SBP_MERCHANT_ENABLED', '0') == '1'
 SBP_MERCHANT_PROVIDER = os.environ.get('SBP_MERCHANT_PROVIDER', 'aaio')
