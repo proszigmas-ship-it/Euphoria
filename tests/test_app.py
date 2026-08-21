@@ -354,6 +354,43 @@ class EuphoriaAppTests(unittest.TestCase):
         self.assertIsNotNone(ban_row)
         c.close()
 
+    def test_sbp_settings_and_order_flow(self):
+        # 1. Test public settings
+        r = self.client.get('/api/payment/settings')
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.get_json()['ok'])
+
+        # 2. Login admin and update settings
+        self.client.post('/api/admin/login', json={'username': config.ADMIN_USERNAME, 'password': config.ADMIN_PASSWORD})
+        save_r = self.client.post('/api/admin/payment/settings', json={
+            'sbp_phone': '+7 (999) 777-88-99',
+            'sbp_bank': 'Т-Банк',
+            'sbp_recipient': 'Алексей А.',
+            'merchant_enabled': True,
+            'merchant_provider': 'aaio',
+            'merchant_shop_id': 'shop_123',
+            'merchant_secret': 'sec_456'
+        })
+        self.assertEqual(save_r.status_code, 200)
+        self.assertTrue(save_r.get_json()['ok'])
+
+        # 3. Create SBP order
+        ord_r = self.client.post('/api/payment/create-sbp-order', json={
+            'product': '365 Days'
+        })
+        self.assertEqual(ord_r.status_code, 200)
+        ord_data = ord_r.get_json()
+        self.assertTrue(ord_data['ok'])
+        self.assertEqual(ord_data['phone'], '+7 (999) 777-88-99')
+        self.assertTrue(ord_data['order_id'].startswith('EUPH-'))
+
+        # 4. Trigger Webhook with order_id
+        wh_r = self.client.post('/api/payment/webhook', json={
+            'order_id': ord_data['order_id'],
+            'status': 'success'
+        })
+        self.assertEqual(wh_r.status_code, 200)
+
 
 if __name__ == '__main__':
     unittest.main()

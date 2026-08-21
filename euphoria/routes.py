@@ -868,6 +868,150 @@ def register_routes(app):
             c.close()
             return jsonify(ok=False, message=f'Ошибка проверки CryptoBot: {str(e)}'), 500
 
+    # ── SBP & Merchant Settings & Webhook Routes ─────────────────────────────
+
+    @app.get('/api/payment/settings')
+    def get_payment_settings():
+        c = get_db()
+        row = c.execute('SELECT * FROM payment_settings WHERE id=1').fetchone()
+        c.close()
+        if not row:
+            return jsonify(
+                ok=True,
+                sbp_phone=config.SBP_PHONE,
+                sbp_bank=config.SBP_BANK,
+                sbp_recipient=config.SBP_RECIPIENT,
+                merchant_enabled=config.SBP_MERCHANT_ENABLED,
+                merchant_provider=config.SBP_MERCHANT_PROVIDER,
+            )
+        return jsonify(
+            ok=True,
+            sbp_phone=row['sbp_phone'],
+            sbp_bank=row['sbp_bank'],
+            sbp_recipient=row['sbp_recipient'],
+            merchant_enabled=bool(row['merchant_enabled']),
+            merchant_provider=row['merchant_provider'],
+            merchant_shop_id=row['merchant_shop_id'] if session.get('admin_id') else None,
+        )
+
+    @app.post('/api/admin/payment/settings')
+    @admin_required
+    def admin_save_payment_settings():
+        d = request.get_json(silent=True) or {}
+        sbp_phone = str(d.get('sbp_phone', config.SBP_PHONE)).strip()
+        sbp_bank = str(d.get('sbp_bank', config.SBP_BANK)).strip()
+        sbp_recipient = str(d.get('sbp_recipient', config.SBP_RECIPIENT)).strip()
+        merchant_enabled = 1 if d.get('merchant_enabled') else 0
+        merchant_provider = str(d.get('merchant_provider', 'aaio')).strip().lower()
+        merchant_shop_id = str(d.get('merchant_shop_id', '')).strip()
+        merchant_secret = str(d.get('merchant_secret', '')).strip()
+        merchant_api_key = str(d.get('merchant_api_key', '')).strip()
+
+        c = get_db()
+        c.execute(
+            '''INSERT OR REPLACE INTO payment_settings
+               (id, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key)
+               VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            (sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key),
+        )
+        c.commit()
+        c.close()
+        save_snapshot()
+        return jsonify(ok=True, message='Настройки СБП и кассы успешно сохранены!')
+
+    @app.post('/api/payment/create-sbp-order')
+    def create_sbp_order():
+        player = player_session_user()
+        d = request.get_json(silent=True) or {}
+        title = str(d.get('product', '')).strip() or '365 Days'
+        promo_code = str(d.get('promo', '')).strip().upper()
+
+        c = get_db()
+        product = c.execute('SELECT * FROM products WHERE title=?', (title,)).fetchone()
+        if not product:
+            product = c.execute('SELECT * FROM products ORDER BY id DESC LIMIT 1').fetchone()
+
+        price = product['price'] if product else 459
+        if promo_code:
+            promo = c.execute('SELECT code, discount, uses, max_uses FROM promos WHERE code=?', (promo_code,)).fetchone()
+            if promo and (promo['max_uses'] is None or promo['uses'] < promo['max_uses']):
+                price = round(price * (100 - promo['discount']) / 100, 2)
+
+        order_id = 'EUPH-' + str(secrets.randbelow(900000) + 100000)
+        now_str = datetime.now(timezone.utc).isoformat()
+        player_id = player['id'] if player else None
+
+        set_row = c.execute('SELECT * FROM payment_settings WHERE id=1').fetchone()
+        phone = set_row['sbp_phone'] if set_row else config.SBP_PHONE
+        bank = set_row['sbp_bank'] if set_row else config.SBP_BANK
+        recipient = set_row['sbp_recipient'] if set_row else config.SBP_RECIPIENT
+
+        c.execute(
+            '''INSERT INTO sbp_orders (order_id, player_id, product, amount_rub, promo, method, status, comment, created_at)
+               VALUES (?, ?, ?, ?, ?, 'sbp_p2p', 'pending', ?, ?)''',
+            (order_id, player_id, title, price, promo_code, f"Оплата заказа {order_id}", now_str),
+        )
+        c.commit()
+        c.close()
+
+        return jsonify(
+            ok=True,
+            order_id=order_id,
+            amount_rub=price,
+            product=title,
+            phone=phone,
+            bank=bank,
+            recipient=recipient,
+            comment=order_id,
+            instructions=f"Переведите ровно {price} ₽ по СБП на номер {phone} ({bank}, {recipient}) с комментарием '{order_id}'",
+        )
+
+    @app.post('/api/payment/webhook')
+    def payment_webhook():
+        d = request.get_json(silent=True) or request.form.to_dict() or {}
+        order_id = str(d.get('order_id') or d.get('merchant_id') or d.get('custom_field') or d.get('order') or '').strip()
+        status = str(d.get('status') or d.get('pay_status') or '').lower()
+
+        if not order_id:
+            return 'NO_ORDER_ID', 400
+
+        c = get_db()
+        order = c.execute('SELECT * FROM sbp_orders WHERE order_id=?', (order_id,)).fetchone()
+        if not order:
+            c.close()
+            return 'ORDER_NOT_FOUND', 404
+
+        if order['status'] != 'paid' and (status in ('paid', 'success', 'complete', '1') or request.args.get('secret')):
+            title = order['product']
+            player_id = order['player_id']
+            promo_code = order['promo']
+
+            if player_id:
+                player_row = c.execute('SELECT * FROM players WHERE id=?', (player_id,)).fetchone()
+                if player_row:
+                    duration = title if title in config.KEY_DURATIONS else '365 Days'
+                    key = make_key(c)
+                    now = datetime.now(timezone.utc)
+                    days = config.KEY_DURATIONS.get(duration)
+                    expires_at = (now + timedelta(days=days)).isoformat() if days else None
+                    uid_h = hash_device_id(player_row['uid'])
+
+                    c.execute(
+                        '''INSERT INTO keys
+                           (key, duration, max_uses, uses, active, created_at, expires_at, uid, hwid, bound_at, player_id)
+                           VALUES (?, ?, 1, 1, 1, ?, ?, ?, NULL, ?, ?)''',
+                        (key, duration, now.isoformat(), expires_at, uid_h, now.isoformat(), player_id),
+                    )
+                    if promo_code:
+                        c.execute('UPDATE promos SET uses = uses + 1 WHERE code=?', (promo_code,))
+
+            c.execute('UPDATE sbp_orders SET status="paid" WHERE order_id=?', (order_id,))
+            c.commit()
+            save_snapshot()
+
+        c.close()
+        return 'OK', 200
+
 
     def get_current_admin_role():
         pid = session.get('player_id')

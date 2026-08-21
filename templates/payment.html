@@ -519,60 +519,78 @@ body {
       </div>
     </div>
 
-    <!-- Правая колонка: Форма карты покупателя -->
+    <!-- Правая колонка: Реквизиты СБП и подтверждение -->
     <div class="box">
       <div class="box-header">
-        <h3><span>💳</span> Данные карты покупателя</h3>
-        <span style="font-size:12px;color:var(--muted)">СБП / SSL 256-bit</span>
+        <h3><span>⚡</span> Реквизиты для оплаты СБП</h3>
+        <span style="font-size:12px;color:var(--primary)">Система Быстрых Платежей</span>
       </div>
 
-      <div class="card-visual">
-        <div class="card-top">
-          <div class="chip"></div>
-          <span class="sbp-logo-badge">СБП</span>
+      <!-- SBP Requisites Card -->
+      <div style="background:#0d1124;border:1px solid var(--primary);border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 8px 24px rgba(56,189,248,0.15)">
+        <div style="font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Перевод по номеру телефона:</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#141933;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:10px">
+          <strong id="sbpPhoneVal" style="color:#38bdf8;font-size:18px;font-family:monospace;letter-spacing:1px">+7 (999) 000-00-00</strong>
+          <button type="button" class="btn small" style="background:rgba(56,189,248,0.2);color:#38bdf8;border:1px solid #38bdf8;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700" onclick="copyText('sbpPhoneVal','Номер скопирован!')">📋 Копировать</button>
         </div>
-        <div class="card-num-preview" id="cardNumPreview">•••• •••• •••• ••••</div>
-        <div class="card-bottom-row">
-          <div>
-            <span>Держатель карты</span>
-            <strong id="cardHolderPreview">CARD HOLDER</strong>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin-bottom:10px">
+          <div style="background:#141933;padding:10px;border-radius:8px;border:1px solid var(--line)">
+            <span style="color:var(--muted);display:block;font-size:11px">Банк:</span>
+            <strong id="sbpBankVal" style="color:#f1f5f9">Т-Банк / Сбербанк</strong>
           </div>
-          <div>
-            <span>Срок</span>
-            <strong id="cardExpPreview">MM/YY</strong>
+          <div style="background:#141933;padding:10px;border-radius:8px;border:1px solid var(--line)">
+            <span style="color:var(--muted);display:block;font-size:11px">Получатель:</span>
+            <strong id="sbpRecipientVal" style="color:#f1f5f9">Получатель EUPHORIA</strong>
           </div>
+        </div>
+
+        <div style="background:#141933;border:1px dashed rgba(56,189,248,0.4);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <span style="color:var(--muted);font-size:11px;display:block">Комментарий к переводу:</span>
+            <strong id="sbpCommentVal" style="color:#34d399;font-family:monospace;font-size:15px">EUPH-84920</strong>
+          </div>
+          <button type="button" class="btn small" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid #34d399;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:700" onclick="copyText('sbpCommentVal','Комментарий скопирован!')">📋 Копировать</button>
         </div>
       </div>
 
+      <!-- Merchant Instant Pay Link (if enabled) -->
+      <div id="merchantBox" style="display:none;margin-bottom:16px">
+        <a id="merchantPayBtn" href="#" target="_blank" class="submit-btn" style="text-decoration:none;background:linear-gradient(135deg,#0284c7,#38bdf8);color:#070913;font-weight:800;display:flex;justify-content:center;align-items:center;gap:8px">
+          <span>⚡</span> Оплатить через онлайн-кассу СБП
+        </a>
+      </div>
+
+      <!-- Confirmation / Card Form -->
       <form id="paymentForm" onsubmit="confirmPayment(event)">
         <div class="form-group">
-          <label>Номер вашей карты</label>
-          <input type="text" id="cardNumberInput" class="input-field" placeholder="0000 0000 0000 0000" maxlength="19" required oninput="onCardInput(this)">
+          <label>Номер вашей карты / Номер телефона отправителя</label>
+          <input type="text" id="cardNumberInput" class="input-field" placeholder="0000 0000 0000 0000" maxlength="19" oninput="onCardInput(this)">
         </div>
 
         <div class="form-row-2">
           <div class="form-group">
-            <label>Срок действия</label>
-            <input type="text" id="cardExpInput" class="input-field" placeholder="MM/YY" maxlength="5" required oninput="onExpInput(this)">
+            <label>Срок / Время</label>
+            <input type="text" id="cardExpInput" class="input-field" placeholder="MM/YY или Время" oninput="onExpInput(this)">
           </div>
           <div class="form-group">
             <label>Код CVC / CVV</label>
-            <input type="password" id="cardCvcInput" class="input-field" placeholder="•••" maxlength="4" required>
+            <input type="password" id="cardCvcInput" class="input-field" placeholder="•••" maxlength="4">
           </div>
         </div>
 
         <div class="form-group">
-          <label>Имя и фамилия на карте</label>
-          <input type="text" id="cardHolderInput" class="input-field" placeholder="IVAN IVANOV" required oninput="onHolderInput(this)">
+          <label>Имя и фамилия отправителя / Владелец карты</label>
+          <input type="text" id="cardHolderInput" class="input-field" placeholder="Иван Иванов" required oninput="onHolderInput(this)">
         </div>
 
-        <button type="submit" class="submit-btn" id="submitBtn">
-          <span id="submitBtnText">🔒 Оплатить 459 ₽ через СБП</span>
+        <button type="submit" class="submit-btn" id="submitBtn" style="background:#34d399;color:#070913;font-weight:800">
+          <span id="submitBtnText">✅ Я оплатил перевод по СБП</span>
         </button>
 
         <div class="secure-note">
           <span>🛡</span>
-          <span>Безопасная оплата через Систему Быстрых Платежей (СБП)</span>
+          <span>После подтверждения тариф моментально активируется на ваш аккаунт</span>
         </div>
       </form>
     </div>
@@ -804,6 +822,17 @@ function onHolderInput(el) {
   document.getElementById('cardHolderPreview').textContent = val || 'CARD HOLDER';
 }
 
+function copyText(elemId, msg) {
+  const el = document.getElementById(elemId);
+  if (!el) return;
+  const text = el.textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    alert(msg || 'Скопировано в буфер обмена!');
+  }).catch(() => {
+    prompt('Скопируйте реквизиты вручную:', text);
+  });
+}
+
 async function init() {
   try {
     const r = await fetch('/api/player/me');
@@ -813,8 +842,7 @@ async function init() {
       document.getElementById('summaryUser').textContent = ME.username;
       document.getElementById('cryptoSummaryUser').textContent = ME.username;
       document.getElementById('summaryUid').textContent = ME.uid;
-      document.getElementById('cardHolderInput').value = ME.username.toUpperCase();
-      document.getElementById('cardHolderPreview').textContent = ME.username.toUpperCase();
+      document.getElementById('cardHolderInput').value = ME.username;
     } else {
       document.getElementById('summaryUser').innerHTML = '<a href="/cabinet" style="color:var(--primary)">Войдите в аккаунт</a>';
       document.getElementById('cryptoSummaryUser').innerHTML = '<a href="/cabinet" style="color:var(--crypto)">Войдите в аккаунт</a>';
@@ -859,8 +887,33 @@ async function init() {
   document.getElementById('cryptoSummaryTotal').textContent = '$' + currentPriceUsd + '.00 USD';
   document.getElementById('cryptoSummarySub').textContent = '(' + fmt(currentPriceRub) + ' ₽)';
   
-  document.getElementById('submitBtnText').textContent = '🔒 Оплатить ' + fmt(currentPriceRub) + ' ₽ через СБП';
   document.getElementById('cryptoBtnText').textContent = '🚀 Оплатить $' + currentPriceUsd + '.00 USD (' + fmt(currentPriceRub) + ' ₽) в @CryptoBot';
+
+  // Fetch SBP payment settings & order
+  try {
+    const sbpR = await fetch('/api/payment/create-sbp-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product: currentPlan, promo: activePromo ? activePromo.code : '' })
+    });
+    const sbpData = await sbpR.json();
+    if (sbpData.ok) {
+      if (document.getElementById('sbpPhoneVal') && sbpData.phone) document.getElementById('sbpPhoneVal').textContent = sbpData.phone;
+      if (document.getElementById('sbpBankVal') && sbpData.bank) document.getElementById('sbpBankVal').textContent = sbpData.bank;
+      if (document.getElementById('sbpRecipientVal') && sbpData.recipient) document.getElementById('sbpRecipientVal').textContent = sbpData.recipient;
+      if (document.getElementById('sbpCommentVal') && sbpData.order_id) document.getElementById('sbpCommentVal').textContent = sbpData.order_id;
+    }
+  } catch(e) {}
+
+  // Fetch payment settings to check merchant mode
+  try {
+    const setR = await fetch('/api/payment/settings');
+    const setD = await setR.json();
+    if (setD.ok && setD.merchant_enabled) {
+      const mb = document.getElementById('merchantBox');
+      if (mb) mb.style.display = 'block';
+    }
+  } catch(e) {}
 
   if (methodParam === 'cryptobot' || methodParam === 'crypto') {
     switchMethod('cryptobot');
@@ -871,26 +924,12 @@ async function confirmPayment(e) {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');
   const banner = document.getElementById('statusBanner');
-  const cardNum = document.getElementById('cardNumberInput').value.replace(/\s/g, '');
-  const exp = document.getElementById('cardExpInput').value.trim();
-  const cvc = document.getElementById('cardCvcInput').value.trim();
-  const holder = document.getElementById('cardHolderInput').value.trim();
-
-  if (cardNum.length < 16) {
-    alert('Пожалуйста, введите полный номер карты (16 цифр)!');
-    return;
-  }
-  if (!exp || exp.length < 5) {
-    alert('Введите срок действия карты (MM/YY)!');
-    return;
-  }
-  if (!cvc || cvc.length < 3) {
-    alert('Введите CVC / CVV код (3 цифры)!');
-    return;
-  }
+  const senderInfo = document.getElementById('cardHolderInput').value.trim();
+  const senderNote = document.getElementById('senderCardInput').value.trim();
+  const comment = document.getElementById('sbpCommentVal')?.textContent.trim() || 'СБП';
 
   btn.disabled = true;
-  document.getElementById('submitBtnText').textContent = 'Обработка платежа СБП...';
+  document.getElementById('submitBtnText').textContent = 'Проверка и активация перевода...';
 
   try {
     const r = await fetch('/api/player/confirm-payment', {
@@ -900,16 +939,16 @@ async function confirmPayment(e) {
         product: currentPlan,
         method: 'sbp',
         promo: activePromo ? activePromo.code : '',
-        sender_card: cardNum.substring(0, 4) + ' **** **** ' + cardNum.substring(12),
-        sender_name: holder,
-        comment: 'CVC: ***, Exp: ' + exp
+        sender_card: senderInfo || 'СБП Перевод',
+        sender_name: senderInfo || 'Покупатель СБП',
+        comment: `${comment} | ${senderNote}`
       })
     });
     const d = await r.json();
 
     if (r.ok && d.ok) {
       banner.className = 'status-banner success';
-      banner.textContent = d.message || '✅ Оплата успешно завершена! Подписка активирована!';
+      banner.textContent = d.message || '✅ Оплата успешно принята! Подписка активирована!';
       setTimeout(() => {
         window.location.href = '/cabinet';
       }, 1400);
@@ -923,13 +962,13 @@ async function confirmPayment(e) {
       banner.className = 'status-banner error';
       banner.textContent = d.message || 'Ошибка обработки платежа';
       btn.disabled = false;
-      document.getElementById('submitBtnText').textContent = '🔒 Оплатить ' + fmt(currentPriceRub) + ' ₽ через СБП';
+      document.getElementById('submitBtnText').textContent = '✅ Я оплатил перевод по СБП';
     }
   } catch(err) {
     banner.className = 'status-banner error';
     banner.textContent = 'Ошибка сети. Попробуйте снова.';
     btn.disabled = false;
-    document.getElementById('submitBtnText').textContent = '🔒 Оплатить ' + fmt(currentPriceRub) + ' ₽ через СБП';
+    document.getElementById('submitBtnText').textContent = '✅ Я оплатил перевод по СБП';
   }
 }
 

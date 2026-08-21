@@ -574,6 +574,58 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--muted);font-s
               <p id="dbStatusDesc" style="color:var(--muted);font-size:12.5px;margin-top:10px;margin-bottom:0">Для гарантированного сохранения всех пользователей навсегда подключите PostgreSQL на Render.</p>
             </div>
           </div>
+
+          <!-- SBP & Merchant Settings -->
+          <div class="cc wide" style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+              <div>
+                <span class="cl">&#128179; Платёжная система</span>
+                <h3 style="font-size:16px;margin:4px 0 0">Настройки СБП и Онлайн-Кассы</h3>
+              </div>
+              <button class="btn ghost small" onclick="loadPaymentSettings()">&#128260; Обновить</button>
+            </div>
+            <p style="color:var(--muted);font-size:12px;margin-bottom:14px">Укажите ваш номер телефона и банк для прямого перевода по СБП (P2P), либо подключите онлайн-кассу (Aaio / Lava / Payok) для 100% автовыдачи.</p>
+            
+            <form onsubmit="savePaymentSettings(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;background:#0d1124;padding:14px;border-radius:12px;border:1px solid var(--line)">
+              <div>
+                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">📱 Номер телефона для СБП:</label>
+                <input type="text" id="admSbpPhone" class="ai" placeholder="+7 (999) 000-00-00" style="margin-bottom:0" required>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">🏦 Банк-получатель:</label>
+                <input type="text" id="admSbpBank" class="ai" placeholder="Т-Банк / Сбербанк / ВТБ" style="margin-bottom:0" required>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">👤 ФИО / Имя получателя:</label>
+                <input type="text" id="admSbpRecipient" class="ai" placeholder="Иван И." style="margin-bottom:0" required>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">🌐 Провайдер кассы (по выбору):</label>
+                <select id="admMerchantProvider" class="ai" style="margin-bottom:0;background:#141933">
+                  <option value="aaio">Aaio.so (СБП, Карты, Крипта)</option>
+                  <option value="lava">Lava.top / Lava.ru</option>
+                  <option value="payok">Payok.io</option>
+                  <option value="crystalpay">CrystalPay</option>
+                  <option value="freekassa">FreeKassa</option>
+                  <option value="yukassa">ЮKassa (Самозанятые / ИП)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">🔑 Shop ID / ID Магазина (если есть):</label>
+                <input type="text" id="admMerchantShopId" class="ai" placeholder="ID проекта в кассе" style="margin-bottom:0">
+              </div>
+              <div>
+                <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">🔒 Secret Key / Секретный ключ:</label>
+                <input type="password" id="admMerchantSecret" class="ai" placeholder="Секретный ключ кассы" style="margin-bottom:0">
+              </div>
+              <div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-top:6px;flex-wrap:wrap;gap:10px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="admMerchantEnabled"> Включить автоприём через шлюз кассы
+                </label>
+                <button class="btn" type="submit" style="background:#38bdf8;color:#070913;font-weight:700">💾 Сохранить реквизиты СБП</button>
+              </div>
+            </form>
+          </div>
         </section>
       </main>
     </div>
@@ -1014,7 +1066,51 @@ async function loadAdmin(){
     if(b.your_ip){const e=document.getElementById('yourIp');if(e)e.textContent=b.your_ip;}
     loadDbStatus();
     loadPasswordResets();
+    loadPaymentSettings();
   }catch(e){}
+}
+async function loadPaymentSettings(){
+  try{
+    const r=await fetch('/api/payment/settings');
+    const d=await r.json();
+    if(d.ok){
+      const sp=document.getElementById('admSbpPhone');
+      const sb=document.getElementById('admSbpBank');
+      const sr=document.getElementById('admSbpRecipient');
+      const mp=document.getElementById('admMerchantProvider');
+      const ms=document.getElementById('admMerchantShopId');
+      const me=document.getElementById('admMerchantEnabled');
+      if(sp && d.sbp_phone) sp.value = d.sbp_phone;
+      if(sb && d.sbp_bank) sb.value = d.sbp_bank;
+      if(sr && d.sbp_recipient) sr.value = d.sbp_recipient;
+      if(mp && d.merchant_provider) mp.value = d.merchant_provider;
+      if(ms && d.merchant_shop_id) ms.value = d.merchant_shop_id;
+      if(me) me.checked = Boolean(d.merchant_enabled);
+    }
+  }catch(e){}
+}
+async function savePaymentSettings(e){
+  e.preventDefault();
+  try{
+    const body = {
+      sbp_phone: document.getElementById('admSbpPhone').value.trim(),
+      sbp_bank: document.getElementById('admSbpBank').value.trim(),
+      sbp_recipient: document.getElementById('admSbpRecipient').value.trim(),
+      merchant_provider: document.getElementById('admMerchantProvider').value,
+      merchant_shop_id: document.getElementById('admMerchantShopId').value.trim(),
+      merchant_secret: document.getElementById('admMerchantSecret').value.trim(),
+      merchant_enabled: document.getElementById('admMerchantEnabled').checked
+    };
+    const r = await fetch('/api/admin/payment/settings', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    alert(d.message || 'Настройки сохранены');
+  }catch(err){
+    alert('Ошибка при сохранении настроек СБП');
+  }
 }
 async function loadPasswordResets(){
   const e=document.getElementById('resetCodesList');

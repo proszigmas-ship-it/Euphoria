@@ -233,21 +233,54 @@ def init_db():
         pass
 
     c.execute(f'''
-        CREATE TABLE IF NOT EXISTS fingerprints (
+        CREATE TABLE IF NOT EXISTS payment_settings (
             id {pk},
-            fp_hash TEXT NOT NULL,
-            fp_short TEXT,
-            ip TEXT,
-            user_agent TEXT,
-            event TEXT,
-            meta TEXT,
+            sbp_phone TEXT NOT NULL DEFAULT '+7 (999) 000-00-00',
+            sbp_bank TEXT NOT NULL DEFAULT 'Т-Банк / Сбербанк',
+            sbp_recipient TEXT NOT NULL DEFAULT 'Получатель EUPHORIA',
+            merchant_enabled INTEGER NOT NULL DEFAULT 0,
+            merchant_provider TEXT NOT NULL DEFAULT 'aaio',
+            merchant_shop_id TEXT NOT NULL DEFAULT '',
+            merchant_secret TEXT NOT NULL DEFAULT '',
+            merchant_api_key TEXT NOT NULL DEFAULT ''
+        )
+    ''')
+
+    c.execute(f'''
+        CREATE TABLE IF NOT EXISTS sbp_orders (
+            id {pk},
+            order_id TEXT UNIQUE NOT NULL,
+            player_id INTEGER,
+            product TEXT NOT NULL,
+            amount_rub REAL NOT NULL,
+            promo TEXT,
+            method TEXT NOT NULL DEFAULT 'sbp_p2p',
+            status TEXT NOT NULL DEFAULT 'pending',
+            comment TEXT,
             created_at TEXT NOT NULL
         )
     ''')
     try:
-        c.execute('CREATE INDEX IF NOT EXISTS idx_fp_hash ON fingerprints(fp_hash)')
+        c.execute('CREATE INDEX IF NOT EXISTS idx_sbp_order_id ON sbp_orders(order_id)')
     except Exception:
         pass
+
+    if not c.execute('SELECT id FROM payment_settings WHERE id=1').fetchone():
+        c.execute(
+            '''INSERT INTO payment_settings
+               (id, sbp_phone, sbp_bank, sbp_recipient, merchant_enabled, merchant_provider, merchant_shop_id, merchant_secret, merchant_api_key)
+               VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            (
+                config.SBP_PHONE,
+                config.SBP_BANK,
+                config.SBP_RECIPIENT,
+                1 if config.SBP_MERCHANT_ENABLED else 0,
+                config.SBP_MERCHANT_PROVIDER,
+                config.SBP_MERCHANT_SHOP_ID,
+                config.SBP_MERCHANT_SECRET,
+                config.SBP_MERCHANT_API_KEY,
+            ),
+        )
 
     # Admin account — always sync password from env/config
     admin = c.execute(
