@@ -33,6 +33,12 @@ ADMIN_PASSWORD = os.environ.get('EUPHORIA_ADMIN_PASSWORD', 'Euphoria#2026!Sec9X_
 CRYPTOBOT_API_TOKEN = os.environ.get('CRYPTOBOT_API_TOKEN', '624589:AAznMORRmPNjYNAUd9ad6uAjDF3tKgoJ3EV')
 IS_TESTING = False
 
+SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', '465'))
+SMTP_USER = os.environ.get('SMTP_USER', 'euphoria.auth@gmail.com')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', 'K9#vX2$mQ8!zL4@wR7*p')
+SMTP_FROM = os.environ.get('SMTP_FROM', 'euphoria.auth@gmail.com')
+
 DEFAULT_PRODUCTS = [
     ('30 Days', 159, 0),
     ('90 Days', 259, 0),

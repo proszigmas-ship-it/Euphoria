@@ -4,11 +4,13 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
-SMTP_PORT = int(os.environ.get('SMTP_PORT', '465'))
-SMTP_USER = os.environ.get('SMTP_USER', 'euphoria.auth@gmail.com')
-SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-SMTP_FROM = os.environ.get('SMTP_FROM', 'euphoria.auth@gmail.com')
+from . import config
+
+SMTP_HOST = os.environ.get('SMTP_HOST', getattr(config, 'SMTP_HOST', 'smtp.gmail.com'))
+SMTP_PORT = int(os.environ.get('SMTP_PORT', getattr(config, 'SMTP_PORT', 465)))
+SMTP_USER = os.environ.get('SMTP_USER', getattr(config, 'SMTP_USER', 'euphoria.auth@gmail.com'))
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', getattr(config, 'SMTP_PASSWORD', 'K9#vX2$mQ8!zL4@wR7*p'))
+SMTP_FROM = os.environ.get('SMTP_FROM', getattr(config, 'SMTP_FROM', 'euphoria.auth@gmail.com'))
 SMTP_SSL = os.environ.get('SMTP_SSL', '1') == '1'
 
 
