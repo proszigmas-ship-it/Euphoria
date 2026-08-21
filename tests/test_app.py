@@ -26,7 +26,10 @@ class EuphoriaAppTests(unittest.TestCase):
     def tearDown(self):
         config.DB_PATH = self.original_db_path
         config.IS_TESTING = False
-        self.temp_dir.cleanup()
+        try:
+            self.temp_dir.cleanup()
+        except Exception:
+            pass
 
     def generate_key(self, duration='90 Days'):
         response = self.client.post(
@@ -318,6 +321,38 @@ class EuphoriaAppTests(unittest.TestCase):
         self.assertTrue(data['ok'])
         found = any(x['username'] == uname for x in data['resets'])
         self.assertTrue(found)
+
+    def test_player_ip_tracking_and_admin_ip_ban(self):
+        # 1. Register player with specific IP
+        uname = f'ip_user_{secrets.token_hex(4)}'
+        email = f'{uname}@ip-test.com'
+        test_ip = '198.51.100.42'
+        self.client.post('/api/player/register', json={
+            'username': uname,
+            'email': email,
+            'password': 'Password123!'
+        }, environ_base={'REMOTE_ADDR': test_ip})
+
+        # 2. Login as admin and list players to verify IP is present
+        self.client.post('/api/admin/login', json={'username': config.ADMIN_USERNAME, 'password': config.ADMIN_PASSWORD})
+        resp = self.client.get('/api/admin/players')
+        self.assertEqual(resp.status_code, 200)
+        p_list = resp.get_json()['players']
+        player = next(p for p in p_list if p['username'] == uname)
+        self.assertEqual(player['reg_ip'], test_ip)
+        self.assertEqual(player['last_ip'], test_ip)
+
+        # 3. Ban player by IP
+        ban_resp = self.client.post(f'/api/admin/players/{player["id"]}/ban-ip')
+        self.assertEqual(ban_resp.status_code, 200)
+        self.assertTrue(ban_resp.get_json()['ok'])
+
+        # 4. Verify player IP is banned in ip_bans table
+        from euphoria.db import get_db
+        c = get_db()
+        ban_row = c.execute('SELECT * FROM ip_bans WHERE ip=? AND active=1', (test_ip,)).fetchone()
+        self.assertIsNotNone(ban_row)
+        c.close()
 
 
 if __name__ == '__main__':

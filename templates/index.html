@@ -1133,6 +1133,9 @@ function rplayer(data){
       <div style="background:#141933;padding:6px 10px;border-radius:8px;border:1px solid var(--line);font-size:12px">
         <span style="color:var(--muted)">🔑 Пароль:</span> <strong style="color:#a78bfa;font-family:monospace">${p.password||'—'}</strong>
       </div>
+      <div style="background:#141933;padding:6px 10px;border-radius:8px;border:1px solid var(--line);font-size:12px">
+        <span style="color:var(--muted)">🌐 IP:</span> <strong style="color:#38bdf8;font-family:monospace">${p.last_ip||p.reg_ip||'—'}</strong>
+      </div>
       <div style="font-size:12px;color:${p.subscription_active?'#34d399':'var(--muted)'}">
         🛡 ${p.subscription}
       </div>
@@ -1147,8 +1150,9 @@ function rplayer(data){
         </select>
         ${p.banned ?
           `<button class="btn" style="padding:6px 12px;font-size:11.5px;background:#34d399;border-color:#34d399" onclick="togglePlayerBan(${p.id},'unban')">✅ Разбанить</button>` :
-          `<button class="btn" style="padding:6px 12px;font-size:11.5px;background:#ef4444;border-color:#ef4444" onclick="togglePlayerBan(${p.id},'ban')">🚫 Забанить</button>`
+          `<button class="btn" style="padding:6px 12px;font-size:11.5px;background:#ef4444;border-color:#ef4444" onclick="togglePlayerBan(${p.id},'ban')">🚫 Бан аккаунта</button>`
         }
+        <button class="btn" style="padding:6px 12px;font-size:11.5px;background:#b91c1c;border-color:#b91c1c;font-weight:700" onclick="banPlayerIp(${p.id},'${p.username}','${p.last_ip||p.reg_ip||''}')" title="Забанить IP-адрес роутера">🚫 Бан по IP</button>
         ${(data.is_full_admin || data.viewer_role === 'Admin') ?
           `<button class="btn ghost" style="padding:6px 10px;font-size:11.5px;color:#f87171;border-color:rgba(248,113,113,0.3)" onclick="deletePlayer(${p.id},'${p.username}')" title="Удалить аккаунт навсегда">🗑 Удалить</button>` :
           ''
@@ -1156,6 +1160,21 @@ function rplayer(data){
       </div>
     </div>
   `).join('');
+}
+async function banPlayerIp(playerId, username, ip){
+  if(!ip || ip==='—' || ip==='0.0.0.0'){
+    alert(`У игрока '${username}' не зафиксирован IP адрес.`);
+    return;
+  }
+  if(!confirm(`Вы действительно хотите выдать ПОЛНЫЙ IP-БАН игроку '${username}' по его IP (${ip})? Ему будет полностью заблокирован доступ к сайту!`)) return;
+  try{
+    const r = await fetch(`/api/admin/players/${playerId}/ban-ip`, { method: 'POST' });
+    const d = await r.json();
+    alert(d.message || 'Готово');
+    loadAdmin();
+  }catch(e){
+    alert('Ошибка сети при бане IP');
+  }
 }
 async function deletePlayer(playerId, username){
   if(!confirm(`Вы действительно хотите НАВСЕГДА удалить аккаунт игрока '${username}' из проекта? Это действие необратимо!`)) return;

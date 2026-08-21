@@ -253,11 +253,13 @@ def register_routes(app):
             c.close()
             return jsonify(ok=False, message='Пользователь с таким именем или email уже зарегистрирован'), 400
 
+        ip = get_client_ip()
         temp_uid = 'TMP-' + secrets.token_hex(8)
+        now_str = datetime.now(timezone.utc).isoformat()
         try:
             cur = c.execute(
-                "INSERT INTO players(uid,username,email,password_hash,password_plain,role,banned,created_at) VALUES(?,?,?,?,?,?,0,?)",
-                (temp_uid, username, email, generate_password_hash(password), password, 'User', datetime.now(timezone.utc).isoformat()),
+                "INSERT INTO players(uid,username,email,password_hash,password_plain,role,banned,created_at,last_login,reg_ip,last_ip) VALUES(?,?,?,?,?,?,0,?,?,?,?)",
+                (temp_uid, username, email, generate_password_hash(password), password, 'User', now_str, now_str, ip, ip),
             )
             player_id = cur.lastrowid
             base_uid = config.PLAYER_UID_BASE + player_id
@@ -434,7 +436,8 @@ def register_routes(app):
             return jsonify(ok=False, banned=True, message=f'Ваш аккаунт заблокирован! Причина: {reason}'), 403
 
         now = datetime.now(timezone.utc).isoformat()
-        c.execute('UPDATE players SET last_login=?, password_plain=? WHERE id=?', (now, password, row['id']))
+        ip = get_client_ip()
+        c.execute('UPDATE players SET last_login=?, password_plain=?, last_ip=? WHERE id=?', (now, password, ip, row['id']))
         c.commit(); c.close()
         session.permanent = True
         session['player_id'] = row['id']
@@ -887,7 +890,7 @@ def register_routes(app):
     def admin_list_players():
         c = get_db()
         players = c.execute(
-            'SELECT id, uid, username, email, password_plain, role, banned, ban_reason, created_at, last_login '
+            'SELECT id, uid, username, email, password_plain, role, banned, ban_reason, created_at, last_login, reg_ip, last_ip '
             'FROM players ORDER BY id DESC LIMIT 500'
         ).fetchall()
         now = datetime.now(timezone.utc)
@@ -937,6 +940,8 @@ def register_routes(app):
                 'ban_reason': p['ban_reason'] or '',
                 'created_at': p['created_at'],
                 'last_login': p['last_login'],
+                'reg_ip': p['reg_ip'] if ('reg_ip' in p.keys() and p['reg_ip']) else '—',
+                'last_ip': p['last_ip'] if ('last_ip' in p.keys() and p['last_ip']) else (p['reg_ip'] if ('reg_ip' in p.keys() and p['reg_ip']) else '—'),
                 'subscription': sub_label,
                 'subscription_active': sub_active,
                 'hwid': hwid_status,
@@ -1052,6 +1057,45 @@ def register_routes(app):
             username=player['username'],
             message=f'Пользователь {player["username"]} (UID: {player["uid"]}) успешно {status_text}!',
         )
+
+    @app.post('/api/admin/players/<int:player_id>/ban-ip')
+    @admin_required
+    def admin_ban_player_ip(player_id: int):
+        c = get_db()
+        player = c.execute('SELECT * FROM players WHERE id=?', (player_id,)).fetchone()
+        if not player:
+            c.close()
+            return jsonify(ok=False, message='Пользователь не найден'), 404
+
+        if player['role'] in ('Admin', 'Администратор') and player['username'].lower() in ('admin', config.ADMIN_USERNAME.lower()):
+            c.close()
+            return jsonify(ok=False, message='Нельзя забанить главного администратора!'), 400
+
+        ip = player['last_ip'] or player['reg_ip']
+        if not ip or ip in ('—', '0.0.0.0', '127.0.0.1'):
+            c.close()
+            return jsonify(ok=False, message='IP адрес у этого игрока не записан'), 400
+
+        my_ip = get_client_ip()
+        if ip == my_ip:
+            c.close()
+            return jsonify(ok=False, message='Нельзя забанить свой собственный текущий IP адрес!'), 400
+
+        now = datetime.now(timezone.utc).isoformat()
+        reason = f"IP Бан игрока {player['username']} (UID: {player['uid']})"
+
+        c.execute('UPDATE ip_bans SET active=0 WHERE ip=? AND active=1', (ip,))
+        c.execute(
+            '''INSERT INTO ip_bans (ip, reason, active, banned_at, banned_by)
+               VALUES (?, ?, 1, ?, ?)''',
+            (ip, reason, now, config.ADMIN_USERNAME),
+        )
+        c.execute('UPDATE players SET banned=1, ban_reason=? WHERE id=?', (reason, player['id']))
+        c.execute('UPDATE keys SET active=0 WHERE player_id=?', (player['id'],))
+        c.commit()
+        c.close()
+        save_snapshot()
+        return jsonify(ok=True, message=f'Игрок {player["username"]} и его IP ({ip}) успешно заблокированы!', ip=ip)
 
     @app.post('/api/admin/players/<int:player_id>/role')
     @admin_required
