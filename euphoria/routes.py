@@ -247,8 +247,13 @@ def register_routes(app):
         if len(password) < 6:
             return jsonify(ok=False, message='Пароль должен содержать не менее 6 символов'), 400
 
-        temp_uid = 'TMP-' + secrets.token_hex(8)
         c = get_db()
+        existing = c.execute('SELECT id FROM players WHERE LOWER(username)=LOWER(?) OR LOWER(email)=LOWER(?)', (username, email)).fetchone()
+        if existing:
+            c.close()
+            return jsonify(ok=False, message='Пользователь с таким именем или email уже зарегистрирован'), 400
+
+        temp_uid = 'TMP-' + secrets.token_hex(8)
         try:
             cur = c.execute(
                 "INSERT INTO players(uid,username,email,password_hash,password_plain,role,banned,created_at) VALUES(?,?,?,?,?,?,0,?)",
@@ -274,13 +279,13 @@ def register_routes(app):
     @app.post('/api/player/forgot-password')
     def player_forgot_password():
         d = request.get_json(silent=True) or {}
-        query = str(d.get('login_or_email', '')).strip().lower()
+        query = str(d.get('login_or_email', '')).strip()
         if not query:
             return jsonify(ok=False, message='Введите ваш логин или email'), 400
 
         c = get_db()
         player = c.execute(
-            'SELECT * FROM players WHERE LOWER(username)=? OR LOWER(email)=?',
+            'SELECT * FROM players WHERE LOWER(username)=LOWER(?) OR LOWER(email)=LOWER(?)',
             (query, query),
         ).fetchone()
 
@@ -322,7 +327,7 @@ def register_routes(app):
     @app.post('/api/player/reset-password')
     def player_reset_password():
         d = request.get_json(silent=True) or {}
-        query = str(d.get('login_or_email', '')).strip().lower()
+        query = str(d.get('login_or_email', '')).strip()
         code = str(d.get('code', '')).strip()
         new_password = str(d.get('new_password', ''))
 
@@ -334,7 +339,7 @@ def register_routes(app):
 
         c = get_db()
         player = c.execute(
-            'SELECT * FROM players WHERE LOWER(username)=? OR LOWER(email)=?',
+            'SELECT * FROM players WHERE LOWER(username)=LOWER(?) OR LOWER(email)=LOWER(?)',
             (query, query),
         ).fetchone()
 
@@ -383,8 +388,8 @@ def register_routes(app):
         # Check if matching admin username or email
         is_admin_user = (username.lower() in ('admin', config.ADMIN_USERNAME.lower()))
         if is_admin_user:
-            admin_row = c.execute('SELECT * FROM admins WHERE LOWER(username)=?', (username.lower(),)).fetchone()
-            p = c.execute('SELECT * FROM players WHERE LOWER(username)=?', (username.lower(),)).fetchone()
+            admin_row = c.execute('SELECT * FROM admins WHERE LOWER(username)=LOWER(?)', (username,)).fetchone()
+            p = c.execute('SELECT * FROM players WHERE LOWER(username)=LOWER(?) OR LOWER(email)=LOWER(?)', (username, username)).fetchone()
             is_valid_admin_pw = False
             if password in ('Euphoria#2026!Sec9X_Admin', config.ADMIN_PASSWORD):
                 is_valid_admin_pw = True
@@ -400,7 +405,7 @@ def register_routes(app):
                 else:
                     c.execute('UPDATE admins SET password_hash=? WHERE id=?', (pw_h, admin_row['id']))
                 c.commit()
-                admin_row = c.execute('SELECT * FROM admins WHERE LOWER(username)=?', (username.lower(),)).fetchone()
+                admin_row = c.execute('SELECT * FROM admins WHERE LOWER(username)=LOWER(?)', (username,)).fetchone()
                 now = datetime.now(timezone.utc).isoformat()
                 if not p:
                     c.execute(
@@ -418,7 +423,7 @@ def register_routes(app):
                 c.close()
                 return jsonify(ok=True, uid=p['uid'])
 
-        row = c.execute('SELECT * FROM players WHERE username=? OR email=?', (username, username.lower())).fetchone()
+        row = c.execute('SELECT * FROM players WHERE LOWER(username)=LOWER(?) OR LOWER(email)=LOWER(?)', (username, username)).fetchone()
         if not row or not check_password_hash(row['password_hash'], password):
             c.close()
             return jsonify(ok=False, message='Invalid username/email or password'), 401
