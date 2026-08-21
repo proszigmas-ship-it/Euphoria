@@ -15,11 +15,23 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   min-height:100vh;color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;
-  background:
-    radial-gradient(circle at 15% -10%,rgba(124,108,240,.18),transparent 40%),
-    radial-gradient(circle at 100% 20%,rgba(40,194,176,.08),transparent 35%),
-    var(--bg);
+  background:var(--bg);
+  overflow-x:hidden;
+  position:relative;
 }
+
+/* Atmospheric Minecraft Cinematic Background */
+.minecraft-bg-layer{position:fixed;inset:0;background:url('/static/images/minecraft_bg.jpg') no-repeat center 20% / cover;filter:brightness(0.48) contrast(1.12) saturate(1.15);transform:scale(1.02);pointer-events:none;z-index:0}
+.minecraft-bg-overlay{position:fixed;inset:0;background:radial-gradient(circle at 50% 35%, rgba(9, 11, 20, 0.4) 0%, rgba(9, 11, 20, 0.85) 65%, rgba(5, 6, 10, 0.98) 100%), linear-gradient(180deg, rgba(9, 11, 20, 0.3) 0%, rgba(9, 11, 20, 0.92) 100%);pointer-events:none;z-index:0}
+.bg-glow-1{position:fixed;top:-15%;left:50%;transform:translateX(-50%);width:900px;height:650px;background:radial-gradient(circle,rgba(133,155,255,0.18),rgba(99,102,241,0.06) 45%,transparent 70%);filter:blur(90px);pointer-events:none;z-index:0;animation:orbBreathe1 12s ease-in-out infinite alternate}
+.bg-glow-2{position:fixed;top:38%;right:-10%;width:750px;height:600px;background:radial-gradient(circle,rgba(56,189,248,0.12),rgba(14,165,233,0.04) 50%,transparent 70%);filter:blur(100px);pointer-events:none;z-index:0;animation:orbBreathe2 15s ease-in-out infinite alternate}
+
+@keyframes orbBreathe1{0%{transform:translateX(-50%) scale(1) translateY(0);opacity:0.85}100%{transform:translateX(-48%) scale(1.15) translateY(40px);opacity:1}}
+@keyframes orbBreathe2{0%{transform:scale(1) translateY(0);opacity:0.75}100%{transform:scale(1.2) translateY(-50px);opacity:1}}
+
+#particles-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+body>*:not(#particles-bg):not(.bg-glow-1):not(.bg-glow-2):not(.minecraft-bg-layer):not(.minecraft-bg-overlay){position:relative;z-index:1}
+
 a{color:inherit;text-decoration:none}
 button,input{font:inherit}
 .container{width:min(1180px,94%);margin:0 auto}
@@ -125,16 +137,23 @@ h1.page-title{font-size:26px;margin-bottom:4px}
 .placeholder-panel h3{color:#e5e7f0;margin-bottom:8px}
 
 /* ── Auth gate ── */
-.gate{min-height:calc(100vh - 70px);display:grid;place-items:center;padding:30px}
-.gate-card{width:min(400px,100%);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px}
-.gate-card h2{margin-bottom:4px}
-.gate-card p.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
-.gate-mode{display:flex;gap:8px;margin-bottom:16px}
-.gate-mode button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
-.gate-mode button.active{background:#161c34;color:#fff;border-color:rgba(124,108,240,.5)}
-.gate-card form{display:grid;gap:10px}
-.gate-card input{background:#0a0d19;border:1px solid var(--line);color:#fff;border-radius:10px;padding:12px 14px;outline:none}
-.gate-msg{font-size:13px;min-height:18px;color:var(--danger)}
+.gate{min-height:calc(100vh - 70px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;position:relative;z-index:2}
+.gate-card{width:min(440px,100%);background:linear-gradient(180deg,rgba(18,24,48,0.88),rgba(11,14,28,0.94));border:1px solid rgba(133,155,255,0.28);border-radius:24px;padding:34px 30px;box-shadow:0 25px 60px rgba(0,0,0,0.6),0 0 45px rgba(133,155,255,0.15);backdrop-filter:blur(24px);position:relative;overflow:hidden}
+.gate-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(133,155,255,0.8),transparent)}
+.gate-brand-header{display:flex;flex-direction:column;align-items:center;margin-bottom:20px;text-align:center}
+.gate-logo-glyph{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:grid;place-items:center;font-weight:900;font-size:22px;color:#fff;margin-bottom:12px;box-shadow:0 0 25px rgba(124,108,240,0.4);overflow:hidden}
+.gate-logo-glyph img{width:100%;height:100%;object-fit:cover}
+.gate-card h2{font-size:23px;font-weight:900;margin-bottom:6px;letter-spacing:-0.5px}
+.gate-card p.sub{color:var(--muted);font-size:13.5px;margin-bottom:16px;text-align:center}
+.gate-perks{display:flex;justify-content:center;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.gate-perk{font-size:11px;font-weight:800;color:var(--cyan);background:rgba(56,189,248,0.1);padding:4px 10px;border-radius:999px;border:1px solid rgba(56,189,248,0.2)}
+.gate-mode{display:flex;gap:8px;margin-bottom:18px;background:rgba(9,11,22,0.7);padding:4px;border-radius:12px;border:1px solid var(--line)}
+.gate-mode button{flex:1;padding:10px;border-radius:9px;border:0;background:transparent;color:var(--muted);cursor:pointer;font-weight:700;font-size:13.5px;transition:.2s}
+.gate-mode button.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 4px 14px rgba(124,108,240,0.35)}
+.gate-card form{display:grid;gap:12px}
+.gate-card input{background:rgba(9,11,22,0.9);border:1px solid var(--line);color:#fff;border-radius:12px;padding:13px 15px;outline:none;font-size:14px;transition:.2s}
+.gate-card input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(124,108,240,0.25)}
+.gate-msg{font-size:13px;min-height:18px;color:var(--danger);text-align:center;margin-top:6px}
 
 /* ── Payment modal ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,5,10,.72);backdrop-filter:blur(6px);z-index:200;place-items:center;padding:18px}
@@ -176,6 +195,11 @@ h1.page-title{font-size:26px;margin-bottom:4px}
 </style>
 </head>
 <body>
+<div class="minecraft-bg-layer"></div>
+<div class="minecraft-bg-overlay"></div>
+<div class="bg-glow-1"></div>
+<div class="bg-glow-2"></div>
+<canvas id="particles-bg"></canvas>
 
 <div class="topbar">
   <div class="container" style="display:flex;align-items:center;justify-content:space-between">
@@ -202,8 +226,18 @@ h1.page-title{font-size:26px;margin-bottom:4px}
 <!-- ── Auth gate (shown when not logged in) ── -->
 <div class="gate" id="gate">
   <div class="gate-card">
-    <h2 id="gateTitle">Вход в кабинет</h2>
-    <p class="sub" id="gateSub">Войдите или создайте аккаунт, чтобы управлять подпиской.</p>
+    <div class="gate-brand-header">
+      <div class="gate-logo-glyph">
+        <img src="/static/images/logo.png" alt="EUPHORIA">
+      </div>
+      <h2 id="gateTitle">Личный кабинет</h2>
+      <p class="sub" id="gateSub">Войдите или создайте аккаунт для управления подпиской</p>
+      <div class="gate-perks">
+        <span class="gate-perk">⚡ Моментальная выдача</span>
+        <span class="gate-perk">🛡️ 99.9% Обходы</span>
+        <span class="gate-perk">🚀 240+ FPS</span>
+      </div>
+    </div>
     <div class="gate-mode">
       <button class="active" id="modeLoginBtn" onclick="setGateMode('login')">Вход</button>
       <button id="modeRegisterBtn" onclick="setGateMode('register')">Регистрация</button>
@@ -710,6 +744,124 @@ function payViaFunPay(){
 /* ── Stub actions ── */
 function downloadClient(){ alert('Файл клиента появится здесь после публикации сборки.'); }
 function linkTelegram(){ alert('Привязка Telegram-бота скоро будет доступна.'); }
+
+/* ── Interactive Particle Constellation Canvas ── */
+(function(){
+  const canvas = document.getElementById('particles-bg');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  let mouse = { x: -1000, y: -1000, radius: 140 };
+
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+  window.addEventListener('mouseleave', () => {
+    mouse.x = -1000;
+    mouse.y = -1000;
+  });
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  class Particle {
+    constructor(){
+      this.reset();
+    }
+    reset(){
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.vx = (Math.random() - 0.5) * 0.4;
+      this.vy = (Math.random() - 0.5) * 0.4;
+      this.radius = Math.random() * 2.2 + 0.8;
+      this.baseAlpha = Math.random() * 0.35 + 0.2;
+      this.alpha = this.baseAlpha;
+      this.color = Math.random() > 0.45 ? '133, 155, 255' : (Math.random() > 0.5 ? '56, 189, 248' : '196, 181, 253');
+      this.pulseSpeed = Math.random() * 0.02 + 0.006;
+      this.pulseAngle = Math.random() * Math.PI * 2;
+    }
+    update(){
+      this.x += this.vx;
+      this.y += this.vy;
+
+      if(this.x < 0) this.x = W;
+      if(this.x > W) this.x = 0;
+      if(this.y < 0) this.y = H;
+      if(this.y > H) this.y = 0;
+
+      const dx = mouse.x - this.x;
+      const dy = mouse.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if(dist < mouse.radius){
+        const force = (mouse.radius - dist) / mouse.radius;
+        const angle = Math.atan2(dy, dx);
+        this.x -= Math.cos(angle) * force * 2.2;
+        this.y -= Math.sin(angle) * force * 2.2;
+        this.alpha = Math.min(1, this.baseAlpha + force * 0.55);
+      } else {
+        this.pulseAngle += this.pulseSpeed;
+        this.alpha = this.baseAlpha + Math.sin(this.pulseAngle) * 0.15;
+      }
+    }
+    draw(){
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${this.color}, ${Math.max(0.05, this.alpha)})`;
+      ctx.shadowBlur = this.radius * 4;
+      ctx.shadowColor = `rgba(${this.color}, 0.8)`;
+      ctx.fill();
+    }
+  }
+
+  function init(){
+    particles = [];
+    const count = Math.min(75, Math.floor((W * H) / 16000));
+    for(let i = 0; i < count; i++){
+      particles.push(new Particle());
+    }
+  }
+
+  function drawConnections(){
+    for(let i = 0; i < particles.length; i++){
+      for(let j = i + 1; j < particles.length; j++){
+        const p1 = particles[i];
+        const p2 = particles[j];
+        const dx = p1.x - p2.x;
+        const dy = p1.y - p2.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const maxDist = 120;
+        if(dist < maxDist){
+          const alpha = (1 - dist / maxDist) * 0.2;
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = `rgba(133, 155, 255, ${alpha})`;
+          ctx.lineWidth = 0.85;
+          ctx.shadowBlur = 0;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animate(){
+    ctx.clearRect(0, 0, W, H);
+    drawConnections();
+    for(let p of particles){
+      p.update();
+      p.draw();
+    }
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', () => { resize(); init(); });
+  resize();
+  init();
+  animate();
+})();
 
 boot();
 </script>
